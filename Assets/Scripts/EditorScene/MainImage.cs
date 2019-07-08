@@ -4,7 +4,7 @@ using UnityEngine.UI;
 public class MainImage : MonoBehaviour
 {
     
-    private Image m_Image;
+    private RawImage m_RawImage;
     private RectTransform m_RectTransform;
     private Vector2 m_ImageBaseScale;
     private float m_MultiplicativeScale;
@@ -27,12 +27,12 @@ public class MainImage : MonoBehaviour
 
     void Awake()
     {
-        m_Image = GetComponent<Image>();
+        m_RawImage = GetComponent<RawImage>();
         m_RectTransform = GetComponent<RectTransform>();
 
-        if (m_Image)
+        if (m_RawImage)
         {
-            m_Image.material.mainTexture = Texture2D.blackTexture;
+            m_RawImage.texture = Texture2D.blackTexture;
         }
     }
 
@@ -45,11 +45,16 @@ public class MainImage : MonoBehaviour
             m_Position, m_DesiredPosition, 10f * Time.deltaTime
         );
 
-        m_RectTransform.sizeDelta = m_MultiplicativeScale * m_ImageBaseScale;
-        m_RectTransform.anchoredPosition = m_MultiplicativeScale * m_Position;
+        // m_RectTransform.sizeDelta = m_MultiplicativeScale * m_ImageBaseScale;
+        // m_RectTransform.anchoredPosition = m_MultiplicativeScale * m_Position;
 
-        m_Image.materialForRendering.SetFloat("_Grid_Opacity",
+        m_RawImage.materialForRendering.SetFloat("_Grid_Opacity",
             Mathf.Clamp(.5f + .1f * (m_MultiplicativeScale - GRID_OPACITY_CURVE_CENTER), 0f, 1f)
+        );
+
+        m_RawImage.uvRect = new Rect(
+            -(.5f / m_MultiplicativeScale * Vector2.one + .001f * m_Position) + .5f * Vector2.one,
+            (1f / m_MultiplicativeScale) * Vector2.one
         );
 
         if (scaleText)
@@ -71,11 +76,8 @@ public class MainImage : MonoBehaviour
         m_Position = Vector2.zero;
         m_DesiredPosition = Vector2.zero;
 
-        m_Image.sprite = Sprite.Create(
-            texture,
-            new Rect(0f, 0f, texture.width, texture.height),
-            .5f * Vector2.one
-        );
+        m_RawImage.uvRect = new Rect(0, 0, 1, 1);
+        m_RawImage.texture = texture;
     }
 
     public void UpdatePosition(Vector2 deltaPosition)

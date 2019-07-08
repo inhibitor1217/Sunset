@@ -119,7 +119,9 @@ Shader "UI/Grid"
                     (0.05 - min(texeloffset.x, texeloffset.y)) * 200, 0, 1
                 );
 
-                return lerp(color, fixed4(0, 0, 0, 1), coeff);
+                float bound = IN.texcoord.x < 0 || IN.texcoord.x > 1 || IN.texcoord.y < 0 || IN.texcoord.y > 1 ? 0 : 1;
+
+                return bound * lerp(color, fixed4(0, 0, 0, 1), coeff);
             }
         ENDCG
         }
