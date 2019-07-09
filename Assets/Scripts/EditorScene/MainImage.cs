@@ -12,8 +12,8 @@ public class MainImage : MonoBehaviour
     private Vector2 m_Position;
     private Vector2 m_DesiredPosition;
 
-    public const float CONTAINER_WIDTH = 1620;
-    public const float CONTAINER_HEIGHT = 1080;
+    public const float CONTAINER_WIDTH = 1458;
+    public const float CONTAINER_HEIGHT = 864;
     public const float MIN_SCALE = 0.8f;
     public const float MAX_SCALE = 32.0f;
 
@@ -34,6 +34,12 @@ public class MainImage : MonoBehaviour
         {
             m_RawImage.texture = Texture2D.blackTexture;
         }
+
+        m_ImageBaseScale = Vector2.one;
+        m_Position = Vector2.zero;
+        m_DesiredPosition = Vector2.zero;
+        m_MultiplicativeScale = 1f;
+        m_DesiredMultiplicativeScale = 1f;
     }
 
     void Update()
@@ -45,16 +51,13 @@ public class MainImage : MonoBehaviour
             m_Position, m_DesiredPosition, 10f * Time.deltaTime
         );
 
-        // m_RectTransform.sizeDelta = m_MultiplicativeScale * m_ImageBaseScale;
-        // m_RectTransform.anchoredPosition = m_MultiplicativeScale * m_Position;
-
         m_RawImage.materialForRendering.SetFloat("_Grid_Opacity",
             Mathf.Clamp(.5f + .1f * (m_MultiplicativeScale - GRID_OPACITY_CURVE_CENTER), 0f, 1f)
         );
 
         m_RawImage.uvRect = new Rect(
-            -(.5f / m_MultiplicativeScale * Vector2.one + .001f * m_Position) + .5f * Vector2.one,
-            (1f / m_MultiplicativeScale) * Vector2.one
+            -(.5f / m_MultiplicativeScale * m_ImageBaseScale + m_Position) + .5f * m_ImageBaseScale,
+            (1f / m_MultiplicativeScale) * m_ImageBaseScale
         );
 
         if (scaleText)
@@ -66,15 +69,17 @@ public class MainImage : MonoBehaviour
         texture.filterMode = FilterMode.Point;
         texture.wrapMode = TextureWrapMode.Clamp;
 
-        float initialScale = 0.9f * Mathf.Min(
-            CONTAINER_WIDTH / texture.width, CONTAINER_HEIGHT / texture.height
-        );
-        m_RectTransform.sizeDelta = m_ImageBaseScale = initialScale * new Vector2(texture.width, texture.height);
-        
+        float aspectRatio = (float) CONTAINER_WIDTH / (float) CONTAINER_HEIGHT * (float) texture.height / (float) texture.width;
+        if (aspectRatio > 1f)
+            m_ImageBaseScale = new Vector2(aspectRatio, 1f);
+        else
+            m_ImageBaseScale = new Vector2(1f, 1f/aspectRatio);
+
         m_MultiplicativeScale = 1f;
         m_DesiredMultiplicativeScale = 1f;
-        m_Position = Vector2.zero;
-        m_DesiredPosition = Vector2.zero;
+
+        m_Position = .5f * m_ImageBaseScale - .5f * Vector2.one;
+        m_DesiredPosition = .5f * m_ImageBaseScale - .5f * Vector2.one;
 
         m_RawImage.uvRect = new Rect(0, 0, 1, 1);
         m_RawImage.texture = texture;
@@ -82,9 +87,9 @@ public class MainImage : MonoBehaviour
 
     public void UpdatePosition(Vector2 deltaPosition)
     {
-        m_DesiredPosition += (.5f / m_MultiplicativeScale) * deltaPosition;
-        m_DesiredPosition.x = Mathf.Clamp(m_DesiredPosition.x, -.5f * m_ImageBaseScale.x, .5f * m_ImageBaseScale.x);
-        m_DesiredPosition.y = Mathf.Clamp(m_DesiredPosition.y, -.5f * m_ImageBaseScale.y, .5f * m_ImageBaseScale.y);
+        m_DesiredPosition += (.0005f / m_MultiplicativeScale) * deltaPosition;
+        m_DesiredPosition.x = Mathf.Clamp(m_DesiredPosition.x, -.5f, -.5f + m_ImageBaseScale.x);
+        m_DesiredPosition.y = Mathf.Clamp(m_DesiredPosition.y, -.5f, -.5f + m_ImageBaseScale.y);
     }
 
     public void UpdateScale(float deltaScale)
