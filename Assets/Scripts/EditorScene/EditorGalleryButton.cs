@@ -8,25 +8,20 @@ public class EditorGalleryButton : MonoBehaviour
     
     private Button m_Button;
 
-    private EditorSceneManager m_SceneManager;
+    public GalleryImageTexture textureProvider;
 
 #if UNITY_ANDROID && !UNITY_EDITOR
     void Awake()
     {
         m_Button = GetComponent<Button>();
         m_Button.onClick.AddListener(onGalleryButtonClicked);
-
-        m_SceneManager = GameObject.FindWithTag("SceneManager").GetComponent<EditorSceneManager>();
     }
 
     void onGalleryButtonClicked()
     {
         NativeGallery.Permission permission = NativeGallery.GetImageFromGallery(
             (path) => {
-                if (path != null)
-                {
-                    m_SceneManager.LoadImageFromPath(path);
-                }
+                textureProvider.LoadTexture(path);
             }
         );
     }
