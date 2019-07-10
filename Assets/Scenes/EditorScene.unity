@@ -810,18 +810,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8a6e602ad64c45bcb7cd2f65e5e3f9a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resolution: 256
-  noiseType: 0
-  offset: {x: 0, y: 0}
-  scale: {x: 8, y: 8}
-  rotation: 0
-  complexity: 2
-  subInfluence: 0.7
-  subScale: {x: 2, y: 2}
-  subRotation: 0
-  subOffset: {x: 0, y: 0}
-  brightness: 0
-  contrast: 1
+  _resolution: 256
+  _noiseType: 2
+  _fractalType: 0
+  _offset: {x: 0, y: 0}
+  _scale: {x: 8, y: 8}
+  _rotation: 0
+  _complexity: 6
+  _subInfluence: 0.5
+  _subScale: {x: 2, y: 2}
+  _subRotation: 0
+  _subOffset: {x: 0, y: 0}
+  _brightness: 0
+  _contrast: 1
 --- !u!114 &1516833639
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -3,20 +3,37 @@
 public class FractalNoiseRuntimeTexture : TextureProvider
 {
 
+    enum NoiseType {
+        Block = 0, Linear = 1, Spline = 2
+    };
+    enum FractalType {
+        Basic = 0, Turbulent = 1, Rocky = 2
+    };
+
     [Header("Texture")]
-    [SerializeField]
-    private int _resolution = 256;
-    public int resolution {
-        get { return _resolution; }
-        set { updateResolution(value); }
-    }
+    public int resolution = 256;
 
     [Header("General")]
     [SerializeField]
-    private FractalNoise.NoiseType _noiseType = FractalNoise.NoiseType.Block;
-    public FractalNoise.NoiseType noiseType {
-        get { return _noiseType; }
+    private int _seed = 0;
+    public int seed {
+        get { return _seed; }
+        set {
+            _seed = value;
+            loadGradients(_seed);
+        }
+    }
+    [SerializeField]
+    private NoiseType _noiseType = NoiseType.Spline;
+    public int noiseType {
+        get { return (int)_noiseType; }
         set { updateNoiseType(value); }
+    }
+    [SerializeField]
+    private FractalType _fractalType = FractalType.Basic;
+    public int fractalType {
+        get { return (int)_fractalType; }
+        set { updateFractalType(value); }
     }
 
     [Header("Transform")]
@@ -41,13 +58,13 @@ public class FractalNoiseRuntimeTexture : TextureProvider
 
     [Header("Complexity")]
     [SerializeField, Range(1, 10)]
-    private int _complexity = 7;
+    private int _complexity = 6;
     public int complexity {
         get { return _complexity; }
         set { updateComplexity(value); }
     }
     [SerializeField, Range(0, 1)]
-    private float _subInfluence = .7f;
+    private float _subInfluence = .5f;
     public float subInfluence {
         get { return _subInfluence; }
         set { updateSubInfluence(value); }
@@ -86,23 +103,33 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     }
 
     private Material m_FractalNoiseMaterial;
+    private RenderTexture m_RenderTexture;
 
     void Awake()
     {
         base.Awake();
         m_FractalNoiseMaterial = new Material(Shader.Find("Compute/FractalNoise"));
+        m_RenderTexture = new RenderTexture(resolution, resolution, 0);
     }
 
     void Start()
     {
-        updateResolution(_resolution);
+        texture = m_RenderTexture;
+        loadGradients(seed);
+    }
+
+    void Update()
+    {
+        m_RenderTexture.DiscardContents();
+        Graphics.Blit(null, m_RenderTexture, m_FractalNoiseMaterial);
     }
 
 #if UNITY_EDITOR
     void OnValidate()
     {
-        resolution = _resolution;
-        noiseType = _noiseType;
+        noiseType = (int)_noiseType;
+        fractalType = (int)_fractalType;
+        seed = _seed;
         offset = _offset;
         scale = _scale;
         rotation = _rotation;
@@ -115,32 +142,34 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     }
 #endif
 
-    void updateResolution(int value) {
-        if (m_FractalNoiseMaterial && value > 0)
-        {
-            _resolution = value;
-            texture = new RenderTexture(_resolution, _resolution, 0);
-            Graphics.Blit(null, texture as RenderTexture, m_FractalNoiseMaterial);
-        }        
-    }
-
-    void updateNoiseType(FractalNoise.NoiseType value)
+    void updateNoiseType(int value)
     {
-        _noiseType = value;
+        _noiseType = (NoiseType)value;
         if (m_FractalNoiseMaterial)
         {
-            switch(_noiseType)
-            {
-            case FractalNoise.NoiseType.Block:
-                m_FractalNoiseMaterial.SetInt("_NoiseType", 0);
-                break;
-            case FractalNoise.NoiseType.Linear:
-                m_FractalNoiseMaterial.SetInt("_NoiseType", 1);
-                break;
-            case FractalNoise.NoiseType.Spline:
-                m_FractalNoiseMaterial.SetInt("_NoiseType", 2);
-                break;
-            }
+            m_FractalNoiseMaterial.SetInt("_NoiseType", value);
+        }
+    }
+
+    void updateFractalType(int value)
+    {
+        _fractalType = (FractalType)value;
+        if (m_FractalNoiseMaterial)
+        {
+            m_FractalNoiseMaterial.SetInt("_FractalType", value);
+        }
+    }
+
+    void loadGradients(int seed)
+    {
+        Random.InitState(_seed);
+        Vector4[] gradients = new Vector4[256];
+        for (int i = 0; i < 256; i++)
+            gradients[i] = new Vector4(Random.value, Random.value, Random.value, 1);
+            // gradients[i] = 2f * new Vector4(Random.value, Random.value, Random.value, 1f) - Vector4.one;
+        if (m_FractalNoiseMaterial)
+        {
+            m_FractalNoiseMaterial.SetVectorArray("_Gradients", gradients);
         }
     }
 

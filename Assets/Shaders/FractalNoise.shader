@@ -2,79 +2,39 @@ Shader "Compute/FractalNoise"
 {
     Properties
     {
-        [Enum(Block, 0, Linear, 1, Spline, 2)] _NoiseType ("Noise Type", int) = 0
+        [Enum(Block, 0, Linear, 1, Spline, 2)] _NoiseType ("Noise Type", int) = 2
+        [Enum(Basic, 0, Turbulent, 1, Rocky, 2)] _FractalType ("Fractal Type", int) = 0
 
         _GlobalOffsetScale ("Global Offset, Scale", Vector) = (0, 0, 8, 8)
         _GlobalRotation ("Global Rotation", Range(-360, 360)) = 0
         
-        _Complexity ("Complexity", Int) = 2
+        _Complexity ("Complexity", Int) = 6
         _SubOffsetScale("Sub Offset, Scale", Vector) = (0, 0, 2, 2)
         _SubRotation("Sub Rotation", Range(-360, 360)) = 0
-        _SubInfluence("Sub Influence", Range(0, 1)) = .7
+        _SubInfluence("Sub Influence", Range(0, 1)) = .5
 
         _Contrast ("Contrast", Range(0, 10)) = 1
         _Brightness ("Brightness", Range(-2, 2)) = 0
-
-        _StencilComp ("Stencil Comparison", Float) = 8
-        _Stencil ("Stencil ID", Float) = 0
-        _StencilOp ("Stencil Operation", Float) = 0
-        _StencilWriteMask ("Stencil Write Mask", Float) = 255
-        _StencilReadMask ("Stencil Read Mask", Float) = 255
-
-        _ColorMask ("Color Mask", Float) = 15
     }
 
     SubShader
     {
-        Tags
-        {
-            "Queue"="Transparent"
-            "PreviewType"="Plane"
-        }
-
-        Stencil
-        {
-            Ref [_Stencil]
-            Comp [_StencilComp]
-            Pass [_StencilOp]
-            ReadMask [_StencilReadMask]
-            WriteMask [_StencilWriteMask]
-        }
-
-        Cull Off
         Lighting Off
-        ZWrite Off
-        ZTest [unity_GUIZTestMode]
-        ColorMask [_ColorMask]
+        Blend One Zero
 
         Pass
         {
-            Name "Default"
+            name "Default"
         CGPROGRAM
+            #include "UnityCG.cginc"
+
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "UnityCG.cginc"
-            #include "UnityUI.cginc"
-            
-            #pragma multi_compile_local _ UNITY_UI_CLIP_RECT
-            #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
+            int _NoiseType;
+            int _FractalType;
 
-            struct appdata_t
-            {
-                float4 vertex   : POSITION;
-                float2 texcoord : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-            };
-
-            struct v2f
-            {
-                float4 vertex   : SV_POSITION;
-                float2 texcoord : TEXCOORD0;
-                UNITY_VERTEX_OUTPUT_STEREO
-            };
-
-            float _NoiseType;
+            float4 _Gradients[256];
 
             fixed4 _GlobalOffsetScale;
             float _GlobalRotation;
@@ -168,14 +128,40 @@ Shader "Compute/FractalNoise"
 
             float octave(float2 texcoord, int level)
             {
-                return hashInterp(
+                float value = hashInterp(
                     rotate2(
                         _GlobalOffsetScale.xy + _SubOffsetScale.xy * level
                         + _GlobalOffsetScale.zw * pow(_SubOffsetScale.zw, level) * texcoord,
                         radians(_GlobalRotation + _SubRotation * level)
                     )
                 );
+
+                switch (_FractalType)
+                {
+                    case 0:
+                    case 1:
+                        break;
+                    case 2:
+                        value = floor(8 * value) * .125;
+                        break;
+                }
+
+                return value;
             }
+
+            struct appdata_t
+            {
+                float4 vertex   : POSITION;
+                float2 texcoord : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct v2f
+            {
+                float4 vertex   : SV_POSITION;
+                float2 texcoord  : TEXCOORD0;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
 
             v2f vert(appdata_t v)
             {
@@ -190,20 +176,34 @@ Shader "Compute/FractalNoise"
                 return OUT;
             }
 
-            fixed4 frag(v2f IN) : SV_Target
+            float4 frag(v2f IN) : SV_Target
             {
-                float value = octave(IN.texcoord, _Complexity - 1);
-                for (int level = _Complexity - 2; level >= 0; level--)
-                {
-                    value = lerp(
-                        octave(IN.texcoord, level),
-                        value,
-                        _SubInfluence
-                    );
-                }
-                value = clamp(_Contrast * (value - .5) + (.5 + _Brightness), 0, 1);
+                // float value = octave(IN.texcoord, _Complexity - 1);
+                // for (int level = _Complexity - 2; level >= 0; level--)
+                // {
+                //     value = lerp(
+                //         octave(IN.texcoord, level),
+                //         value,
+                //         _SubInfluence
+                //     );
+                // }
+                // value = clamp(_Contrast * (value - .5) + (.5 + _Brightness), 0, 1);
 
-                half4 color = half4(value, value, value, 1);
+                // switch (_FractalType)
+                // {
+                // case 0:
+                //     break;
+                // case 1:
+                //     value = 2 * abs(value - 0.5);
+                //     break;
+                // case 2:
+                //     break;
+                // }
+
+                // half4 color = half4(value, value, value, 1);
+
+                int2 coords = floor(IN.texcoord.xy * 16);
+                float4 color = _Gradients[coords.x * 16 + coords.y];
 
                 return color;
             }
