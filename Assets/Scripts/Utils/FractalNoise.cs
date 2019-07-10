@@ -4,7 +4,7 @@ public static class FractalNoise
 {
     public enum NoiseType
     {
-        Block, Linear, Spline
+        Block = 0, Linear = 1, Spline = 2
     };
     
     private const float HASH_MAX = 255f;
@@ -67,17 +67,17 @@ public static class FractalNoise
             return getHashValue(ix, iy);
         case NoiseType.Linear:
             return Mathf.Lerp(
-                Mathf.Lerp(getHashValue(ix, iy), getHashValue(ix + 1, iy), pos.x % 1f),
-                Mathf.Lerp(getHashValue(ix, iy + 1), getHashValue(ix + 1, iy + 1), pos.x % 1f),
-                pos.y % 1f
+                Mathf.Lerp(getHashValue(ix, iy), getHashValue(ix + 1, iy), pos.x - ix),
+                Mathf.Lerp(getHashValue(ix, iy + 1), getHashValue(ix + 1, iy + 1), pos.x - ix),
+                pos.y - iy
             );
         case NoiseType.Spline:
             return spline(
-                pos.y % 1f,
-                spline(pos.x % 1f, getHashValue(ix-1, iy-1), getHashValue(ix, iy-1), getHashValue(ix+1, iy-1), getHashValue(ix+2, iy-1)),
-                spline(pos.x % 1f, getHashValue(ix-1, iy  ), getHashValue(ix, iy  ), getHashValue(ix+1, iy  ), getHashValue(ix+2, iy  )),
-                spline(pos.x % 1f, getHashValue(ix-1, iy+1), getHashValue(ix, iy+1), getHashValue(ix+1, iy+1), getHashValue(ix+2, iy+1)),
-                spline(pos.x % 1f, getHashValue(ix-1, iy+2), getHashValue(ix, iy+2), getHashValue(ix+1, iy+2), getHashValue(ix+2, iy+2))
+                pos.y - iy,
+                spline(pos.x - ix, getHashValue(ix-1, iy-1), getHashValue(ix, iy-1), getHashValue(ix+1, iy-1), getHashValue(ix+2, iy-1)),
+                spline(pos.x - ix, getHashValue(ix-1, iy  ), getHashValue(ix, iy  ), getHashValue(ix+1, iy  ), getHashValue(ix+2, iy  )),
+                spline(pos.x - ix, getHashValue(ix-1, iy+1), getHashValue(ix, iy+1), getHashValue(ix+1, iy+1), getHashValue(ix+2, iy+1)),
+                spline(pos.x - ix, getHashValue(ix-1, iy+2), getHashValue(ix, iy+2), getHashValue(ix+1, iy+2), getHashValue(ix+2, iy+2))
             );
         }
 

@@ -24,6 +24,13 @@ public class FractalNoiseTexture: TextureProvider
     public float subRotation = 0f;
     public Vector2 subOffset = Vector2.zero;
 
+    [Header("Output")]
+    public Gradient gradient;
+    [Range(-2f, 2f)]
+    public float brightness = 0f;
+    [Range(0, 10)]
+    public float contrast = 1f;
+
     void Start()
     {
         texture = new Texture2D(resolution, resolution, TextureFormat.RGB24, false);
@@ -44,10 +51,12 @@ public class FractalNoiseTexture: TextureProvider
         
         for (int i = 0; i < resolution; i++)
             for (int j = 0; j < resolution; j++)
-                colors[i * resolution + j] = values[i, j] * Color.white;
+                colors[i * resolution + j] = gradient.Evaluate(
+                    Mathf.Clamp((.5f + brightness) + contrast * (values[i, j] - .5f), 0f, 1f)
+                );
 
-        texture.SetPixels(0, 0, resolution, resolution, colors);
-        texture.Apply();
+        (texture as Texture2D).SetPixels(0, 0, resolution, resolution, colors);
+        (texture as Texture2D).Apply();
     }
 
 }

@@ -3,15 +3,16 @@
 public class TextureProvider : MonoBehaviour
 {
 
-    protected Texture2D m_Texture = null;
+    protected Texture m_Texture = null;
     private RawImageController m_TargetRawImage = null;
 
-    void Awake()
+    protected void Awake()
     {
         m_TargetRawImage = GetComponent<RawImageController>();
+        Debug.Log(m_TargetRawImage);
     }
 
-    public Texture2D texture {
+    public Texture texture {
         get {
             return m_Texture;
         }

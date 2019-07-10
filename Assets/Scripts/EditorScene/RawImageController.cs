@@ -109,7 +109,7 @@ public class RawImageController : MonoBehaviour
         );
     }
 
-    public void SetTexture(Texture2D texture)
+    public void SetTexture(Texture texture)
     {
         texture.filterMode = FilterMode.Point;
         texture.wrapMode = TextureWrapMode.Clamp;

@@ -19,7 +19,7 @@
     {
         Tags
         {
-            "Queue"="Geometry"
+            "Queue"="Transparent"
             "PreviewType"="Plane"
         }
 
@@ -88,14 +88,6 @@
             {
                 float2 gridcoords = floor((1/_GridSpacing) * IN.worldPosition.xy);
                 half4 color = (int(gridcoords.x) + int(gridcoords.y)) & 1 ? _TileColor : _BaseColor;
-
-                #ifdef UNITY_UI_CLIP_RECT
-                color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
-                #endif
-
-                #ifdef UNITY_UI_ALPHACLIP
-                clip (color.a - 0.001);
-                #endif
 
                 return color;                
             }

@@ -807,10 +807,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 1516833636}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fec60aafd3cf5485ea872d4c771f55d0, type: 3}
+  m_Script: {fileID: 11500000, guid: b8a6e602ad64c45bcb7cd2f65e5e3f9a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   resolution: 256
+  noiseType: 0
+  offset: {x: 0, y: 0}
+  scale: {x: 8, y: 8}
+  rotation: 0
+  complexity: 2
+  subInfluence: 0.7
+  subScale: {x: 2, y: 2}
+  subRotation: 0
+  subOffset: {x: 0, y: 0}
+  brightness: 0
+  contrast: 1
 --- !u!114 &1516833639
 MonoBehaviour:
   m_ObjectHideFlags: 0
