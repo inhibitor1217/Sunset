@@ -4,7 +4,8 @@ public class FractalNoiseRuntimeTexture : TextureProvider
 {
 
     enum NoiseType {
-        Block = 0, Linear = 1, Spline = 2
+        ValueBlock = 0, ValueLinear = 1, ValueSpline = 2,
+        PerlinBlock = 3, PerlinLinear = 4
     };
     enum FractalType {
         Basic = 0, Turbulent = 1, Rocky = 2
@@ -24,7 +25,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         }
     }
     [SerializeField]
-    private NoiseType _noiseType = NoiseType.Spline;
+    private NoiseType _noiseType = NoiseType.PerlinLinear;
     public int noiseType {
         get { return (int)_noiseType; }
         set { updateNoiseType(value); }
@@ -165,8 +166,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         Random.InitState(_seed);
         Vector4[] gradients = new Vector4[256];
         for (int i = 0; i < 256; i++)
-            gradients[i] = new Vector4(Random.value, Random.value, Random.value, 1);
-            // gradients[i] = 2f * new Vector4(Random.value, Random.value, Random.value, 1f) - Vector4.one;
+            gradients[i] = (2f * new Vector4(Random.value, Random.value, Random.value, 1f) - Vector4.one).normalized;
         if (m_FractalNoiseMaterial)
         {
             m_FractalNoiseMaterial.SetVectorArray("_Gradients", gradients);

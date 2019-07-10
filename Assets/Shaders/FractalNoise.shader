@@ -2,8 +2,8 @@ Shader "Compute/FractalNoise"
 {
     Properties
     {
-        [Enum(Block, 0, Linear, 1, Spline, 2)] _NoiseType ("Noise Type", int) = 2
-        [Enum(Basic, 0, Turbulent, 1, Rocky, 2)] _FractalType ("Fractal Type", int) = 0
+        _NoiseType ("Noise Type", int) = 2
+        _FractalType ("Fractal Type", int) = 0
 
         _GlobalOffsetScale ("Global Offset, Scale", Vector) = (0, 0, 8, 8)
         _GlobalRotation ("Global Rotation", Range(-360, 360)) = 0
@@ -82,36 +82,66 @@ Shader "Compute/FractalNoise"
                 return .5 * (a + t * (b + t * (c + d * t)));
             }
 
-            float hash(int2 coords)
+            int hash3(int3 coords)
             {
-                return HASH_ARRAY[mod(HASH_ARRAY[mod(coords.x)] + mod(coords.y))] / HASH_MAX;
+                return HASH_ARRAY[mod(HASH_ARRAY[mod(HASH_ARRAY[mod(coords.x)] + mod(coords.y))] + mod(coords.z))];
             }
 
-            float hashInterp(float2 coords)
+            float value(int3 coords)
             {
-                int2 coordsFloored = floor(coords);
-                float2 offset = coords - coordsFloored;
+                return HASH_ARRAY[hash3(coords)] / HASH_MAX;
+            }
+
+            float perlin(int3 grid, float3 coords)
+            {
+                return dot(_Gradients[hash3(grid)], coords - grid) * .5 + .5;
+            }
+
+            float interp(float3 coords)
+            {
+                int3 coordsFloored = floor(coords);
+                float3 offset = coords - coordsFloored;
 
                 if (_NoiseType == 0)
                 {
-                    return hash(coordsFloored);
+                    return value(coordsFloored);
                 }
                 else if (_NoiseType == 1)
                 {
                     return lerp(
-                        lerp(hash(coordsFloored), hash(coordsFloored + int2(1, 0)), offset.x),
-                        lerp(hash(coordsFloored + int2(0, 1)), hash(coordsFloored + int2(1, 1)), offset.x),
+                        lerp(value(coordsFloored), value(coordsFloored + int3(1, 0, 0)), offset.x),
+                        lerp(value(coordsFloored + int3(0, 1, 0)), value(coordsFloored + int3(1, 1, 0)), offset.x),
                         offset.y
                     );
                 }
                 else if (_NoiseType == 2)
                 {
                     return spline(
-                        spline(hash(coordsFloored + int2(-1, -1)), hash(coordsFloored + int2(0, -1)), hash(coordsFloored + int2(1, -1)), hash(coordsFloored + int2(2, -1)), offset.x),
-                        spline(hash(coordsFloored + int2(-1,  0)), hash(coordsFloored + int2(0,  0)), hash(coordsFloored + int2(1,  0)), hash(coordsFloored + int2(2,  0)), offset.x),
-                        spline(hash(coordsFloored + int2(-1,  1)), hash(coordsFloored + int2(0,  1)), hash(coordsFloored + int2(1,  1)), hash(coordsFloored + int2(2,  1)), offset.x),
-                        spline(hash(coordsFloored + int2(-1,  2)), hash(coordsFloored + int2(0,  2)), hash(coordsFloored + int2(1,  2)), hash(coordsFloored + int2(2,  2)), offset.x),
+                        spline(value(coordsFloored + int3(-1, -1, 0)), value(coordsFloored + int3(0, -1, 0)), value(coordsFloored + int3(1, -1, 0)), value(coordsFloored + int3(2, -1, 0)), offset.x),
+                        spline(value(coordsFloored + int3(-1,  0, 0)), value(coordsFloored + int3(0,  0, 0)), value(coordsFloored + int3(1,  0, 0)), value(coordsFloored + int3(2,  0, 0)), offset.x),
+                        spline(value(coordsFloored + int3(-1,  1, 0)), value(coordsFloored + int3(0,  1, 0)), value(coordsFloored + int3(1,  1, 0)), value(coordsFloored + int3(2,  1, 0)), offset.x),
+                        spline(value(coordsFloored + int3(-1,  2, 0)), value(coordsFloored + int3(0,  2, 0)), value(coordsFloored + int3(1,  2, 0)), value(coordsFloored + int3(2,  2, 0)), offset.x),
                         offset.y
+                    );
+                }
+                else if (_NoiseType == 3)
+                {
+                    return perlin(coordsFloored, coords);
+                }
+                else if (_NoiseType == 4)
+                {
+                    return lerp(
+                        lerp(
+                            lerp(perlin(coordsFloored + int3(0, 0, 0), coords), perlin(coordsFloored + int3(1, 0, 0), coords), smoothstep(0, 1, offset.x)),
+                            lerp(perlin(coordsFloored + int3(0, 1, 0), coords), perlin(coordsFloored + int3(1, 1, 0), coords), smoothstep(0, 1, offset.x)),
+                            smoothstep(0, 1, offset.y)
+                        ),
+                        lerp(
+                            lerp(perlin(coordsFloored + int3(0, 0, 1), coords), perlin(coordsFloored + int3(1, 0, 1), coords), smoothstep(0, 1, offset.x)),
+                            lerp(perlin(coordsFloored + int3(0, 1, 1), coords), perlin(coordsFloored + int3(1, 1, 1), coords), smoothstep(0, 1, offset.x)),
+                            smoothstep(0, 1, offset.y)
+                        ),
+                        smoothstep(0, 1, offset.z)
                     );
                 }
 
@@ -126,15 +156,17 @@ Shader "Compute/FractalNoise"
                 );
             }
 
-            float octave(float2 texcoord, int level)
+            float octave(float3 texcoord, int level)
             {
-                float value = hashInterp(
-                    rotate2(
-                        _GlobalOffsetScale.xy + _SubOffsetScale.xy * level
-                        + _GlobalOffsetScale.zw * pow(_SubOffsetScale.zw, level) * texcoord,
-                        radians(_GlobalRotation + _SubRotation * level)
-                    )
+                float3 coords;
+                coords.xy = rotate2(
+                    _GlobalOffsetScale.xy + _SubOffsetScale.xy * level
+                    + _GlobalOffsetScale.zw * pow(_SubOffsetScale.zw, level) * texcoord.xy,
+                    radians(_GlobalRotation + _SubRotation * level)
                 );
+                coords.z = texcoord.z;
+
+                float value = interp(coords);
 
                 switch (_FractalType)
                 {
@@ -178,32 +210,33 @@ Shader "Compute/FractalNoise"
 
             float4 frag(v2f IN) : SV_Target
             {
-                // float value = octave(IN.texcoord, _Complexity - 1);
-                // for (int level = _Complexity - 2; level >= 0; level--)
-                // {
-                //     value = lerp(
-                //         octave(IN.texcoord, level),
-                //         value,
-                //         _SubInfluence
-                //     );
-                // }
-                // value = clamp(_Contrast * (value - .5) + (.5 + _Brightness), 0, 1);
+                float3 coords;
+                coords.xy = IN.texcoord;
+                coords.z = 0;
 
-                // switch (_FractalType)
-                // {
-                // case 0:
-                //     break;
-                // case 1:
-                //     value = 2 * abs(value - 0.5);
-                //     break;
-                // case 2:
-                //     break;
-                // }
+                float value = octave(coords, _Complexity - 1);
+                for (int level = _Complexity - 2; level >= 0; level--)
+                {
+                    value = lerp(
+                        octave(coords, level),
+                        value,
+                        _SubInfluence
+                    );
+                }
+                value = clamp(_Contrast * (value - .5) + (.5 + _Brightness), 0, 1);
 
-                // half4 color = half4(value, value, value, 1);
+                switch (_FractalType)
+                {
+                case 0:
+                    break;
+                case 1:
+                    value = 2 * abs(value - 0.5);
+                    break;
+                case 2:
+                    break;
+                }
 
-                int2 coords = floor(IN.texcoord.xy * 16);
-                float4 color = _Gradients[coords.x * 16 + coords.y];
+                half4 color = half4(value, value, value, 1);
 
                 return color;
             }
