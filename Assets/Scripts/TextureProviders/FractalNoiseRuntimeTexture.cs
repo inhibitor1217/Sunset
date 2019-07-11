@@ -137,12 +137,18 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     {
         texture = m_RenderTexture;
         loadGradients(seed);
+
+        m_RenderTexture.DiscardContents();
+        Graphics.Blit(null, m_RenderTexture, m_FractalNoiseMaterial);
     }
 
     void Update()
     {
-        m_RenderTexture.DiscardContents();
-        Graphics.Blit(null, m_RenderTexture, m_FractalNoiseMaterial);
+        if (enableEvolution)
+        {
+            m_RenderTexture.DiscardContents();
+            Graphics.Blit(null, m_RenderTexture, m_FractalNoiseMaterial);
+        }
     }
 
 #if UNITY_EDITOR
