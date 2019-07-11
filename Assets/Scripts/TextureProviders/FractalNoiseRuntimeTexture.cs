@@ -103,6 +103,26 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         set { updateContrast(value); }
     }
 
+    [Header("Evolution")]
+    [SerializeField]
+    private bool _enableEvolution = false;
+    public bool enableEvolution {
+        get { return _enableEvolution; }
+        set {
+            _enableEvolution = value;
+            if (value)
+                updateEvolutionSpeed(evolutionSpeed);
+            else
+                updateEvolutionSpeed(0);
+        }
+    }
+    [SerializeField]
+    private float _evolutionSpeed = 0f;
+    public float evolutionSpeed {
+        get { return _evolutionSpeed; }
+        set { updateEvolutionSpeed(value); }
+    }
+
     private Material m_FractalNoiseMaterial;
     private RenderTexture m_RenderTexture;
 
@@ -140,6 +160,8 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         subOffset = _subOffset;
         brightness = _brightness;
         contrast = _contrast;
+        enableEvolution = _enableEvolution;
+        evolutionSpeed = _evolutionSpeed;
     }
 #endif
 
@@ -264,6 +286,15 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         if (m_FractalNoiseMaterial)
         {
             m_FractalNoiseMaterial.SetFloat("_Contrast", _contrast);
+        }
+    }
+
+    void updateEvolutionSpeed(float value)
+    {
+        _evolutionSpeed = value;
+        if (m_FractalNoiseMaterial)
+        {
+            m_FractalNoiseMaterial.SetFloat("_EvolutionSpeed", _evolutionSpeed);
         }
     }
 

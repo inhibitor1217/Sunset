@@ -15,6 +15,8 @@ Shader "Compute/FractalNoise"
 
         _Contrast ("Contrast", Range(0, 10)) = 1
         _Brightness ("Brightness", Range(-2, 2)) = 0
+
+        _EvolutionSpeed ("Evolution Speed", Float) = 0
     }
 
     SubShader
@@ -46,6 +48,8 @@ Shader "Compute/FractalNoise"
 
             float _Contrast;
             float _Brightness;
+            
+            float _EvolutionSpeed;
 
             static float HASH_MAX = 255;
             static int HASH_MASK = 0x7F;
@@ -104,29 +108,55 @@ Shader "Compute/FractalNoise"
 
                 if (_NoiseType == 0)
                 {
-                    return value(coordsFloored);
+                    return lerp(
+                        value(coordsFloored),
+                        value(coordsFloored + int3(0, 0, 1)),
+                        offset.z
+                    );
                 }
                 else if (_NoiseType == 1)
                 {
                     return lerp(
-                        lerp(value(coordsFloored), value(coordsFloored + int3(1, 0, 0)), offset.x),
-                        lerp(value(coordsFloored + int3(0, 1, 0)), value(coordsFloored + int3(1, 1, 0)), offset.x),
-                        offset.y
+                        lerp(
+                            lerp(value(coordsFloored), value(coordsFloored + int3(1, 0, 0)), offset.x),
+                            lerp(value(coordsFloored + int3(0, 1, 0)), value(coordsFloored + int3(1, 1, 0)), offset.x),
+                            offset.y
+                        ),
+                        lerp(
+                            lerp(value(coordsFloored + int3(0, 0, 1)), value(coordsFloored + int3(1, 0, 1)), offset.x),
+                            lerp(value(coordsFloored + int3(0, 1, 1)), value(coordsFloored + int3(1, 1, 1)), offset.x),
+                            offset.y
+                        ),
+                        offset.z
                     );
                 }
                 else if (_NoiseType == 2)
                 {
-                    return spline(
-                        spline(value(coordsFloored + int3(-1, -1, 0)), value(coordsFloored + int3(0, -1, 0)), value(coordsFloored + int3(1, -1, 0)), value(coordsFloored + int3(2, -1, 0)), offset.x),
-                        spline(value(coordsFloored + int3(-1,  0, 0)), value(coordsFloored + int3(0,  0, 0)), value(coordsFloored + int3(1,  0, 0)), value(coordsFloored + int3(2,  0, 0)), offset.x),
-                        spline(value(coordsFloored + int3(-1,  1, 0)), value(coordsFloored + int3(0,  1, 0)), value(coordsFloored + int3(1,  1, 0)), value(coordsFloored + int3(2,  1, 0)), offset.x),
-                        spline(value(coordsFloored + int3(-1,  2, 0)), value(coordsFloored + int3(0,  2, 0)), value(coordsFloored + int3(1,  2, 0)), value(coordsFloored + int3(2,  2, 0)), offset.x),
-                        offset.y
+                    return lerp(
+                        spline(
+                            spline(value(coordsFloored + int3(-1, -1, 0)), value(coordsFloored + int3(0, -1, 0)), value(coordsFloored + int3(1, -1, 0)), value(coordsFloored + int3(2, -1, 0)), offset.x),
+                            spline(value(coordsFloored + int3(-1,  0, 0)), value(coordsFloored + int3(0,  0, 0)), value(coordsFloored + int3(1,  0, 0)), value(coordsFloored + int3(2,  0, 0)), offset.x),
+                            spline(value(coordsFloored + int3(-1,  1, 0)), value(coordsFloored + int3(0,  1, 0)), value(coordsFloored + int3(1,  1, 0)), value(coordsFloored + int3(2,  1, 0)), offset.x),
+                            spline(value(coordsFloored + int3(-1,  2, 0)), value(coordsFloored + int3(0,  2, 0)), value(coordsFloored + int3(1,  2, 0)), value(coordsFloored + int3(2,  2, 0)), offset.x),
+                            offset.y
+                        ),
+                        spline(
+                            spline(value(coordsFloored + int3(-1, -1, 1)), value(coordsFloored + int3(0, -1, 1)), value(coordsFloored + int3(1, -1, 1)), value(coordsFloored + int3(2, -1, 1)), offset.x),
+                            spline(value(coordsFloored + int3(-1,  0, 1)), value(coordsFloored + int3(0,  0, 1)), value(coordsFloored + int3(1,  0, 1)), value(coordsFloored + int3(2,  0, 1)), offset.x),
+                            spline(value(coordsFloored + int3(-1,  1, 1)), value(coordsFloored + int3(0,  1, 1)), value(coordsFloored + int3(1,  1, 1)), value(coordsFloored + int3(2,  1, 1)), offset.x),
+                            spline(value(coordsFloored + int3(-1,  2, 1)), value(coordsFloored + int3(0,  2, 1)), value(coordsFloored + int3(1,  2, 1)), value(coordsFloored + int3(2,  2, 1)), offset.x),
+                            offset.y
+                        ),
+                        offset.z
                     );
                 }
                 else if (_NoiseType == 3)
                 {
-                    return perlin(coordsFloored, coords);
+                    return lerp(
+                        perlin(coordsFloored, coords),
+                        perlin(coordsFloored + int3(0, 0, 1), coords),
+                        offset.z
+                    );
                 }
                 else if (_NoiseType == 4)
                 {
@@ -212,7 +242,7 @@ Shader "Compute/FractalNoise"
             {
                 float3 coords;
                 coords.xy = IN.texcoord;
-                coords.z = 0;
+                coords.z = _Time.y * _EvolutionSpeed;
 
                 float value = octave(coords, _Complexity - 1);
                 for (int level = _Complexity - 2; level >= 0; level--)
