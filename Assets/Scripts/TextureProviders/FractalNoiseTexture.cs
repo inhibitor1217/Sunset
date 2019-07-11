@@ -34,11 +34,9 @@ public class FractalNoiseTexture: TextureProvider
     void Start()
     {
         texture = new Texture2D(resolution, resolution, TextureFormat.RGB24, false);
-
-        Generate();
     }
 
-    public void Generate()
+    public override bool Draw()
     {
         float[,] values = FractalNoise.GetValues(
             resolution, noiseType, 
@@ -57,6 +55,8 @@ public class FractalNoiseTexture: TextureProvider
 
         (texture as Texture2D).SetPixels(0, 0, resolution, resolution, colors);
         (texture as Texture2D).Apply();
+
+        return true;
     }
 
 }

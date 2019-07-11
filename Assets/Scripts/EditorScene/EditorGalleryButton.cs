@@ -21,7 +21,7 @@ public class EditorGalleryButton : MonoBehaviour
     {
         NativeGallery.Permission permission = NativeGallery.GetImageFromGallery(
             (path) => {
-                textureProvider.LoadTexture(path);
+                textureProvider.SetPath(path);
             }
         );
     }

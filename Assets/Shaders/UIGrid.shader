@@ -98,7 +98,7 @@
                 return OUT;
             }
 
-            fixed4 frag(v2f IN) : SV_Target
+            half4 frag(v2f IN) : SV_Target
             {
                 half4 color = (tex2D(_MainTex, IN.texcoord) + _TextureSampleAdd) * IN.color;
 
@@ -119,7 +119,7 @@
 
                 bool bound = IN.texcoord.x < 0 || IN.texcoord.x > 1 || IN.texcoord.y < 0 || IN.texcoord.y > 1;
 
-                return bound ? fixed4(0, 0, 0, 1) : lerp(color, fixed4(0, 0, 0, 1), coeff);
+                return bound ? half4(0, 0, 0, 1) : lerp(color, half4(0, 0, 0, 1), coeff);
             }
         ENDCG
         }

@@ -21,8 +21,11 @@ Shader "Compute/FractalNoise"
 
     SubShader
     {
+        Cull Off
+        ZWrite Off
         Lighting Off
         Blend One Zero
+        ColorMask R
 
         Pass
         {
@@ -90,22 +93,22 @@ Shader "Compute/FractalNoise"
                 return hash3(coords) / HASH_MAX;
             }
 
-            float value(int x, int y, int z)
+            half value(int x, int y, int z)
             {
                 return hash3(x, y, z) / HASH_MAX;
             }
 
-            float perlin(int3 grid, float3 coords)
+            half perlin(int3 grid, float3 coords)
             {
                 return dot(_Gradients[hash3(grid)], coords - grid);
             }
 
-            float perlin(int x, int y, int z, float3 coords)
+            half perlin(int x, int y, int z, float3 coords)
             {
                 return dot(_Gradients[hash3(x, y, z)], coords - float3(x, y, z));
             }
 
-            float interp(float3 coords)
+            half interp(float3 coords)
             {
                 int3 coordsFloored = floor(coords);
                 int x = coordsFloored.x;
@@ -185,7 +188,7 @@ Shader "Compute/FractalNoise"
                 return 0;
             }
 
-            float octave(float3 texcoord, int level)
+            half octave(float3 texcoord, int level)
             {
                 float angle = radians(_GlobalRotation + _SubRotation * level);
                 float3 coords;
@@ -199,7 +202,7 @@ Shader "Compute/FractalNoise"
                 );
                 coords.z = texcoord.z;
 
-                float value = interp(coords);
+                half value = interp(coords);
 
                 switch (_NoiseType)
                 {
@@ -230,22 +233,17 @@ Shader "Compute/FractalNoise"
             {
                 float4 vertex   : POSITION;
                 float2 texcoord : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct v2f
             {
                 float4 vertex   : SV_POSITION;
                 float2 texcoord  : TEXCOORD0;
-                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             v2f vert(appdata_t v)
             {
                 v2f OUT;
-
-                UNITY_SETUP_INSTANCE_ID(v);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
 
                 OUT.vertex = UnityObjectToClipPos(v.vertex);
                 OUT.texcoord = v.texcoord;
@@ -253,13 +251,13 @@ Shader "Compute/FractalNoise"
                 return OUT;
             }
 
-            float4 frag(v2f IN) : SV_Target
+            half frag(v2f IN) : SV_Target
             {
                 float3 coords;
                 coords.xy = IN.texcoord;
                 coords.z = _Time.y * _EvolutionSpeed;
 
-                float value = octave(coords, _Complexity - 1);
+                half value = octave(coords, _Complexity - 1);
                 for (int level = _Complexity - 2; level >= 0; level--)
                 {
                     value = lerp(
@@ -280,9 +278,7 @@ Shader "Compute/FractalNoise"
                     break;
                 }
 
-                half4 color = half4(value, value, value, 1);
-
-                return color;
+                return value;
             }
         ENDCG
         }

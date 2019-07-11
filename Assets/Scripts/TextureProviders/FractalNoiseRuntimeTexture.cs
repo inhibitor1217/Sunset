@@ -130,25 +130,32 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     {
         base.Awake();
         m_FractalNoiseMaterial = new Material(Shader.Find("Compute/FractalNoise"));
-        m_RenderTexture = new RenderTexture(resolution, resolution, 0);
+        m_RenderTexture = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.RHalf);
     }
 
     void Start()
     {
         texture = m_RenderTexture;
         loadGradients(seed);
-
-        m_RenderTexture.DiscardContents();
-        Graphics.Blit(null, m_RenderTexture, m_FractalNoiseMaterial);
     }
 
     void Update()
     {
         if (enableEvolution)
+            textureShouldUpdate = true;
+    }
+
+    public override bool Draw()
+    {
+        if (m_FractalNoiseMaterial && m_RenderTexture)
         {
             m_RenderTexture.DiscardContents();
             Graphics.Blit(null, m_RenderTexture, m_FractalNoiseMaterial);
+
+            return true;
         }
+
+        return false;
     }
 
 #if UNITY_EDITOR
@@ -177,6 +184,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         if (m_FractalNoiseMaterial)
         {
             m_FractalNoiseMaterial.SetInt("_NoiseType", value);
+            textureShouldUpdate = true;
         }
     }
 
@@ -186,6 +194,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         if (m_FractalNoiseMaterial)
         {
             m_FractalNoiseMaterial.SetInt("_FractalType", value);
+            textureShouldUpdate = true;
         }
     }
 
@@ -198,6 +207,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         if (m_FractalNoiseMaterial)
         {
             m_FractalNoiseMaterial.SetVectorArray("_Gradients", gradients);
+            textureShouldUpdate = true;
         }
     }
 
@@ -208,6 +218,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         {
             Vector4 oldValue = m_FractalNoiseMaterial.GetVector("_GlobalOffsetScale");
             m_FractalNoiseMaterial.SetVector("_GlobalOffsetScale", new Vector4(value.x, value.y, oldValue.z, oldValue.w));
+            textureShouldUpdate = true;
         }
     }
 
@@ -218,6 +229,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         {
             Vector4 oldValue = m_FractalNoiseMaterial.GetVector("_GlobalOffsetScale");
             m_FractalNoiseMaterial.SetVector("_GlobalOffsetScale", new Vector4(oldValue.x, oldValue.y, value.x, value.y));
+            textureShouldUpdate = true;
         }
     }
 
@@ -227,6 +239,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         if (m_FractalNoiseMaterial)
         {
             m_FractalNoiseMaterial.SetFloat("_GlobalRotation", _rotation);
+            textureShouldUpdate = true;
         }
     }
 
@@ -236,6 +249,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         if (m_FractalNoiseMaterial)
         {
             m_FractalNoiseMaterial.SetInt("_Complexity", _complexity);
+            textureShouldUpdate = true;
         }
     }
 
@@ -245,6 +259,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         if (m_FractalNoiseMaterial)
         {
             m_FractalNoiseMaterial.SetFloat("_SubInfluence", _subInfluence);
+            textureShouldUpdate = true;
         }
     }
 
@@ -255,6 +270,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         {
             Vector4 oldValue = m_FractalNoiseMaterial.GetVector("_SubOffsetScale");
             m_FractalNoiseMaterial.SetVector("_SubOffsetScale", new Vector4(oldValue.x, oldValue.y, _subScale.x, _subScale.y));
+            textureShouldUpdate = true;
         }
     }
 
@@ -264,6 +280,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         if (m_FractalNoiseMaterial)
         {
             m_FractalNoiseMaterial.SetFloat("_SubRotation", _subRotation);
+            textureShouldUpdate = true;
         }
     }
 
@@ -274,6 +291,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         {
             Vector4 oldValue = m_FractalNoiseMaterial.GetVector("_SubOffsetScale");
             m_FractalNoiseMaterial.SetVector("_SubOffsetScale", new Vector4(_subOffset.x, _subOffset.y, oldValue.z, oldValue.w));
+            textureShouldUpdate = true;
         }
     }
 
@@ -283,6 +301,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         if (m_FractalNoiseMaterial)
         {
             m_FractalNoiseMaterial.SetFloat("_Brightness", _brightness);
+            textureShouldUpdate = true;
         }
     }
 
@@ -292,6 +311,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         if (m_FractalNoiseMaterial)
         {
             m_FractalNoiseMaterial.SetFloat("_Contrast", _contrast);
+            textureShouldUpdate = true;
         }
     }
 
@@ -301,6 +321,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         if (m_FractalNoiseMaterial)
         {
             m_FractalNoiseMaterial.SetFloat("_EvolutionSpeed", _evolutionSpeed);
+            textureShouldUpdate = true;
         }
     }
 
