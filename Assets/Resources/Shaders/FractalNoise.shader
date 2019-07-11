@@ -23,6 +23,7 @@ Shader "Compute/FractalNoise"
     {
         Cull Off
         ZWrite Off
+        ZTest Always
         Lighting Off
         Blend One Zero
         ColorMask R

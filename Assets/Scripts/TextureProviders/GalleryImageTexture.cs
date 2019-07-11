@@ -17,11 +17,14 @@ public class GalleryImageTexture: TextureProvider
 
     public void SetPath(string path)
     {
-        if (m_Path != "" && path != m_Path)
+        if (path != m_Path)
         {
             m_Path = path;
-            texture = NativeGallery.LoadImageAtPath(m_Path);
-            textureShouldUpdate = true;
+            if (m_Path != "")
+            {
+                texture = NativeGallery.LoadImageAtPath(m_Path);
+                textureShouldUpdate = true;   
+            }
         }
     }
 #else

@@ -136,13 +136,35 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     void Start()
     {
         texture = m_RenderTexture;
-        loadGradients(seed);
+
+        noiseType = (int)_noiseType;
+        fractalType = (int)_fractalType;
+        seed = _seed;
+        offset = _offset;
+        scale = _scale;
+        rotation = _rotation;
+        complexity = _complexity;
+        subInfluence = _subInfluence;
+        subScale = _subScale;
+        subOffset = _subOffset;
+        brightness = _brightness;
+        contrast = _contrast;
+        enableEvolution = _enableEvolution;
+        evolutionSpeed = _evolutionSpeed;
     }
 
     void Update()
     {
         if (enableEvolution)
             textureShouldUpdate = true;
+    }
+
+    void OnDestroy()
+    {
+        base.OnDestroy();
+        
+        if (m_RenderTexture)
+            m_RenderTexture.Release();
     }
 
     public override bool Draw()

@@ -1,12 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class RawImageController : MonoBehaviour
 {
 
     public RectTransform container;
+    public TextureProvider provider;
 
     private RawImage m_RawImage;
     private RectTransform m_RectTransform;
@@ -34,8 +33,13 @@ public class RawImageController : MonoBehaviour
 
         if (m_RawImage)
         {
-            m_RawImage.texture = Texture2D.blackTexture;
+            m_RawImage.texture = Texture2D.whiteTexture;
         }
+
+        if (provider)
+            provider.SetTarget(this);
+
+        TextureProviderManager.UpdateEager();
 
         m_ImageBaseScale = Vector2.one;
         m_Position = Vector2.zero;

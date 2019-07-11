@@ -5,21 +5,23 @@ public class StaticTexture: TextureProvider
 
     public Texture2D staticTexture;
 
+    private Texture2D m_Copy;
+
     public override bool Draw()
     {
         return true;
     }
 
-#if UNITY_ANDROID && !UNITY_EDITOR
     void Awake()
     {
-        Destroy(gameObject);
+        base.Awake();
+        m_Copy = new Texture2D(staticTexture.width, staticTexture.height, staticTexture.format, true);
     }
-#else
+
     void Start()
     {
-        texture = staticTexture;
+        Graphics.CopyTexture(staticTexture, m_Copy);
+        texture = m_Copy;
     }
-#endif
 
 }

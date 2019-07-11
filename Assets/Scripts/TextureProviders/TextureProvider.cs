@@ -3,40 +3,49 @@
 public abstract class TextureProvider : MonoBehaviour
 {
 
-    protected Texture m_Texture = null;
+    [SerializeField]
+    private Texture m_Texture;
+    public Texture texture {
+        get { return m_Texture; }
+        set {
+            m_Texture = value;
+            if (m_Target)
+                m_Target.SetTexture(m_Texture);
+        }
+    }
 
-    [Header("Texture Provider")]
-    public RawImageController target = null;
-    [SerializeField]
     private TextureProvider[] m_PipeInputs  = { null, null, null, null };
-    [SerializeField]
     private TextureProvider[] m_PipeOutputs = { null, null, null, null };
+
+    private RawImageController m_Target = null;
 
     [HideInInspector]
     public bool textureShouldUpdate = false;
 
     protected void Awake()
     {
+        // Debug.Log("Awake: " + this);
         TextureProviderManager.AddTextureProvider(this);
 
         textureShouldUpdate = true;
     }
 
-    void onDestroy()
+    protected void OnDestroy()
     {
+        // Debug.Log("Destroy: " + this);
         TextureProviderManager.RemoveTextureProvider(this);
+        for (int i = 0; i < 4; i++)
+        {
+            if (m_PipeInputs[i])
+                Unlink(m_PipeInputs[i], this);
+            if (m_PipeOutputs[i])
+                Unlink(this, m_PipeOutputs[i]);
+        }
     }
 
-    public Texture texture {
-        get {
-            return m_Texture;
-        }
-        set {
-            m_Texture = value;
-            
-            if (target)
-                target.SetTexture(m_Texture);
-        }
+    public void SetTarget(RawImageController target)
+    {
+        m_Target = target;
     }
 
     public static void Link(TextureProvider src, int srcIndex, TextureProvider dst, int dstIndex)

@@ -95,19 +95,29 @@ public class AlphaMaskedTexture : TextureProvider
         alphaTexture = defaultAlphaTexture;
     }
 
+    void OnDestroy()
+    {
+        base.OnDestroy();
+        
+        if (m_RenderTexture)
+            m_RenderTexture.Release();
+    }
+
     public override bool Draw()
     {
         if (m_SrcTexture && m_AlphaTexture && m_SrcTexture.texture && m_AlphaTexture.texture)
         {
             if (!m_RenderTexture)
             {
-                m_RenderTexture = new RenderTexture(m_SrcTexture.texture.width, m_SrcTexture.texture.height, 0);
+                m_RenderTexture = new RenderTexture(m_SrcTexture.texture.width, m_SrcTexture.texture.height, 0, RenderTextureFormat.ARGBHalf);
                 texture = m_RenderTexture;
             }
 
+            m_AlphaMaskMaterial.SetTexture("_AlphaTex", m_AlphaTexture.texture);
+
             m_RenderTexture.DiscardContents();
             Graphics.Blit(m_SrcTexture.texture, m_RenderTexture, m_AlphaMaskMaterial);
-
+            
             return true;
         }
 
