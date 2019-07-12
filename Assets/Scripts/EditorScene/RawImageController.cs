@@ -7,6 +7,8 @@ public class RawImageController : MonoBehaviour
     public RectTransform container;
     public TextureProvider provider;
 
+    public bool isRoot = false;
+
     private RawImage m_RawImage;
     private RectTransform m_RectTransform;
     private Vector2 m_ImageBaseScale;
@@ -50,6 +52,7 @@ public class RawImageController : MonoBehaviour
 
     void Update()
     {
+
 #if UNITY_ANDROID && !UNITY_EDITOR
         if (Input.touchCount == 1)
         {
@@ -107,38 +110,38 @@ public class RawImageController : MonoBehaviour
             Mathf.Clamp(.5f + .1f * (m_MultiplicativeScale - GRID_OPACITY_CURVE_CENTER), 0f, 1f)
         );
 
-        m_RawImage.uvRect = new Rect(
-            -(.5f / m_MultiplicativeScale * m_ImageBaseScale + m_Position) + .5f * m_ImageBaseScale,
-            (1f / m_MultiplicativeScale) * m_ImageBaseScale
-        );
+        if (isRoot)
+            m_RectTransform.anchoredPosition = m_Position * m_MultiplicativeScale;
+        m_RectTransform.sizeDelta = m_ImageBaseScale * m_MultiplicativeScale;
     }
 
-    public void SetTexture(Texture texture)
+    public void SetTexture(Texture texture, int offsetX = 0, int offsetY = 0)
     {
         texture.filterMode = FilterMode.Point;
         texture.wrapMode = TextureWrapMode.Clamp;
 
-        float aspectRatio = (float) CONTAINER_WIDTH / (float) CONTAINER_HEIGHT * (float) texture.height / (float) texture.width;
-        if (aspectRatio > 1f)
-            m_ImageBaseScale = new Vector2(aspectRatio, 1f);
-        else
-            m_ImageBaseScale = new Vector2(1f, 1f/aspectRatio);
+        m_RawImage.texture = texture;
+        
+        m_ImageBaseScale = new Vector2(texture.width, texture.height);
 
         m_MultiplicativeScale = 1f;
         m_DesiredMultiplicativeScale = 1f;
 
-        m_Position = .5f * m_ImageBaseScale - .5f * Vector2.one;
-        m_DesiredPosition = .5f * m_ImageBaseScale - .5f * Vector2.one;
+        m_Position = new Vector2(offsetX, offsetY);
+        m_DesiredPosition = new Vector2(offsetX, offsetY);
 
-        m_RawImage.uvRect = new Rect(0, 0, 1, 1);
-        m_RawImage.texture = texture;
+        m_RectTransform.anchoredPosition = m_Position * m_MultiplicativeScale;
+        m_RectTransform.sizeDelta = m_ImageBaseScale * m_MultiplicativeScale;
     }
 
     void updatePosition(Vector2 deltaPosition)
     {
-        m_DesiredPosition += (.0005f / m_MultiplicativeScale) * deltaPosition;
-        m_DesiredPosition.x = Mathf.Clamp(m_DesiredPosition.x, -.5f, -.5f + m_ImageBaseScale.x);
-        m_DesiredPosition.y = Mathf.Clamp(m_DesiredPosition.y, -.5f, -.5f + m_ImageBaseScale.y);
+        if (isRoot)
+        {
+            m_DesiredPosition += deltaPosition / m_MultiplicativeScale;
+            m_DesiredPosition.x = Mathf.Clamp(m_DesiredPosition.x, -.5f * m_ImageBaseScale.x, .5f * m_ImageBaseScale.x);
+            m_DesiredPosition.y = Mathf.Clamp(m_DesiredPosition.y, -.5f * m_ImageBaseScale.y, .5f * m_ImageBaseScale.y);
+        }
     }
 
     void updateScale(float deltaScale)
