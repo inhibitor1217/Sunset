@@ -82,7 +82,7 @@ public class AlphaMaskedTexture : TextureProvider
     private RenderTexture m_RenderTexture;
     private Material m_AlphaMaskMaterial;
 
-    void Awake()
+    new void Awake()
     {
         base.Awake();
 
@@ -95,7 +95,7 @@ public class AlphaMaskedTexture : TextureProvider
         alphaTexture = defaultAlphaTexture;
     }
 
-    void OnDestroy()
+    new void OnDestroy()
     {
         base.OnDestroy();
         
@@ -115,7 +115,8 @@ public class AlphaMaskedTexture : TextureProvider
 
             m_AlphaMaskMaterial.SetTexture("_AlphaTex", m_AlphaTexture.texture);
 
-            m_RenderTexture.DiscardContents();
+            Graphics.SetRenderTarget(m_RenderTexture, 0, CubemapFace.Unknown, 0);
+            GL.Clear(false, true, Color.black, 0);
             Graphics.Blit(m_SrcTexture.texture, m_RenderTexture, m_AlphaMaskMaterial);
             
             return true;

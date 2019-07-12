@@ -8,6 +8,7 @@ public class RawImageController : MonoBehaviour
     public TextureProvider provider;
 
     public bool isRoot = false;
+    public Camera maskCamera = null;
 
     private RawImage m_RawImage;
     private RectTransform m_RectTransform;
@@ -17,8 +18,6 @@ public class RawImageController : MonoBehaviour
     private Vector2 m_Position;
     private Vector2 m_DesiredPosition;
 
-    private const float CONTAINER_WIDTH = 1458;
-    private const float CONTAINER_HEIGHT = 864;
     private const float MIN_SCALE = 0.8f;
     private const float MAX_SCALE = 32.0f;
 
@@ -52,6 +51,8 @@ public class RawImageController : MonoBehaviour
 
     void Update()
     {
+        if (InputMode.Instance.mode != InputMode.MOVE)
+            return;
 
 #if UNITY_ANDROID && !UNITY_EDITOR
         if (Input.touchCount == 1)
@@ -111,7 +112,13 @@ public class RawImageController : MonoBehaviour
         );
 
         if (isRoot)
+        {
             m_RectTransform.anchoredPosition = m_Position * m_MultiplicativeScale;
+            if (maskCamera)
+            {
+                maskCamera.orthographicSize = .5f * m_ImageBaseScale.y * m_MultiplicativeScale;
+            }
+        }
         m_RectTransform.sizeDelta = m_ImageBaseScale * m_MultiplicativeScale;
     }
 

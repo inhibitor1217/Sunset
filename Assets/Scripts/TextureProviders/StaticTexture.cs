@@ -12,7 +12,7 @@ public class StaticTexture: TextureProvider
         return true;
     }
 
-    void Awake()
+    new void Awake()
     {
         base.Awake();
         m_Copy = new Texture2D(staticTexture.width, staticTexture.height, staticTexture.format, true);

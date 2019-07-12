@@ -126,7 +126,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     private Material m_FractalNoiseMaterial;
     private RenderTexture m_RenderTexture;
 
-    void Awake()
+    new void Awake()
     {
         base.Awake();
         m_FractalNoiseMaterial = new Material(Shader.Find("Compute/FractalNoise"));
@@ -159,7 +159,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
             textureShouldUpdate = true;
     }
 
-    void OnDestroy()
+    new void OnDestroy()
     {
         base.OnDestroy();
         

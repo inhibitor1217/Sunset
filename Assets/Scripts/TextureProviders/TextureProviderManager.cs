@@ -25,7 +25,9 @@ public class TextureProviderManager : MonoBehaviour
         {
             if (v.enabled && v.textureShouldUpdate)
             {
+                #if UNITY_EDITOR
                 Debug.Log("Update: " + v);
+                #endif
                 if (v.Draw())
                 {
                     v.Propagate();
@@ -41,7 +43,9 @@ public class TextureProviderManager : MonoBehaviour
         {
             if (v.enabled)
             {
+                #if UNITY_EDITOR
                 Debug.Log("UpdateEager: " + v);
+                #endif
                 if (v.Draw())
                 {
                     v.Propagate();

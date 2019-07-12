@@ -28,7 +28,7 @@ public class GalleryImageTexture: TextureProvider
         }
     }
 #else
-    void Awake()
+    new void Awake()
     {
         Destroy(gameObject);
     }
