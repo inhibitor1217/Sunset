@@ -20,7 +20,8 @@ public class MaskTexture : TextureProvider
 
     void Update()
     {
-        textureShouldUpdate = true;
+        if (InputMode.Instance.mode == InputMode.BRUSH)
+            textureShouldUpdate = true;
     }
 
     public override bool Draw()
