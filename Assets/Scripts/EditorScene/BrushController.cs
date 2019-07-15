@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 
+[RequireComponent(typeof(MeshFilter))]
+[RequireComponent(typeof(MeshRenderer))]
 public class BrushController : MonoBehaviour
 {
     
@@ -46,6 +48,11 @@ public class BrushController : MonoBehaviour
             }
 
             transform.position = input;
+        }
+        else
+        {
+            if (m_MeshRenderer.enabled)
+                    m_MeshRenderer.enabled = false;
         }
     }
 

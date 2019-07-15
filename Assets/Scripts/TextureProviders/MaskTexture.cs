@@ -4,6 +4,8 @@ public class MaskTexture : TextureProvider
 {
 
     public Camera maskCamera;
+    public int referenceWidth;
+    public int referenceHeight;
 
     private RenderTexture m_RenderTexture = null;
     
@@ -14,8 +16,7 @@ public class MaskTexture : TextureProvider
 
     void Start()
     {
-        // TEMP
-        SetDimension(852, 480);
+        SetDimension(referenceWidth, referenceHeight);
     }
 
     void Update()
