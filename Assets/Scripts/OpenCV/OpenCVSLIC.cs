@@ -1,22 +1,48 @@
 using UnityEngine;
+using System.Threading;
 public static class OpenCVSLIC
 {
 
-    public static void SLIC(Texture2D inTex, Texture2D outTex)
+    private static bool _asyncBusy = false;
+    public static bool asyncBusy { get { return _asyncBusy; } }
+
+    private static Thread m_Thread;
+
+    public static void AsyncSLIC(Texture2D inTex, ref int[] outLabel, ref byte[] outContour)
     {
-        Color32[] inColors = inTex.GetPixels32();
-        int[] outArray = new int[inTex.width * inTex.height];
-        byte[] outContourBytes = new byte[inTex.width * inTex.height];
+        if (!_asyncBusy)
+        {
+            _asyncBusy = true;
 
-        int numSuperpixels = OpenCVLibAdapter.OpenCV_processSLIC(Color32ToOpenCVMat(inColors), inTex.width, inTex.height, outArray, outContourBytes);
+            int width = inTex.width;
+            int height = inTex.height;
+            Color32[] inColors = inTex.GetPixels32();
 
-        Debug.Log(numSuperpixels);
+            int[] _outLabel = new int[width * height];
+            byte[] _outContour = new byte[width * height];
 
-        outTex.SetPixels32(OpenCVMatToColor32(outContourBytes));
-        outTex.Apply();
+            outLabel = _outLabel;
+            outContour = _outContour;
+
+            m_Thread = new Thread(() => SLIC(inColors, width, height, _outLabel, _outContour));
+            m_Thread.Start();
+        }
+    }
+    static void SLIC(Color32[] inColors, int width, int height, int[] outLabel, byte[] outContour)
+    {
+        Debug.Log("OpenCV SLIC - Input Dimension [" + width + ", " + height + "]");
+
+        int numSuperpixels = OpenCVLibAdapter.OpenCV_processSLIC(
+            Color32ToOpenCVMat(inColors), width, height, 
+            outLabel, outContour
+        );
+
+        Debug.Log("OpenCV SLIC - # Superpixels: " + numSuperpixels);
+
+        _asyncBusy = false;
     }
 
-    static byte[] Color32ToOpenCVMat(Color32[] colors)
+    public static byte[] Color32ToOpenCVMat(Color32[] colors)
     {
         byte[] bytes = new byte[colors.Length * 4];
         for (int i = 0; i < colors.Length; i++)
@@ -29,7 +55,7 @@ public static class OpenCVSLIC
         return bytes;
     }
 
-    static Color32[] OpenCVMatToColor32(byte[] bytes)
+    public static Color32[] OpenCVMatToColor32(byte[] bytes)
     {
         Color32[] colors = new Color32[bytes.Length];
         for (int i = 0; i < bytes.Length; i++)

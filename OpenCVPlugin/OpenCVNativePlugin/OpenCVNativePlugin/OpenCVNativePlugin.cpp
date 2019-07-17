@@ -1,5 +1,5 @@
 #include <opencv2/ximgproc/slic.hpp>
-#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
 using namespace cv;
 
@@ -12,15 +12,25 @@ int processSLIC(uchar *inputArray, int width, int height, int *outputLabelArray,
 {
     Mat input = Mat(height, width, CV_8UC4, inputArray), outputLabel, outputLabelContour;
     
+    // Preprocess image
+    GaussianBlur(input, input, Size(3, 3), 0.8);
+    cvtColor(input, input, COLOR_BGR2Lab);
+    
+    // Process image through SLIC
     Ptr<ximgproc::SuperpixelSLIC> slic = ximgproc::createSuperpixelSLIC(input, algorithm, region_size, ruler);
 
     slic->iterate();
-    slic->getLabels(outputLabel);
-    slic->getLabelContourMask(outputLabelContour, false);
+    if (outputLabelArray)
+        slic->getLabels(outputLabel);
+    if (outputContourArray)
+        slic->getLabelContourMask(outputLabelContour, false);
     int numSuperpixels = slic->getNumberOfSuperpixels();
     
-    std::memcpy(outputLabelArray, outputLabel.data, outputLabel.total() * outputLabel.elemSize());
-    std::memcpy(outputContourArray, outputLabelContour.data, outputLabelContour.total() * outputLabelContour.elemSize());
+    // Coppy data to output buffer
+    if (outputLabelArray)
+        std::memcpy(outputLabelArray, outputLabel.data, outputLabel.total() * outputLabel.elemSize());
+    if (outputContourArray)
+        std::memcpy(outputContourArray, outputLabelContour.data, outputLabelContour.total() * outputLabelContour.elemSize());
     
     return numSuperpixels;
 }
