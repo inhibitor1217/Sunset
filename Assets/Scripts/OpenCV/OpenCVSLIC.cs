@@ -13,7 +13,7 @@ public static class OpenCVSLIC
     private static int _asyncProgress = 0;
     public static int asyncProgress { get { return _asyncProgress; } }
 
-    public static void AsyncSLIC(Texture2D inTex, ref int[] outLabel, ref byte[] outContour)
+    public static void AsyncSLIC(Texture2D inTex, ref int[][] outLabel, ref byte[][] outContour)
     {
         if (!_asyncBusy)
         {
@@ -24,13 +24,6 @@ public static class OpenCVSLIC
             int height = inTex.height;
             Color32[] inColors = inTex.GetPixels32();
 
-            int[] _outLabel = new int[width * height];
-            byte[] _outContour = new byte[width * height];
-
-            outLabel = _outLabel;
-            outContour = _outContour;
-
-            
             List<int> regionSizes = new List<int>();
             for (int regionSize = 5; regionSize <= Mathf.Min(width, height) / 8; regionSize *= 2)
             {
@@ -38,10 +31,18 @@ public static class OpenCVSLIC
             }
 
             _numAsyncTasks = regionSizes.Count;
-            
-            foreach (var regionSize in regionSizes)
+
+            outLabel = new int[_numAsyncTasks][];
+            outContour = new byte[_numAsyncTasks][];
+
+            for (int i = 0; i < _numAsyncTasks; i++)
             {
-                new Thread(() => SLIC(inColors, width, height, _outLabel, _outContour, regionSize)).Start();
+                int[] _outLabel = new int[width * height];
+                byte[] _outContour = new byte[width * height];
+                outLabel[i] = _outLabel;
+                outContour[i] = _outContour;
+
+                new Thread(() => SLIC(inColors, width, height, _outLabel, _outContour, regionSizes[i])).Start();
             }
         }
     }

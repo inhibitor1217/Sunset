@@ -6,11 +6,12 @@ public class OpenCVSLICClient : MonoBehaviour
     public Texture2D inTex;
 
     private Texture2D m_ReadableTex;
-    private Texture2D m_contourTex;
 
-    private int[] m_OutLabel;
-    private byte[] m_OutContour;
+    private int[][] m_OutLabel = null;
+    private byte[][] m_OutContour = null;
 
+    private int m_InTexWidth;
+    private int m_InTexHeight;
     private bool m_Invoked = false;
     private float m_InvokedTime;
     private int m_prevProgress;
@@ -26,16 +27,16 @@ public class OpenCVSLICClient : MonoBehaviour
         if (OpenCVSLIC.asyncBusy)
             return false;
 
-        int width = inTex.width;
-        int height = inTex.height;
+        m_InTexWidth = inTex.width;
+        m_InTexHeight = inTex.height;
 
         MessagePanel.Instance.ShowMessage("이미지 전처리 중...");
 
         if (!inTex.isReadable)
         {
             RenderTexture renderTex = RenderTexture.GetTemporary(
-                width,
-                height,
+                m_InTexWidth,
+                m_InTexHeight,
                 0,
                 RenderTextureFormat.Default,
                 RenderTextureReadWrite.Linear);
@@ -44,8 +45,8 @@ public class OpenCVSLICClient : MonoBehaviour
             RenderTexture previous = RenderTexture.active;
             RenderTexture.active = renderTex;
             
-            m_ReadableTex = new Texture2D(width, height);
-            m_ReadableTex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+            m_ReadableTex = new Texture2D(m_InTexWidth, m_InTexHeight);
+            m_ReadableTex.ReadPixels(new Rect(0, 0, m_InTexWidth, m_InTexHeight), 0, 0);
             m_ReadableTex.Apply();
             
             RenderTexture.active = previous;
@@ -58,9 +59,22 @@ public class OpenCVSLICClient : MonoBehaviour
         m_InvokedTime = Time.time;
         m_prevProgress = -1;
 
-        m_contourTex = new Texture2D(width, height);
-
         return true;
+    }
+
+    public int[] getLabel(int level)
+    {
+        return m_OutLabel[level];
+    }
+
+    public int getLabelAt(int level, int x, int y)
+    {
+        return m_OutLabel[level][y * m_InTexWidth + x];
+    }
+
+    public byte[] getContour(int level)
+    {
+        return m_OutContour[level];
     }
 
     void Update()
@@ -77,11 +91,6 @@ public class OpenCVSLICClient : MonoBehaviour
             // Job finished
             m_Invoked = false;
             m_prevProgress = -1;
-
-            m_contourTex.SetPixels32(OpenCVSLIC.OpenCVMatToColor32(m_OutContour));
-            m_contourTex.Apply();
-
-            GetComponent<TextureProvider>().texture = m_contourTex;
 
 #if UNITY_EDITOR
             Debug.Log("OpenCVSLICClient - Finished AsyncSLIC in " + (Time.time - m_InvokedTime) + " seconds.");
