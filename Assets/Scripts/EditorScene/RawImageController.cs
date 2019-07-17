@@ -13,10 +13,10 @@ public class RawImageController : MonoBehaviour
     private RawImage m_RawImage;
     private RectTransform m_RectTransform;
     private Vector2 m_ImageBaseScale;
-    private float m_MultiplicativeScale;
-    private float m_DesiredMultiplicativeScale;
-    private Vector2 m_Position;
-    private Vector2 m_DesiredPosition;
+    private float m_MultiplicativeScale = 1f;
+    private float m_DesiredMultiplicativeScale = 1f;
+    private Vector2 m_Position = Vector2.zero;
+    private Vector2 m_DesiredPosition = Vector2.zero;
 
     private const float MIN_SCALE = 0.8f;
     private const float MAX_SCALE = 32.0f;
@@ -122,7 +122,7 @@ public class RawImageController : MonoBehaviour
         m_RectTransform.sizeDelta = m_ImageBaseScale * m_MultiplicativeScale;
     }
 
-    public void SetTexture(Texture texture, int offsetX = 0, int offsetY = 0)
+    public void SetTexture(Texture texture)
     {
         texture.filterMode = FilterMode.Point;
         texture.wrapMode = TextureWrapMode.Clamp;
@@ -130,12 +130,6 @@ public class RawImageController : MonoBehaviour
         m_RawImage.texture = texture;
         
         m_ImageBaseScale = new Vector2(texture.width, texture.height);
-
-        m_MultiplicativeScale = 1f;
-        m_DesiredMultiplicativeScale = 1f;
-
-        m_Position = new Vector2(offsetX, offsetY);
-        m_DesiredPosition = new Vector2(offsetX, offsetY);
 
         m_RectTransform.anchoredPosition = m_Position * m_MultiplicativeScale;
         m_RectTransform.sizeDelta = m_ImageBaseScale * m_MultiplicativeScale;

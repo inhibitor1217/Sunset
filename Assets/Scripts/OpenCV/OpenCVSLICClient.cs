@@ -4,25 +4,38 @@ public class OpenCVSLICClient : MonoBehaviour
 {
 
     public Texture2D inTex;
-    [SerializeField]
-    private Texture2D outTex;
 
     private Texture2D m_ReadableTex;
+    private Texture2D m_contourTex;
 
     private int[] m_OutLabel;
     private byte[] m_OutContour;
 
     private bool m_Invoked = false;
     private float m_InvokedTime;
+    private int m_prevProgress;
 
-    void Awake()
+    public void onClick()
     {
         if (inTex)
+            Invoke();
+    }
+
+    public bool Invoke()
+    {
+        if (OpenCVSLIC.asyncBusy)
+            return false;
+
+        int width = inTex.width;
+        int height = inTex.height;
+
+        MessagePanel.Instance.ShowMessage("이미지 전처리 중...");
+
+        if (!inTex.isReadable)
         {
-            // Create Readable Texture
             RenderTexture renderTex = RenderTexture.GetTemporary(
-                inTex.width,
-                inTex.height,
+                width,
+                height,
                 0,
                 RenderTextureFormat.Default,
                 RenderTextureReadWrite.Linear);
@@ -31,55 +44,51 @@ public class OpenCVSLICClient : MonoBehaviour
             RenderTexture previous = RenderTexture.active;
             RenderTexture.active = renderTex;
             
-            m_ReadableTex = new Texture2D(inTex.width, inTex.height);
-            m_ReadableTex.ReadPixels(new Rect(0, 0, renderTex.width, renderTex.height), 0, 0);
+            m_ReadableTex = new Texture2D(width, height);
+            m_ReadableTex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
             m_ReadableTex.Apply();
             
             RenderTexture.active = previous;
             RenderTexture.ReleaseTemporary(renderTex);
-
-            // (TEMP) Create Output Texture for Display
-            outTex = new Texture2D(inTex.width, inTex.height);
         }
-    }
 
-    public bool Invoke(Texture2D _inTex, Texture2D _outContour)
-    {
-        if (OpenCVSLIC.asyncBusy)
-            return false;
-
-        int width = _inTex.width;
-        int height = _inTex.height;
-
-        OpenCVSLIC.AsyncSLIC(_inTex, ref m_OutLabel, ref m_OutContour);
+        OpenCVSLIC.AsyncSLIC(inTex.isReadable ? inTex : m_ReadableTex, ref m_OutLabel, ref m_OutContour);
 
         m_Invoked = true;
         m_InvokedTime = Time.time;
+        m_prevProgress = -1;
+
+        m_contourTex = new Texture2D(width, height);
 
         return true;
     }
 
     void Update()
     {
+        if (m_Invoked && m_prevProgress != OpenCVSLIC.asyncProgress)
+        {
+            MessagePanel.Instance.ShowMessage("OpenCV - SLIC 이미지 처리 중... (" + OpenCVSLIC.asyncProgress + "/" + OpenCVSLIC.numAsyncTasks + ")");
+            m_prevProgress = OpenCVSLIC.asyncProgress;
+        }
+
         // Busy wait
         if (m_Invoked && !OpenCVSLIC.asyncBusy)
         {
             // Job finished
             m_Invoked = false;
+            m_prevProgress = -1;
 
-            outTex.SetPixels32(OpenCVSLIC.OpenCVMatToColor32(m_OutContour));
-            outTex.Apply();
+            m_contourTex.SetPixels32(OpenCVSLIC.OpenCVMatToColor32(m_OutContour));
+            m_contourTex.Apply();
 
+            GetComponent<TextureProvider>().texture = m_contourTex;
+
+#if UNITY_EDITOR
             Debug.Log("OpenCVSLICClient - Finished AsyncSLIC in " + (Time.time - m_InvokedTime) + " seconds.");
+#endif
 
-        }
-    }
+            MessagePanel.Instance.Disable();
 
-    public void onClick()
-    {
-        if (m_ReadableTex)
-        {
-            Invoke(m_ReadableTex, outTex);
         }
     }
 
