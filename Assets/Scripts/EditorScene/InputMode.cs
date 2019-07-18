@@ -13,9 +13,14 @@
     }
 
     public const int MOVE = 0;
-    public const int BRUSH = 1;
+    public const int BRUSH_PLAIN = 1;
     public const int BRUSH_SLIC = 2;
 
     public int mode = MOVE;
+
+    public bool IsModeBrush()
+    {
+        return (instance.mode == BRUSH_PLAIN) || (instance.mode == BRUSH_SLIC);
+    }
 
 }

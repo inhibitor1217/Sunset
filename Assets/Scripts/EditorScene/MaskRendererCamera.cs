@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 
-public class MaskRendererCamera
- : MonoBehaviour
+public class MaskRendererCamera : MonoBehaviour
 {
     
     private Material m_Material;

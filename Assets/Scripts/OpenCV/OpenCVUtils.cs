@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public static class OpenCVUtil
+public static class OpenCVUtils
 {
 
     public static byte[] Color32ToOpenCVMat(Color32[] colors)

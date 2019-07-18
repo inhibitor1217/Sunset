@@ -21,7 +21,7 @@ public class MaskTexture : TextureProvider
 
     void Update()
     {
-        if (InputMode.Instance.mode == InputMode.BRUSH || InputMode.Instance.mode == InputMode.BRUSH_SLIC)
+        if (InputMode.Instance.IsModeBrush())
             textureShouldUpdate = true;
     }
 
@@ -33,6 +33,11 @@ public class MaskTexture : TextureProvider
         }
 
         return false;
+    }
+
+    public void SetDimension(Texture texture)
+    {
+        SetDimension(texture.width, texture.height);
     }
 
     public void SetDimension(int width, int height)

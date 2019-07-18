@@ -59,7 +59,7 @@ public static class OpenCVSLIC
     static void SLIC(Color32[] inColors, int width, int height, int[] outLabel, byte[] outContour, int regionSize)
     {
         int numSuperpixels = OpenCVLibAdapter.OpenCV_processSLIC(
-            OpenCVUtil.Color32ToOpenCVMat(inColors), width, height, 
+            OpenCVUtils.Color32ToOpenCVMat(inColors), width, height, 
             outLabel, outContour,
             OpenCVLibAdapter.SLICAlgorithm__SLIC,
             regionSize

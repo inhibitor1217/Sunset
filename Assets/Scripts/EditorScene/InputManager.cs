@@ -11,12 +11,12 @@ public class InputManager : MonoBehaviour
     [HideInInspector]
     public float xBound = .5f, yBound = .5f;
 
-    private float m_MultiplicativeScale = 1f;
+    private float m_MultiplicativeScale;
     public float MultiplicativeScale { get { return m_MultiplicativeScale; } }
-    private float m_DesiredMultiplicativeScale = 1f;
-    private Vector2 m_Position = Vector2.zero;
+    private float m_DesiredMultiplicativeScale;
+    private Vector2 m_Position;
     public Vector2 Position { get { return m_Position; } }
-    private Vector2 m_DesiredPosition = Vector2.zero;
+    private Vector2 m_DesiredPosition;
 
     public const float MIN_SCALE = 0.8f;
     public const float MAX_SCALE = 32.0f;
@@ -26,6 +26,11 @@ public class InputManager : MonoBehaviour
     void Awake()
     {
         m_Instance = this;
+
+        m_MultiplicativeScale = 1f;
+        m_DesiredMultiplicativeScale = 1f;
+        m_Position = Vector2.zero;
+        m_DesiredPosition = Vector2.zero;
     }
 
     void FixedUpdate()

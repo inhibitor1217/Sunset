@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class EditorGalleryButton : MonoBehaviour
@@ -8,27 +6,29 @@ public class EditorGalleryButton : MonoBehaviour
     
     private Button m_Button;
 
-    public GalleryImageTexture textureProvider;
+#if UNITY_EDITOR
+    public Texture2D initTexture;
+#endif
 
-#if UNITY_ANDROID && !UNITY_EDITOR
     void Awake()
     {
         m_Button = GetComponent<Button>();
-        m_Button.onClick.AddListener(onGalleryButtonClicked);
+        m_Button.onClick.AddListener(onClick);
     }
-
-    void onGalleryButtonClicked()
+#if UNITY_ANDROID && !UNITY_EDITOR
+    void onClick()
     {
         NativeGallery.Permission permission = NativeGallery.GetImageFromGallery(
             (path) => {
-                textureProvider.SetPath(path);
+                EditorSceneManager.Instance.InitScene(path);
             }
         );
     }
 #else
-    void Awake()
+    void onClick()
     {
-        Destroy(gameObject);
+        if (initTexture)
+            EditorSceneManager.Instance.InitScene(initTexture);
     }
 #endif
 

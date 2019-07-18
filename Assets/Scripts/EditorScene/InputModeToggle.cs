@@ -5,7 +5,8 @@ public class InputModeToggle : MonoBehaviour
 {
     private Toggle m_Toggle;
 
-    public int mode;
+    public int modeOff;
+    public int modeOn;
 
     void Awake()
     {
@@ -14,7 +15,7 @@ public class InputModeToggle : MonoBehaviour
 
     public void OnToggleChanged(bool isOn)
     {
-        InputMode.Instance.mode = isOn ? mode : InputMode.MOVE;
+        InputMode.Instance.mode = isOn ? modeOn : modeOff;
 
         var colors = m_Toggle.colors;
         colors.normalColor = isOn ? Color.yellow : Color.white;

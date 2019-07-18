@@ -12,16 +12,23 @@ public class StaticTexture: TextureProvider
         return true;
     }
 
+    public void SetStaticTexture(Texture2D texture)
+    {
+        staticTexture = texture;
+
+        m_Copy = new Texture2D(staticTexture.width, staticTexture.height, staticTexture.format, true);
+        Graphics.CopyTexture(staticTexture, m_Copy);
+        
+        this.texture = m_Copy;
+        
+        textureShouldUpdate = true;
+    }
+
     new void Awake()
     {
         base.Awake();
-        m_Copy = new Texture2D(staticTexture.width, staticTexture.height, staticTexture.format, true);
-    }
-
-    void Start()
-    {
-        Graphics.CopyTexture(staticTexture, m_Copy);
-        texture = m_Copy;
+        if (staticTexture)
+            SetStaticTexture(staticTexture);
     }
 
 }

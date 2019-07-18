@@ -38,23 +38,25 @@ public class OpenCVSLICClient : MonoBehaviour
 
         if (!inTex.isReadable)
         {
-            RenderTexture renderTex = RenderTexture.GetTemporary(
-                m_InTexWidth,
-                m_InTexHeight,
-                0,
-                RenderTextureFormat.Default,
-                RenderTextureReadWrite.Linear);
+            // RenderTexture renderTex = RenderTexture.GetTemporary(
+            //     m_InTexWidth,
+            //     m_InTexHeight,
+            //     0,
+            //     RenderTextureFormat.Default,
+            //     RenderTextureReadWrite.Linear
+            // );
 
-            Graphics.Blit(inTex, renderTex);
-            RenderTexture previous = RenderTexture.active;
-            RenderTexture.active = renderTex;
+            // Graphics.Blit(inTex, renderTex);
+            // RenderTexture previous = RenderTexture.active;
+            // RenderTexture.active = renderTex;
             
-            m_ReadableTex = new Texture2D(m_InTexWidth, m_InTexHeight);
-            m_ReadableTex.ReadPixels(new Rect(0, 0, m_InTexWidth, m_InTexHeight), 0, 0);
-            m_ReadableTex.Apply();
+            // m_ReadableTex = new Texture2D(m_InTexWidth, m_InTexHeight);
+            // m_ReadableTex.ReadPixels(new Rect(0, 0, m_InTexWidth, m_InTexHeight), 0, 0);
+            // m_ReadableTex.Apply();
             
-            RenderTexture.active = previous;
-            RenderTexture.ReleaseTemporary(renderTex);
+            // RenderTexture.active = previous;
+            // RenderTexture.ReleaseTemporary(renderTex);
+            return false;
         }
 
         m_NumLevels = OpenCVSLIC.AsyncSLIC(inTex.isReadable ? inTex : m_ReadableTex, ref m_OutLabel, ref m_OutContour);
@@ -99,9 +101,9 @@ public class OpenCVSLICClient : MonoBehaviour
 #if UNITY_EDITOR
             Debug.Log("OpenCVSLICClient - Finished AsyncSLIC in " + (Time.time - m_InvokedTime) + " seconds.");
 #endif
-            if (labelTextureProvider)
+            if (labelTextureProvider && labelTextureProvider.isActiveAndEnabled)
                 labelTextureProvider.GenerateTextures(this);
-            if (contourTextureProvider)
+            if (contourTextureProvider && contourTextureProvider.isActiveAndEnabled)
                 contourTextureProvider.GenerateTextures(this);
             MessagePanel.Instance.Disable();
 

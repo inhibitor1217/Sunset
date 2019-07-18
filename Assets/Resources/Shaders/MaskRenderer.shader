@@ -4,6 +4,7 @@ Shader "Compute/MaskRenderer"
     {
         _MainTex ("Source", 2D) = "white" {}
         _PrevTex ("Previous Frame", 2D) = "white" {}
+        _InputPosition ("Input Position", Vector) = (0, 0, 0, 0)
     }
     SubShader
     {
@@ -32,6 +33,8 @@ Shader "Compute/MaskRenderer"
             sampler2D _MainTex;
             sampler2D _PrevTex;
 
+            float4 _InputPosition;
+
             struct appdata_t
             {
                 float4 vertex   : POSITION;
@@ -56,7 +59,9 @@ Shader "Compute/MaskRenderer"
 
             half4 frag(v2f IN) : SV_Target
             {
-                half4 color = max(tex2D(_MainTex, IN.texcoord), tex2D(_PrevTex, IN.texcoord));
+                half4 color_current_frame = tex2D(_MainTex, IN.texcoord);
+
+                half4 color = max(color_current_frame, tex2D(_PrevTex, IN.texcoord));
 
                 return color;
             }
