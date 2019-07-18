@@ -3,8 +3,6 @@ using UnityEngine.UI;
 
 public class RawImageController : MonoBehaviour
 {
-
-    public RectTransform container;
     public TextureProvider provider;
 
     public bool isRoot = false;
@@ -58,14 +56,18 @@ public class RawImageController : MonoBehaviour
 
     public void SetTexture(Texture texture)
     {
+        m_RawImage.texture = texture;
+
+        if (texture == null)
+            return;
+
         texture.filterMode = FilterMode.Point;
         texture.wrapMode = TextureWrapMode.Clamp;
-
-        m_RawImage.texture = texture;
         
         m_ImageBaseScale = new Vector2(texture.width, texture.height);
 
-        m_RectTransform.anchoredPosition = InputManager.Instance.Position * InputManager.Instance.MultiplicativeScale;
+        if (isRoot)
+            m_RectTransform.anchoredPosition = InputManager.Instance.Position * InputManager.Instance.MultiplicativeScale;
         m_RectTransform.sizeDelta = m_ImageBaseScale * InputManager.Instance.MultiplicativeScale;
 
         InputManager.Instance.xBound = m_ImageBaseScale.x;

@@ -3,6 +3,8 @@ using UnityEngine;
 public class InputManager : MonoBehaviour
 {
 
+    public RectTransform container;
+    
     private static InputManager m_Instance;
     public static InputManager Instance { get { return m_Instance; } }
 
@@ -16,8 +18,10 @@ public class InputManager : MonoBehaviour
     public Vector2 Position { get { return m_Position; } }
     private Vector2 m_DesiredPosition = Vector2.zero;
 
-    private const float MIN_SCALE = 0.8f;
-    private const float MAX_SCALE = 32.0f;
+    public const float MIN_SCALE = 0.8f;
+    public const float MAX_SCALE = 32.0f;
+    public const float SCALE_MULTIPLIER = 1.1f;
+    public const float MAX_SCALE_LOG = 1.50515f;
 
     void Awake()
     {
@@ -70,9 +74,9 @@ public class InputManager : MonoBehaviour
         updatePosition(-15f * new Vector2(inputX, inputY));
 
         if (Input.GetKey(KeyCode.Q))
-            updateScale(1.1f);
+            updateScale(SCALE_MULTIPLIER);
         else if (Input.GetKey(KeyCode.W))
-            updateScale(0.9f);
+            updateScale(1f/SCALE_MULTIPLIER);
 #endif
 
         m_MultiplicativeScale = Mathf.Lerp(

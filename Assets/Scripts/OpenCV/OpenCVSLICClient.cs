@@ -4,6 +4,8 @@ public class OpenCVSLICClient : MonoBehaviour
 {
 
     public Texture2D inTex;
+    public SLICLabelTexture labelTextureProvider;
+    public SLICContourTexture contourTextureProvider;
 
     private Texture2D m_ReadableTex;
 
@@ -11,7 +13,11 @@ public class OpenCVSLICClient : MonoBehaviour
     private byte[][] m_OutContour = null;
 
     private int m_InTexWidth;
+    public int TexWidth { get { return m_InTexWidth; } }
     private int m_InTexHeight;
+    public int TexHeight { get { return m_InTexHeight; } }
+    private int m_NumLevels;
+    public int NumLevels { get { return m_NumLevels; } }
     private bool m_Invoked = false;
     private float m_InvokedTime;
     private int m_prevProgress;
@@ -29,8 +35,6 @@ public class OpenCVSLICClient : MonoBehaviour
 
         m_InTexWidth = inTex.width;
         m_InTexHeight = inTex.height;
-
-        MessagePanel.Instance.ShowMessage("이미지 전처리 중...");
 
         if (!inTex.isReadable)
         {
@@ -53,7 +57,7 @@ public class OpenCVSLICClient : MonoBehaviour
             RenderTexture.ReleaseTemporary(renderTex);
         }
 
-        OpenCVSLIC.AsyncSLIC(inTex.isReadable ? inTex : m_ReadableTex, ref m_OutLabel, ref m_OutContour);
+        m_NumLevels = OpenCVSLIC.AsyncSLIC(inTex.isReadable ? inTex : m_ReadableTex, ref m_OutLabel, ref m_OutContour);
 
         m_Invoked = true;
         m_InvokedTime = Time.time;
@@ -81,7 +85,7 @@ public class OpenCVSLICClient : MonoBehaviour
     {
         if (m_Invoked && m_prevProgress != OpenCVSLIC.asyncProgress)
         {
-            MessagePanel.Instance.ShowMessage("OpenCV - SLIC 이미지 처리 중... (" + OpenCVSLIC.asyncProgress + "/" + OpenCVSLIC.numAsyncTasks + ")");
+            MessagePanel.Instance.ShowMessage("OpenCV - SLIC 이미지 처리 중... (" + OpenCVSLIC.asyncProgress + "/" + m_NumLevels + ")");
             m_prevProgress = OpenCVSLIC.asyncProgress;
         }
 
@@ -95,7 +99,10 @@ public class OpenCVSLICClient : MonoBehaviour
 #if UNITY_EDITOR
             Debug.Log("OpenCVSLICClient - Finished AsyncSLIC in " + (Time.time - m_InvokedTime) + " seconds.");
 #endif
-
+            if (labelTextureProvider)
+                labelTextureProvider.GenerateTextures(this);
+            if (contourTextureProvider)
+                contourTextureProvider.GenerateTextures(this);
             MessagePanel.Instance.Disable();
 
         }

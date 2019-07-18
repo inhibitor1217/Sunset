@@ -14,6 +14,7 @@
 
     public const int MOVE = 0;
     public const int BRUSH = 1;
+    public const int BRUSH_SLIC = 2;
 
     public int mode = MOVE;
 

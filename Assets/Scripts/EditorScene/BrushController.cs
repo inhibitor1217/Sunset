@@ -32,9 +32,11 @@ public class BrushController : MonoBehaviour
             && RectTransformUtility.RectangleContainsScreenPoint(container, input))
         {
             #if UNITY_ANDROID && !UNITY_EDITOR
-            if (InputMode.Instance.mode == InputMode.BRUSH && Input.touchCount == 1)
+            if ((InputMode.Instance.mode == InputMode.BRUSH || InputMode.Instance.mode == InputMode.BRUSH_SLIC) 
+                && Input.touchCount == 1)
             #else
-            if (InputMode.Instance.mode == InputMode.BRUSH && Input.GetMouseButton(0))
+            if ((InputMode.Instance.mode == InputMode.BRUSH || InputMode.Instance.mode == InputMode.BRUSH_SLIC) 
+                 && Input.GetMouseButton(0))
             #endif
             {
                 if (!m_MeshRenderer.enabled)

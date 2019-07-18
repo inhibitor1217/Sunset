@@ -4,6 +4,9 @@ using UnityEngine;
 public class TextureProviderManager : MonoBehaviour
 {
 
+    private static TextureProviderManager m_Instance;
+    public static TextureProviderManager Instance { get { return m_Instance; } }
+
     [SerializeField]
     private static List<TextureProvider> textureProviders = new List<TextureProvider>();
 
@@ -17,6 +20,11 @@ public class TextureProviderManager : MonoBehaviour
     {
         textureProviders.Remove(v);
         // Debug.Log("Count: " + textureProviders.Count);
+    }
+
+    void Awake()
+    {
+        m_Instance = this;
     }
 
     void Update()

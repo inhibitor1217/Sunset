@@ -21,7 +21,7 @@ public class MaskTexture : TextureProvider
 
     void Update()
     {
-        if (InputMode.Instance.mode == InputMode.BRUSH)
+        if (InputMode.Instance.mode == InputMode.BRUSH || InputMode.Instance.mode == InputMode.BRUSH_SLIC)
             textureShouldUpdate = true;
     }
 
