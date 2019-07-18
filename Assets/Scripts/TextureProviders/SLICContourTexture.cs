@@ -3,7 +3,7 @@ using UnityEngine;
 public class SLICContourTexture : TextureProvider
 {
 
-    [SerializeField]
+    private Texture m_CurTexture = null;
     private Texture2D[] m_contourTextures = null;
 
     private int m_PrevLevel = -1;
@@ -11,6 +11,11 @@ public class SLICContourTexture : TextureProvider
     public override bool Draw()
     {
         return true;
+    }
+
+    public override Texture GetTexture()
+    {
+        return m_CurTexture;
     }
 
     public void GenerateTextures(OpenCVSLICClient client)
@@ -23,12 +28,10 @@ public class SLICContourTexture : TextureProvider
             m_contourTextures[level] = new Texture2D(client.TexWidth, client.TexHeight);
             m_contourTextures[level].SetPixels32(OpenCVUtils.OpenCVMatToColor32(client.getContour(level)));
             m_contourTextures[level].Apply();
-        }
-    }
 
-    new void Awake()
-    {
-        base.Awake();
+            m_contourTextures[level].wrapMode = TextureWrapMode.Clamp;
+            m_contourTextures[level].filterMode = FilterMode.Point;
+        }
     }
 
     void Update()
@@ -40,7 +43,9 @@ public class SLICContourTexture : TextureProvider
 
             if (m_PrevLevel != level)
             {
-                texture = m_contourTextures[level];
+                m_CurTexture = m_contourTextures[level];
+                if (m_Target)
+                    m_Target.SetTexture(m_CurTexture);
                 m_PrevLevel = level;
             }
         }

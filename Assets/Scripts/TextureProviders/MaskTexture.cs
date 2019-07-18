@@ -3,26 +3,27 @@
 public class MaskTexture : TextureProvider
 {
 
-    public Camera maskCamera;
-    public int referenceWidth;
-    public int referenceHeight;
+    private Camera m_MaskCamera;
 
     private RenderTexture m_RenderTexture = null;
-    
-    new void Awake()
-    {
-        base.Awake();
-    }
-
-    void Start()
-    {
-        SetDimension(referenceWidth, referenceHeight);
-    }
 
     void Update()
     {
         if (InputMode.Instance.IsModeBrush())
             textureShouldUpdate = true;
+    }
+
+    new void OnDestroy()
+    {
+        base.OnDestroy();
+
+        if (m_RenderTexture)
+            m_RenderTexture.Release();
+    }
+
+    public override Texture GetTexture()
+    {
+        return m_RenderTexture;
     }
 
     public override bool Draw()
@@ -44,12 +45,14 @@ public class MaskTexture : TextureProvider
     {
         m_RenderTexture = new RenderTexture(width, height, 0, RenderTextureFormat.RFloat);
         m_RenderTexture.antiAliasing = 4;
+        m_RenderTexture.wrapMode = TextureWrapMode.Clamp;
+        m_RenderTexture.filterMode = FilterMode.Point;
+    }
 
-        if (maskCamera)
-        {
-            maskCamera.targetTexture = m_RenderTexture;
-        }
-        texture = m_RenderTexture;
+    public void SetCamera(Camera camera)
+    {
+        m_MaskCamera = camera;
+        m_MaskCamera.targetTexture = m_RenderTexture;
     }
 
 }

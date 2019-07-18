@@ -3,28 +3,16 @@
 public abstract class TextureProvider : MonoBehaviour
 {
 
-    [SerializeField]
-    private Texture m_Texture;
-    public Texture texture {
-        get { return m_Texture; }
-        set {
-            m_Texture = value;
-            if (m_Target)
-                m_Target.SetTexture(m_Texture);
-        }
-    }
-
     private TextureProvider[] m_PipeInputs  = { null, null, null, null };
     private TextureProvider[] m_PipeOutputs = { null, null, null, null };
 
-    private RawImageController m_Target = null;
+    protected RawImageController m_Target = null;
 
     [HideInInspector]
     public bool textureShouldUpdate = false;
 
     protected void Awake()
     {
-        // Debug.Log("Awake: " + this);
         TextureProviderManager.AddTextureProvider(this);
 
         textureShouldUpdate = true;
@@ -43,9 +31,13 @@ public abstract class TextureProvider : MonoBehaviour
         }
     }
 
+    public abstract bool Draw();
+    public abstract Texture GetTexture();
+
     public void SetTarget(RawImageController target)
     {
         m_Target = target;
+        target.SetTexture(GetTexture());
     }
 
     public static void Link(TextureProvider src, int srcIndex, TextureProvider dst, int dstIndex)
@@ -64,8 +56,6 @@ public abstract class TextureProvider : MonoBehaviour
                 dst.m_PipeInputs[i] = null;
         }
     }
-
-    public abstract bool Draw();
 
     public int SeekFreeIndex()
     {

@@ -3,7 +3,6 @@ using UnityEngine.UI;
 
 public class RawImageController : MonoBehaviour
 {
-    public TextureProvider provider;
 
     public bool isRoot = false;
     public Camera maskCamera = null;
@@ -27,9 +26,6 @@ public class RawImageController : MonoBehaviour
         {
             m_RawImage.texture = Texture2D.whiteTexture;
         }
-
-        if (provider)
-            provider.SetTarget(this);
 
         TextureProviderManager.UpdateEager();
 
@@ -60,9 +56,6 @@ public class RawImageController : MonoBehaviour
 
         if (texture == null)
             return;
-
-        texture.filterMode = FilterMode.Point;
-        texture.wrapMode = TextureWrapMode.Clamp;
         
         m_ImageBaseScale = new Vector2(texture.width, texture.height);
 

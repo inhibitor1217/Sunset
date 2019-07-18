@@ -129,14 +129,15 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     new void Awake()
     {
         base.Awake();
+
         m_FractalNoiseMaterial = new Material(Shader.Find("Compute/FractalNoise"));
         m_RenderTexture = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.RHalf);
+        m_RenderTexture.wrapMode = TextureWrapMode.Clamp;
+        m_RenderTexture.filterMode = FilterMode.Point;
     }
 
     void Start()
     {
-        texture = m_RenderTexture;
-
         noiseType = (int)_noiseType;
         fractalType = (int)_fractalType;
         seed = _seed;
@@ -165,6 +166,11 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         
         if (m_RenderTexture)
             m_RenderTexture.Release();
+    }
+
+    public override Texture GetTexture()
+    {
+        return m_RenderTexture;
     }
 
     public override bool Draw()

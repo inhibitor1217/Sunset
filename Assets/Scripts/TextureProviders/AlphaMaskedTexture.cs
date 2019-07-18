@@ -25,25 +25,6 @@ public class AlphaMaskedTexture : TextureProvider
                 TextureProvider.Link(value, value.SeekFreeIndex(), this, SOURCE_SRC_INDEX);
             
             m_SrcTexture = value;
-
-            if (!m_SrcTexture)
-            {
-                if (m_RenderTexture)
-                {
-                    m_RenderTexture.Release();
-                    m_RenderTexture = null;
-                }
-            }
-           else if(m_SrcTexture.texture)
-            {
-                if (m_RenderTexture)
-                    m_RenderTexture.Release();
-
-                m_SrcTexture.texture.filterMode = FilterMode.Point;
-                m_SrcTexture.texture.wrapMode = TextureWrapMode.Clamp;
-                m_RenderTexture = new RenderTexture(m_SrcTexture.texture.width, m_SrcTexture.texture.height, 0);
-                texture = m_RenderTexture;
-            }
         }
     }
 
@@ -65,14 +46,7 @@ public class AlphaMaskedTexture : TextureProvider
             if (value)
                 TextureProvider.Link(value, value.SeekFreeIndex(), this, ALPHA_SRC_INDEX);
             
-            m_AlphaTexture = value; 
-
-            if (m_AlphaTexture && m_AlphaTexture.texture && m_AlphaMaskMaterial)
-            {
-                m_AlphaTexture.texture.filterMode = FilterMode.Point;
-                m_AlphaTexture.texture.wrapMode = TextureWrapMode.Clamp;
-                m_AlphaMaskMaterial.SetTexture("_AlphaTex", m_AlphaTexture.texture);
-            }
+            m_AlphaTexture = value;
         }
     }
 
@@ -103,26 +77,36 @@ public class AlphaMaskedTexture : TextureProvider
             m_RenderTexture.Release();
     }
 
+    public override Texture GetTexture()
+    {
+        return m_RenderTexture;
+    }
+
     public override bool Draw()
     {
-        if (m_SrcTexture && m_AlphaTexture && m_SrcTexture.texture && m_AlphaTexture.texture)
-        {
-            if (!m_RenderTexture)
-            {
-                m_RenderTexture = new RenderTexture(m_SrcTexture.texture.width, m_SrcTexture.texture.height, 0, RenderTextureFormat.ARGBHalf);
-                texture = m_RenderTexture;
-            }
+        if (!m_RenderTexture)
+            return false;
 
-            m_AlphaMaskMaterial.SetTexture("_AlphaTex", m_AlphaTexture.texture);
+        Graphics.SetRenderTarget(m_RenderTexture, 0, CubemapFace.Unknown, 0);
+        GL.Clear(false, true, Color.black, 0);
+        Graphics.Blit(m_SrcTexture.GetTexture(), m_RenderTexture, m_AlphaMaskMaterial);
+        
+        return true;
+    }
+    
+    public void Setup()
+    {
+        if (m_RenderTexture)
+            m_RenderTexture.Release();
 
-            Graphics.SetRenderTarget(m_RenderTexture, 0, CubemapFace.Unknown, 0);
-            GL.Clear(false, true, Color.black, 0);
-            Graphics.Blit(m_SrcTexture.texture, m_RenderTexture, m_AlphaMaskMaterial);
-            
-            return true;
-        }
+        Texture srcTex = m_SrcTexture.GetTexture();
+        Texture alphaTex = m_AlphaTexture.GetTexture();
 
-        return false;
+        m_RenderTexture = new RenderTexture(srcTex.width, srcTex.height, 0, RenderTextureFormat.ARGBHalf);
+        m_RenderTexture.wrapMode = TextureWrapMode.Clamp;
+        m_RenderTexture.filterMode = FilterMode.Point;
+        
+        m_AlphaMaskMaterial.SetTexture("_AlphaTex", alphaTex);
     }
 
 }

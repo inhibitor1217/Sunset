@@ -3,7 +3,7 @@ using UnityEngine;
 public class SLICLabelTexture : TextureProvider
 {
 
-    [SerializeField]
+    private Texture m_CurTexture = null;
     private Texture2D[] m_LabelTextures = null;
 
     private int m_PrevLevel = -1;
@@ -11,6 +11,11 @@ public class SLICLabelTexture : TextureProvider
     public override bool Draw()
     {
         return true;
+    }
+
+    public override Texture GetTexture()
+    {
+        return m_CurTexture;
     }
 
     public void GenerateTextures(OpenCVSLICClient client)
@@ -23,12 +28,10 @@ public class SLICLabelTexture : TextureProvider
             m_LabelTextures[level] = new Texture2D(client.TexWidth, client.TexHeight);
             m_LabelTextures[level].SetPixels32(OpenCVUtils.OpenCVLabelToColor32(client.getLabel(level)));
             m_LabelTextures[level].Apply();
-        }
-    }
 
-    new void Awake()
-    {
-        base.Awake();
+            m_LabelTextures[level].wrapMode = TextureWrapMode.Clamp;
+            m_LabelTextures[level].filterMode = FilterMode.Point;
+        }
     }
 
     void Update()
@@ -40,7 +43,9 @@ public class SLICLabelTexture : TextureProvider
 
             if (m_PrevLevel != level)
             {
-                texture = m_LabelTextures[level];
+                m_CurTexture = m_LabelTextures[level];
+                if (m_Target)
+                    m_Target.SetTexture(m_CurTexture);
                 m_PrevLevel = level;
             }
         }

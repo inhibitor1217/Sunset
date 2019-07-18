@@ -16,9 +16,20 @@ public class InputModeToggle : MonoBehaviour
     public void OnToggleChanged(bool isOn)
     {
         InputMode.Instance.mode = isOn ? modeOn : modeOff;
+    }
 
+    public void UpdateColor(bool isOn)
+    {
         var colors = m_Toggle.colors;
         colors.normalColor = isOn ? Color.yellow : Color.white;
         m_Toggle.colors = colors;
+    }
+
+    public void BrushToggle(bool isOn)
+    {
+        if (isOn)
+            EditorSceneMaster.Instance.CreateBrush(0);
+        else
+            EditorSceneMaster.Instance.RemoveBrush();
     }
 }
