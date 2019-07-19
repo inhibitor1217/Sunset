@@ -4,14 +4,7 @@ public class MaskTexture : TextureProvider
 {
 
     private Camera m_MaskCamera;
-
     private RenderTexture m_RenderTexture = null;
-
-    void Update()
-    {
-        if (InputMode.Instance.IsModeBrush())
-            textureShouldUpdate = true;
-    }
 
     new void OnDestroy()
     {
@@ -19,6 +12,12 @@ public class MaskTexture : TextureProvider
 
         if (m_RenderTexture)
             m_RenderTexture.Release();
+    }
+
+    void Update()
+    {
+        if (InputMode.Instance.IsModeBrush() && InputManager.Instance.released)
+            textureShouldUpdate = true;
     }
 
     public override Texture GetTexture()

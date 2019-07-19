@@ -37,7 +37,8 @@ public abstract class TextureProvider : MonoBehaviour
     public void SetTarget(RawImageController target)
     {
         m_Target = target;
-        target.SetTexture(GetTexture());
+        if (m_Target)
+            m_Target.SetTexture(GetTexture());
     }
 
     public static void Link(TextureProvider src, int srcIndex, TextureProvider dst, int dstIndex)

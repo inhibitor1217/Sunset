@@ -5,18 +5,21 @@ public class InputManager : MonoBehaviour
 
     public RectTransform container;
     
-    private static InputManager m_Instance;
-    public static InputManager Instance { get { return m_Instance; } }
+    public static InputManager Instance { get; private set; }
 
     [HideInInspector]
     public float xBound = .5f, yBound = .5f;
 
-    private float m_MultiplicativeScale;
-    public float MultiplicativeScale { get { return m_MultiplicativeScale; } }
+    public float MultiplicativeScale { get; private set; }
     private float m_DesiredMultiplicativeScale;
-    private Vector2 m_Position;
-    public Vector2 Position { get { return m_Position; } }
+    public Vector2 Position { get; private set; }
     private Vector2 m_DesiredPosition;
+
+    public Vector2 inputPosition { get; private set; } = Vector2.zero;
+    public bool pressed { get; private set; } = false;
+    public bool released { get; private set; } = false;
+    public bool held { get; private set; } = false;
+    public bool withinContainer { get; private set; } = false;
 
     public const float MIN_SCALE = 0.8f;
     public const float MAX_SCALE = 32.0f;
@@ -25,11 +28,11 @@ public class InputManager : MonoBehaviour
 
     void Awake()
     {
-        m_Instance = this;
+        Instance = this;
 
-        m_MultiplicativeScale = 1f;
+        MultiplicativeScale = 1f;
         m_DesiredMultiplicativeScale = 1f;
-        m_Position = Vector2.zero;
+        Position = Vector2.zero;
         m_DesiredPosition = Vector2.zero;
     }
 
@@ -38,23 +41,27 @@ public class InputManager : MonoBehaviour
 #if UNITY_ANDROID && !UNITY_EDITOR
         if (Input.touchCount == 1)
         {
-            if (InputMode.Instance.mode != InputMode.MOVE)
-                return;
-
             Touch touch = Input.GetTouch(0);
 
-            if (container
-                && RectTransformUtility.RectangleContainsScreenPoint(
-                        container, touch.position
-                    ))
-            {
+            inputPosition = touch.position;
+            withinContainer = RectTransformUtility.RectangleContainsScreenPoint(container, inputPosition);
+            held = true;
+            pressed = (touch.phase == TouchPhase.Began);
+            released = (touch.phase == TouchPhase.Ended);
+
+            if (withinContainer && InputMode.Instance.mode == InputMode.MOVE)
                 updatePosition(touch.deltaPosition);
-            }
         }
         else if (Input.touchCount == 2)
         {
             Touch touch0 = Input.GetTouch(0);
             Touch touch1 = Input.GetTouch(1);
+
+            inputPosition = Vector2.zero;
+            withinContainer = false;
+            held = false;
+            pressed = false;
+            released = false;
 
             if (container
                 && RectTransformUtility.RectangleContainsScreenPoint(
@@ -78,23 +85,29 @@ public class InputManager : MonoBehaviour
         float inputY = Input.GetAxis("Vertical");
         updatePosition(-15f * new Vector2(inputX, inputY));
 
+        held = Input.GetMouseButton(0);
+        inputPosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+        withinContainer = RectTransformUtility.RectangleContainsScreenPoint(container, inputPosition);
+        pressed = Input.GetMouseButtonDown(0);
+        released = Input.GetMouseButtonUp(0);
+
         if (Input.GetKey(KeyCode.Q))
             updateScale(SCALE_MULTIPLIER);
         else if (Input.GetKey(KeyCode.W))
             updateScale(1f/SCALE_MULTIPLIER);
 #endif
 
-        m_MultiplicativeScale = Mathf.Lerp(
-            m_MultiplicativeScale, m_DesiredMultiplicativeScale, 10f * Time.deltaTime
+        MultiplicativeScale = Mathf.Lerp(
+            MultiplicativeScale, m_DesiredMultiplicativeScale, 10f * Time.deltaTime
         );
-        m_Position = Vector2.Lerp(
-            m_Position, m_DesiredPosition, 10f * Time.deltaTime
+        Position = Vector2.Lerp(
+            Position, m_DesiredPosition, 10f * Time.deltaTime
         );
     }
 
     void updatePosition(Vector2 deltaPosition)
     {
-        m_DesiredPosition += deltaPosition / m_MultiplicativeScale;
+        m_DesiredPosition += deltaPosition / MultiplicativeScale;
         m_DesiredPosition.x = Mathf.Clamp(m_DesiredPosition.x, -.5f * xBound, .5f * xBound);
         m_DesiredPosition.y = Mathf.Clamp(m_DesiredPosition.y, -.5f * yBound, .5f * yBound);
     }

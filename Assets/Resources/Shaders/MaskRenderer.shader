@@ -3,7 +3,7 @@ Shader "Compute/MaskRenderer"
     Properties
     {
         _MainTex ("Source", 2D) = "white" {}
-        _PrevTex ("Previous Frame", 2D) = "white" {}
+        _PrevTex ("Previous Frame", 2D) = "black" {}
         _InputPosition ("Input Position", Vector) = (0, 0, 0, 0)
     }
     SubShader

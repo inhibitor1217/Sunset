@@ -5,11 +5,12 @@ public class RawImageController : MonoBehaviour
 {
 
     public bool isRoot = false;
-    public Camera maskCamera = null;
 
     private RawImage m_RawImage;
     private RectTransform m_RectTransform;
     private Vector2 m_ImageBaseScale;
+
+    private Camera[] m_MaskCameras;
 
 #if UNITY_ANDROID && !UNITY_EDITOR
     private const float GRID_OPACITY_CURVE_CENTER = 24f;
@@ -27,9 +28,9 @@ public class RawImageController : MonoBehaviour
             m_RawImage.texture = Texture2D.whiteTexture;
         }
 
-        TextureProviderManager.UpdateEager();
-
         m_ImageBaseScale = Vector2.one;
+
+        m_MaskCameras = new Camera[EditorSceneMaster.MAX_EFFECTS];
     }
 
     void Update()
@@ -42,9 +43,10 @@ public class RawImageController : MonoBehaviour
         if (isRoot)
         {
             m_RectTransform.anchoredPosition = InputManager.Instance.Position * InputManager.Instance.MultiplicativeScale;
-            if (maskCamera)
+            foreach (var maskCamera in m_MaskCameras)
             {
-                maskCamera.orthographicSize = .5f * m_ImageBaseScale.y * InputManager.Instance.MultiplicativeScale;
+                if (maskCamera)
+                    maskCamera.orthographicSize = .5f * m_ImageBaseScale.y * InputManager.Instance.MultiplicativeScale;
             }
         }
         m_RectTransform.sizeDelta = m_ImageBaseScale * InputManager.Instance.MultiplicativeScale;
@@ -65,6 +67,12 @@ public class RawImageController : MonoBehaviour
 
         InputManager.Instance.xBound = m_ImageBaseScale.x;
         InputManager.Instance.yBound = m_ImageBaseScale.y;
+    }
+
+    public void SetMaskCamera(Camera camera, int maskIndex)
+    {
+        if (isRoot)
+            m_MaskCameras[maskIndex] = camera;
     }
 
 }

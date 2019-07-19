@@ -30,6 +30,6 @@ public class InputModeToggle : MonoBehaviour
         if (isOn)
             EditorSceneMaster.Instance.CreateBrush(0);
         else
-            EditorSceneMaster.Instance.RemoveBrush();
+            EditorSceneMaster.Instance.RemoveBrush(0);
     }
 }

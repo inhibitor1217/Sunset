@@ -5,8 +5,6 @@
 public class BrushController : MonoBehaviour
 {
     
-    public RectTransform container;
-
     private MeshRenderer m_MeshRenderer;
 
     void Awake()
@@ -22,39 +20,18 @@ public class BrushController : MonoBehaviour
 
     void Update()
     {
-        #if UNITY_ANDROID && !UNITY_EDITOR
-        Vector2 input = Input.GetTouch(0).position;
-        #else
-        Vector2 input = Input.mousePosition;
-        #endif
-
-        if (container
-            && RectTransformUtility.RectangleContainsScreenPoint(container, input))
+        if (InputMode.Instance.mode == InputMode.BRUSH_PLAIN 
+            && InputManager.Instance.held
+            && InputManager.Instance.withinContainer)
         {
-            #if UNITY_ANDROID && !UNITY_EDITOR
-            if ((InputMode.Instance.mode == InputMode.BRUSH_PLAIN) 
-                && Input.touchCount == 1)
-            #else
-            if ((InputMode.Instance.mode == InputMode.BRUSH_PLAIN) 
-                 && Input.GetMouseButton(0))
-            #endif
-            {
-                if (!m_MeshRenderer.enabled)
-                    m_MeshRenderer.enabled = true;
-            }
-            else
-            {
-                if (m_MeshRenderer.enabled)
-                    m_MeshRenderer.enabled = false;
-                return;
-            }
-
-            transform.position = input;
+            if (!m_MeshRenderer.enabled)
+                m_MeshRenderer.enabled = true;
+            transform.position = InputManager.Instance.inputPosition;
         }
         else
         {
             if (m_MeshRenderer.enabled)
-                    m_MeshRenderer.enabled = false;
+                m_MeshRenderer.enabled = false;
         }
     }
 
