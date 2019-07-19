@@ -12,13 +12,12 @@ public class EditorSceneMaster : MonoBehaviour
     public GameObject MaskLayerPrefab;
     public GameObject StaticTexturePrefab;
     public GameObject MaskTexturePrefab;
+    public GameObject SLICLabelTexturePrefab;
     public GameObject BrushPrefab;
     public GameObject MaskCameraPrefab;
 
     [Header("References")]
     public RectTransform container;
-    public GameObject[] UIButtonObjects;
-    public GameObject[] UIToggleObjects;
 
     // Managers
     private TextureProviderManager m_TextureProviderManager;
@@ -39,14 +38,19 @@ public class EditorSceneMaster : MonoBehaviour
     private StaticTexture m_RootStaticTexture;
 
     // Mask Components
-    private GameObject[] m_MaskTextureObjects = {};
-    private MaskTexture[] m_MaskTextures = {};
-    private GameObject[] m_MaskCameraObjects = {};
-    private MaskRendererCamera[] m_MaskCameras = {};
+    private GameObject[] m_MaskTextureObjects = new GameObject[MAX_EFFECTS];
+    private MaskTexture[] m_MaskTextures = new MaskTexture[MAX_EFFECTS];
+    private GameObject[] m_MaskCameraObjects = new GameObject[MAX_EFFECTS];
+    private MaskRendererCamera[] m_MaskCameras = new MaskRendererCamera[MAX_EFFECTS];
 
     // Brush
     private GameObject m_BrushObject;
     private BrushController m_Brush;
+
+    // SLIC
+    private OpenCVSLICClient m_SLICClient;
+    private GameObject m_SLICLabelTextureObject;
+    private SLICLabelTexture m_SLICLabelTexture;
 
     public const int EFFECT_WATER = 0;
     public const int EFFECT_SKY = 1;
@@ -73,6 +77,9 @@ public class EditorSceneMaster : MonoBehaviour
 
     public void InitScene(Texture2D rootTexture)
     {
+        if (InputMode.Instance.mode == InputMode.Mode.BUSY)
+            return;
+
         // ** Clean up **
 
         // Managers
@@ -81,35 +88,22 @@ public class EditorSceneMaster : MonoBehaviour
         if (m_InputManager)
             Destroy(m_InputManager);
         
-        // Layers
+        // Root Layer
         if (m_RootLayerObject)
             Destroy(m_RootLayerObject);
-        if (m_MaskLayerObject)
-            Destroy(m_MaskLayerObject);
-
-        // Texture Providers
         if (m_RootStaticTextureObject)
             Destroy(m_RootStaticTextureObject);
 
         // Mask Components
-        foreach (var maskTextureObject in m_MaskTextureObjects)
-        {
-            if (maskTextureObject)
-                Destroy(maskTextureObject);
-        }
-        foreach (var maskCameraObject in m_MaskCameraObjects)
-        {
-            if (maskCameraObject)
-                Destroy(maskCameraObject);
-        }
-        m_MaskTextureObjects = new GameObject[MAX_EFFECTS];
-        m_MaskTextures = new MaskTexture[MAX_EFFECTS];
-        m_MaskCameraObjects = new GameObject[MAX_EFFECTS];
-        m_MaskCameras = new MaskRendererCamera[MAX_EFFECTS];
+        for (int i = 0; i < MAX_EFFECTS; i++)
+            RemoveMask(i);
 
         // Brush
-        if (m_BrushObject)
-            Destroy(m_BrushObject);
+        for (int i = 0; i < MAX_EFFECTS; i++)
+            RemoveBrush(i);
+
+        // SLIC
+        RemoveSLIC();
 
         Debug.Log("Initialize Scene with texture [" + rootTexture.width + ", " + rootTexture.height + "]");
 
@@ -117,21 +111,11 @@ public class EditorSceneMaster : MonoBehaviour
         width = rootTexture.width;
         height = rootTexture.height;
 
-        // Enable Functional Buttons
-        foreach (var button in UIButtonObjects)
-            button.GetComponent<Button>().interactable = true;
-        foreach (var toggle in UIToggleObjects)
-            toggle.GetComponent<Toggle>().interactable = true;
-
         // Initialize Global Managers
-        InputMode.Instance.mode = InputMode.MOVE;
+        InputMode.Instance.mode = InputMode.Mode.MOVE;
         m_TextureProviderManager = gameObject.AddComponent(typeof(TextureProviderManager)) as TextureProviderManager;
         m_InputManager = gameObject.AddComponent(typeof(InputManager)) as InputManager;
         m_InputManager.container = container;
-
-        // Initialize UI Components
-        foreach (var toggle in UIToggleObjects)
-            toggle.GetComponent<InputModeToggle>().UpdateColor(false);
 
         // Setup Root Layer
         m_RootLayerObject = GameObject.Instantiate(LayerPrefab);
@@ -191,7 +175,13 @@ public class EditorSceneMaster : MonoBehaviour
         if (m_MaskCameraObjects[maskIndex])
             Destroy(m_MaskCameraObjects[maskIndex]);
 
-        m_RootLayer.SetMaskCamera(null, maskIndex);
+        if (m_RootLayer)
+            m_RootLayer.SetMaskCamera(null, maskIndex);
+
+        m_MaskTextureObjects[maskIndex] = null;
+        m_MaskTextures[maskIndex] = null;
+        m_MaskCameraObjects[maskIndex] = null;
+        m_MaskCameras[maskIndex] = null;
     }
 
     public void CreateBrush(int maskIndex)
@@ -231,9 +221,41 @@ public class EditorSceneMaster : MonoBehaviour
         if (m_MaskLayerObject)
             Destroy(m_MaskLayerObject);
 
-        m_MaskTextures[maskIndex].SetTarget(null);
+        if (m_MaskTextures[maskIndex])
+            m_MaskTextures[maskIndex].SetTarget(null);
+        
+        if (m_MaskCameraObjects[maskIndex])
+            m_MaskCameraObjects[maskIndex].GetComponent<Camera>().enabled = false;
 
-        m_MaskCameraObjects[maskIndex].GetComponent<Camera>().enabled = false;
+        m_BrushObject = null;
+        m_Brush = null;
+        m_MaskLayerObject = null;
+        m_MaskLayer = null;
+    }
+
+    public void CreateSLIC(InputMode.Mode nextMode)
+    {
+        if (!m_SLICClient)
+            m_SLICClient = gameObject.AddComponent(typeof(OpenCVSLICClient)) as OpenCVSLICClient;
+        if (!m_SLICLabelTextureObject)
+            m_SLICLabelTextureObject = GameObject.Instantiate(SLICLabelTexturePrefab);
+        if (!m_SLICLabelTexture)
+            m_SLICLabelTexture = m_SLICLabelTextureObject.GetComponent<SLICLabelTexture>();
+
+        m_SLICClient.labelTextureProvider = m_SLICLabelTexture;
+        m_SLICClient.Invoke(m_RootStaticTexture.GetTexture() as Texture2D, nextMode);
+    }
+
+    public void RemoveSLIC()
+    {
+        if (m_SLICClient)
+            Destroy(m_SLICClient);
+        if (m_SLICLabelTextureObject)
+            Destroy(m_SLICLabelTextureObject);
+
+        m_SLICClient = null;
+        m_SLICLabelTextureObject = null;
+        m_SLICLabelTexture = null;
     }
 
 }

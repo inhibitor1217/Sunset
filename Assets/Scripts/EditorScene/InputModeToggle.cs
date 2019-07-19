@@ -5,12 +5,22 @@ public class InputModeToggle : MonoBehaviour
 {
     private Toggle m_Toggle;
 
-    public int modeOff;
-    public int modeOn;
+    public InputMode.Mode modeOff;
+    public InputMode.Mode modeOn;
 
     void Awake()
     {
         m_Toggle = GetComponent<Toggle>();
+    }
+
+    void Start()
+    {
+        InputMode.Subscribe(this);
+    }
+
+    void OnDestroy()
+    {
+        InputMode.Unsubscribe(this);
     }
 
     public void OnToggleChanged(bool isOn)
@@ -18,18 +28,20 @@ public class InputModeToggle : MonoBehaviour
         InputMode.Instance.mode = isOn ? modeOn : modeOff;
     }
 
-    public void UpdateColor(bool isOn)
+    public void onInputModeChanged(InputMode.Mode mode)
     {
+        if (mode != modeOn && mode != modeOff)
+        {
+            m_Toggle.interactable = false;
+            return;
+        }
+        
+        m_Toggle.interactable = true;
         var colors = m_Toggle.colors;
-        colors.normalColor = isOn ? Color.yellow : Color.white;
+        if (mode == modeOff)
+            colors.normalColor = Color.white;
+        else if (mode == modeOn)
+            colors.normalColor = Color.yellow;
         m_Toggle.colors = colors;
-    }
-
-    public void BrushToggle(bool isOn)
-    {
-        if (isOn)
-            EditorSceneMaster.Instance.CreateBrush(0);
-        else
-            EditorSceneMaster.Instance.RemoveBrush(0);
     }
 }

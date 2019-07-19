@@ -20,7 +20,7 @@ public class BrushController : MonoBehaviour
 
     void Update()
     {
-        if (InputMode.Instance.mode == InputMode.BRUSH_PLAIN 
+        if (InputMode.Instance.mode == InputMode.Mode.BRUSH_PLAIN 
             && InputManager.Instance.held
             && InputManager.Instance.withinContainer)
         {

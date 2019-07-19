@@ -4,20 +4,15 @@ using System.Collections.Generic;
 public static class OpenCVSLIC
 {
 
-    private static bool _asyncBusy = false;
-    public static bool asyncBusy { get { return _asyncBusy; } }
-
-    private static int _numAsyncTasks = 0;
-    public static int numAsyncTasks { get { return _numAsyncTasks; } }
-
-    private static int _asyncProgress = 0;
-    public static int asyncProgress { get { return _asyncProgress; } }
+    public static bool asyncBusy { get; private set; } = false;
+    public static int numAsyncTasks { get; private set; } = 0;
+    public static int asyncProgress { get; private set; } = 0;
 
     public static int AsyncSLIC(Texture2D inTex, ref int[][] outLabel, ref byte[][] outContour)
     {
-        if (!_asyncBusy)
+        if (!asyncBusy)
         {
-            _asyncBusy = true;
+            asyncBusy = true;
 
             int width = inTex.width;
             int height = inTex.height;
@@ -34,12 +29,12 @@ public static class OpenCVSLIC
                 regionSizes.Add(regionSize);
             }
 
-            _numAsyncTasks = regionSizes.Count;
+            numAsyncTasks = regionSizes.Count;
 
-            outLabel = new int[_numAsyncTasks][];
-            outContour = new byte[_numAsyncTasks][];
+            outLabel = new int[numAsyncTasks][];
+            outContour = new byte[numAsyncTasks][];
 
-            for (int i = 0; i < _numAsyncTasks; i++)
+            for (int i = 0; i < numAsyncTasks; i++)
             {
                 int[] _outLabel = new int[width * height];
                 byte[] _outContour = new byte[width * height];
@@ -51,7 +46,7 @@ public static class OpenCVSLIC
                 new Thread(() => SLIC(inColors, width, height, _outLabel, _outContour, regionSize)).Start();
             }
 
-            return _numAsyncTasks;
+            return numAsyncTasks;
         }
 
         return -1;
@@ -69,12 +64,12 @@ public static class OpenCVSLIC
         Debug.Log("OpenCV SLIC - # Superpixels: " + numSuperpixels);
 #endif
 
-        _asyncProgress++;
-        if (_asyncProgress == _numAsyncTasks)
+        asyncProgress++;
+        if (asyncProgress == numAsyncTasks)
         {
-            _asyncBusy = false;
-            _asyncProgress = 0;
-            _numAsyncTasks = 0;
+            asyncBusy = false;
+            asyncProgress = 0;
+            numAsyncTasks = 0;
         }
     }
 

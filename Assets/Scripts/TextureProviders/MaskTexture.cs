@@ -16,7 +16,9 @@ public class MaskTexture : TextureProvider
 
     void Update()
     {
-        if (InputMode.Instance.IsModeBrush() && InputManager.Instance.released)
+        if (InputMode.Instance.IsModeBrush() 
+            && InputManager.Instance.withinContainer 
+            && InputManager.Instance.released)
             textureShouldUpdate = true;
     }
 

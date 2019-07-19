@@ -3,7 +3,6 @@ using UnityEngine;
 public class OpenCVSLICClient : MonoBehaviour
 {
 
-    public Texture2D inTex;
     public SLICLabelTexture labelTextureProvider;
     public SLICContourTexture contourTextureProvider;
 
@@ -22,41 +21,50 @@ public class OpenCVSLICClient : MonoBehaviour
     private float m_InvokedTime;
     private int m_prevProgress;
 
-    public void onClick()
-    {
-        if (inTex)
-            Invoke();
-    }
+    private InputMode.Mode _nextMode;
 
-    public bool Invoke()
+    // Cache
+    private Texture2D __cached_inTex;
+
+    public bool Invoke(Texture2D inTex, InputMode.Mode nextMode)
     {
         if (OpenCVSLIC.asyncBusy)
             return false;
 
+        if (inTex == __cached_inTex)
+        {
+            InputMode.Instance.SetModeWithoutSideEffect(nextMode);
+            return true;
+        }
+
         m_InTexWidth = inTex.width;
         m_InTexHeight = inTex.height;
 
+        _nextMode = nextMode;
+        InputMode.Instance.mode = InputMode.Mode.BUSY;
+
+        __cached_inTex = inTex;
+
         if (!inTex.isReadable)
         {
-            // RenderTexture renderTex = RenderTexture.GetTemporary(
-            //     m_InTexWidth,
-            //     m_InTexHeight,
-            //     0,
-            //     RenderTextureFormat.Default,
-            //     RenderTextureReadWrite.Linear
-            // );
+            RenderTexture renderTex = RenderTexture.GetTemporary(
+                m_InTexWidth,
+                m_InTexHeight,
+                0,
+                RenderTextureFormat.Default,
+                RenderTextureReadWrite.Linear
+            );
 
-            // Graphics.Blit(inTex, renderTex);
-            // RenderTexture previous = RenderTexture.active;
-            // RenderTexture.active = renderTex;
+            Graphics.Blit(inTex, renderTex);
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture.active = renderTex;
             
-            // m_ReadableTex = new Texture2D(m_InTexWidth, m_InTexHeight);
-            // m_ReadableTex.ReadPixels(new Rect(0, 0, m_InTexWidth, m_InTexHeight), 0, 0);
-            // m_ReadableTex.Apply();
+            m_ReadableTex = new Texture2D(m_InTexWidth, m_InTexHeight);
+            m_ReadableTex.ReadPixels(new Rect(0, 0, m_InTexWidth, m_InTexHeight), 0, 0);
+            m_ReadableTex.Apply();
             
-            // RenderTexture.active = previous;
-            // RenderTexture.ReleaseTemporary(renderTex);
-            return false;
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(renderTex);
         }
 
         m_NumLevels = OpenCVSLIC.AsyncSLIC(inTex.isReadable ? inTex : m_ReadableTex, ref m_OutLabel, ref m_OutContour);
@@ -98,12 +106,14 @@ public class OpenCVSLICClient : MonoBehaviour
             m_Invoked = false;
             m_prevProgress = -1;
 
+            InputMode.Instance.SetModeWithoutSideEffect(_nextMode);
+
 #if UNITY_EDITOR
             Debug.Log("OpenCVSLICClient - Finished AsyncSLIC in " + (Time.time - m_InvokedTime) + " seconds.");
 #endif
-            if (labelTextureProvider && labelTextureProvider.isActiveAndEnabled)
+            if (labelTextureProvider)
                 labelTextureProvider.GenerateTextures(this);
-            if (contourTextureProvider && contourTextureProvider.isActiveAndEnabled)
+            if (contourTextureProvider)
                 contourTextureProvider.GenerateTextures(this);
             MessagePanel.Instance.Disable();
 

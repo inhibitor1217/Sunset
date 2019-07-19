@@ -1,19 +1,26 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 
 public class InputModeButton : MonoBehaviour
 {
-    public int mode;
-    
-    private Button m_Button;
+    public InputMode.Mode mode;
 
-    void Awake()
+    void Start()
     {
-        m_Button = GetComponent<Button>();
+        InputMode.Subscribe(this);
+    }
+
+    void OnDestroy()
+    {
+        InputMode.Unsubscribe(this);
     }
 
     public void SetMode()
     {
         InputMode.Instance.mode = mode;
+    }
+
+    public void OnInputModeChanged(InputMode.Mode mode)
+    {
+
     }
 }
