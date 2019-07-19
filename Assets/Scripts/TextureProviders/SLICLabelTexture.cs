@@ -25,7 +25,7 @@ public class SLICLabelTexture : TextureProvider
 
         for (int level = 0; level < client.NumLevels; level++)
         {
-            m_LabelTextures[level] = new Texture2D(client.TexWidth, client.TexHeight);
+            m_LabelTextures[level] = new Texture2D(client.TexWidth, client.TexHeight, TextureFormat.ARGB32, false);
             m_LabelTextures[level].SetPixels32(OpenCVUtils.OpenCVLabelToColor32(client.getLabel(level)));
             m_LabelTextures[level].Apply();
 

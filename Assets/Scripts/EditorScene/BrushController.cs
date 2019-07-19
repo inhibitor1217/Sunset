@@ -20,7 +20,7 @@ public class BrushController : MonoBehaviour
 
     void Update()
     {
-        if (InputMode.Instance.mode == InputMode.Mode.BRUSH_PLAIN 
+        if (InputMode.Instance.isBrush() && !InputMode.Instance.isSLIC() 
             && InputManager.Instance.held
             && InputManager.Instance.withinContainer)
         {

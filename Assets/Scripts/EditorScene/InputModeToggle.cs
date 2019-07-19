@@ -5,8 +5,8 @@ public class InputModeToggle : MonoBehaviour
 {
     private Toggle m_Toggle;
 
-    public InputMode.Mode modeOff;
-    public InputMode.Mode modeOn;
+    public int modeOff;
+    public int modeOn;
 
     void Awake()
     {
@@ -28,7 +28,7 @@ public class InputModeToggle : MonoBehaviour
         InputMode.Instance.mode = isOn ? modeOn : modeOff;
     }
 
-    public void onInputModeChanged(InputMode.Mode mode)
+    public void onInputModeChanged(int mode)
     {
         if (mode != modeOn && mode != modeOff)
         {

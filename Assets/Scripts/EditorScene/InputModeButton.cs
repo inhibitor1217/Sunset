@@ -2,7 +2,7 @@
 
 public class InputModeButton : MonoBehaviour
 {
-    public InputMode.Mode mode;
+    public int mode;
 
     void Start()
     {
@@ -19,7 +19,7 @@ public class InputModeButton : MonoBehaviour
         InputMode.Instance.mode = mode;
     }
 
-    public void OnInputModeChanged(InputMode.Mode mode)
+    public void OnInputModeChanged(int mode)
     {
 
     }

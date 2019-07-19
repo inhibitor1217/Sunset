@@ -15,28 +15,47 @@ public class InputMode
         }
     }
 
-    public enum Mode
-    {
-        EMPTY = 0,
-        MOVE = 10,
-        BRUSH_PLAIN = 20,
-        BRUSH_SLIC = 21,
-        BUSY = 30
-    };
+    public const int MOVE = 0x01;
+    public const int BRUSH = 0x02;
+    public const int SLIC = 0x04;
+    public const int WATER = 0x08;
+    public const int SKY = 0x10;
+    public const int BUSY = 0x20;
 
-    private Mode _mode = Mode.EMPTY;
-    public Mode mode { 
+    public static bool isMove(int mode) { return (mode & MOVE) != 0; }
+    public bool isMove() { return isMove(_mode); }
+    public static bool isBrush(int mode) { return (mode & BRUSH) != 0; }
+    public bool isBrush() { return isBrush(_mode); }
+    public static bool isSLIC(int mode) { return (mode & SLIC) != 0; }
+    public bool isSLIC() { return isSLIC(_mode); }
+    public static bool isWater(int mode) { return (mode & WATER) != 0; }
+    public bool isWater() { return isWater(_mode); }
+    public static bool isSky(int mode) { return (mode & SKY) != 0; }
+    public bool isSky() { return isSky(_mode); }
+    public static bool isBusy(int mode) { return (mode & BUSY) != 0; }
+    public bool isBusy() { return isBusy(_mode); }
+
+    private int _mode = 0;
+    public int mode { 
         get { return _mode; } 
         set {
             if (_mode != value)
             {
                 // Apply Side Effects
-                if (value == Mode.BRUSH_PLAIN)
-                    EditorSceneMaster.Instance.CreateBrush(0);
+                if (isBrush(value))
+                {
+                    if (isWater(value))
+                        EditorSceneMaster.Instance.CreateBrush(EditorSceneMaster.EFFECT_WATER);
+                    if (isSky(value))
+                        EditorSceneMaster.Instance.CreateBrush(EditorSceneMaster.EFFECT_SKY);
+                }
                 else
-                    EditorSceneMaster.Instance.RemoveBrush(0);
+                {
+                    EditorSceneMaster.Instance.RemoveBrush(EditorSceneMaster.EFFECT_WATER);
+                    EditorSceneMaster.Instance.RemoveBrush(EditorSceneMaster.EFFECT_SKY);
+                }
 
-                if (IsSLICRequired(value))
+                if (isSLIC(value))
                 {
                     EditorSceneMaster.Instance.CreateSLIC(value);
                     return;
@@ -46,7 +65,7 @@ public class InputMode
             }
         }
     }
-    public void SetModeWithoutSideEffect(Mode value)
+    public void SetModeWithoutSideEffect(int value)
     {
         if (_mode != value)
         {
@@ -66,26 +85,6 @@ public class InputMode
 
     private static List<InputModeButton> _UIButtons = new List<InputModeButton>();
     private static List<InputModeToggle> _UIToggles = new List<InputModeToggle>();
-
-    public bool IsModeBrush()
-    {
-        return IsModeBrush(_mode);
-    }
-
-    public static bool IsModeBrush(Mode mode)
-    {
-        return (mode == Mode.BRUSH_PLAIN) || (mode == Mode.BRUSH_SLIC);
-    }
-
-    public bool IsSLICRequired()
-    {
-        return IsSLICRequired(_mode);
-    }
-
-    public static bool IsSLICRequired(Mode mode)
-    {
-        return (mode == Mode.BRUSH_SLIC);
-    }
 
     public static void Subscribe(InputModeButton button)
     {
@@ -107,21 +106,16 @@ public class InputMode
         _UIToggles.Remove(toggle);
     }
 
-    public static string ModeToString(Mode mode)
+    public static string ModeToString(int mode)
     {
-        switch(mode)
-        {
-        case Mode.MOVE:
-            return "MOVE";
-        case Mode.BRUSH_PLAIN:
-            return "BRUSH_PLAIN";
-        case Mode.BRUSH_SLIC:
-            return "BRUSH_SLIC";
-        case Mode.BUSY:
-            return "BUSY";
-        default:
-            return "UNKNOWN";
-        }
+        string ret = "";
+        if (isMove(mode)) ret += "MOVE ";
+        if (isBrush(mode)) ret += "BRUSH ";
+        if (isSLIC(mode)) ret += "SLIC ";
+        if (isWater(mode)) ret += "WATER ";
+        if (isSky(mode)) ret += "SKY ";
+        if (isBusy(mode)) ret += "BUSY ";
+        return ret;
     }
 
 }

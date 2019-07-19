@@ -13,7 +13,7 @@ using namespace std;
 
 int main( int argc, char** argv )
 {
-    String imageName( "./image3.jpg" ); // by default
+    String imageName( "./beach-4.jpg" ); // by default
     Mat image;
     image = imread( imageName, IMREAD_COLOR ); // Read the file
     if( image.empty() )                      // Check for invalid input
@@ -27,7 +27,7 @@ int main( int argc, char** argv )
     GaussianBlur(image, image, Size(3, 3), 0.8);
     cvtColor(image, image, COLOR_BGR2Lab);
 
-    Ptr<ximgproc::SuperpixelSLIC> slic = ximgproc::createSuperpixelSLIC(image, ximgproc::SLIC, 3, 10.0f);
+    Ptr<ximgproc::SuperpixelSLIC> slic = ximgproc::createSuperpixelSLIC(image, ximgproc::SLIC, 15, 10.0f);
     slic->iterate();
     slic->getLabelContourMask(outContour);
     out.setTo(Scalar(0, 0, 255), outContour);

@@ -21,12 +21,12 @@ public class OpenCVSLICClient : MonoBehaviour
     private float m_InvokedTime;
     private int m_prevProgress;
 
-    private InputMode.Mode _nextMode;
+    private int _nextMode;
 
     // Cache
     private Texture2D __cached_inTex;
 
-    public bool Invoke(Texture2D inTex, InputMode.Mode nextMode)
+    public bool Invoke(Texture2D inTex, int nextMode)
     {
         if (OpenCVSLIC.asyncBusy)
             return false;
@@ -41,7 +41,7 @@ public class OpenCVSLICClient : MonoBehaviour
         m_InTexHeight = inTex.height;
 
         _nextMode = nextMode;
-        InputMode.Instance.mode = InputMode.Mode.BUSY;
+        InputMode.Instance.SetModeWithoutSideEffect(InputMode.BUSY);
 
         __cached_inTex = inTex;
 

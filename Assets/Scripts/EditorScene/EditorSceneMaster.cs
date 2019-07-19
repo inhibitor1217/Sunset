@@ -68,6 +68,16 @@ public class EditorSceneMaster : MonoBehaviour
 #endif
     }
 
+    public Rect GetRootRect()
+    {
+        return m_RootLayer.GetRect();
+    }
+
+    public Vector2 RelativeCoordsToRootRect(Vector2 pos)
+    {
+        return m_RootLayer.RelativeCoords(pos);
+    }
+
 #if UNITY_ANDROID && !UNITY_EDITOR
     public void InitScene(string path)
     {
@@ -77,7 +87,7 @@ public class EditorSceneMaster : MonoBehaviour
 
     public void InitScene(Texture2D rootTexture)
     {
-        if (InputMode.Instance.mode == InputMode.Mode.BUSY)
+        if (InputMode.Instance.isBusy())
             return;
 
         // ** Clean up **
@@ -112,7 +122,7 @@ public class EditorSceneMaster : MonoBehaviour
         height = rootTexture.height;
 
         // Initialize Global Managers
-        InputMode.Instance.mode = InputMode.Mode.MOVE;
+        InputMode.Instance.mode = InputMode.MOVE;
         m_TextureProviderManager = gameObject.AddComponent(typeof(TextureProviderManager)) as TextureProviderManager;
         m_InputManager = gameObject.AddComponent(typeof(InputManager)) as InputManager;
         m_InputManager.container = container;
@@ -187,9 +197,13 @@ public class EditorSceneMaster : MonoBehaviour
     public void CreateBrush(int maskIndex)
     {
         // Create UI Brush
-        m_BrushObject = GameObject.Instantiate(BrushPrefab);
-        m_BrushObject.transform.SetParent(m_RootLayerObject.transform);
-        m_Brush = m_BrushObject.GetComponent<BrushController>();
+        if (!m_BrushObject)
+        {
+            m_BrushObject = GameObject.Instantiate(BrushPrefab);
+            m_BrushObject.transform.SetParent(m_RootLayerObject.transform);
+        }
+        if (!m_Brush)
+            m_Brush = m_BrushObject.GetComponent<BrushController>();
 
         switch (maskIndex)
         {
@@ -202,10 +216,14 @@ public class EditorSceneMaster : MonoBehaviour
         }
 
         // Create Mask Layer
-        m_MaskLayerObject = GameObject.Instantiate(MaskLayerPrefab);
-        m_MaskLayerObject.GetComponent<RectTransform>().SetParent(m_RootLayerObject.GetComponent<RectTransform>());
-        m_MaskLayerObject.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
-        m_MaskLayer = m_MaskLayerObject.GetComponent<RawImageController>();
+        if (!m_MaskLayerObject)
+        {
+            m_MaskLayerObject = GameObject.Instantiate(MaskLayerPrefab);
+            m_MaskLayerObject.GetComponent<RectTransform>().SetParent(m_RootLayerObject.GetComponent<RectTransform>());
+            m_MaskLayerObject.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+        }
+        if (!m_MaskLayer)
+            m_MaskLayer = m_MaskLayerObject.GetComponent<RawImageController>();
 
         // Setup References
         m_MaskTextures[maskIndex].SetTarget(m_MaskLayer);
@@ -233,7 +251,7 @@ public class EditorSceneMaster : MonoBehaviour
         m_MaskLayer = null;
     }
 
-    public void CreateSLIC(InputMode.Mode nextMode)
+    public void CreateSLIC(int nextMode)
     {
         if (!m_SLICClient)
             m_SLICClient = gameObject.AddComponent(typeof(OpenCVSLICClient)) as OpenCVSLICClient;
@@ -244,6 +262,14 @@ public class EditorSceneMaster : MonoBehaviour
 
         m_SLICClient.labelTextureProvider = m_SLICLabelTexture;
         m_SLICClient.Invoke(m_RootStaticTexture.GetTexture() as Texture2D, nextMode);
+
+        if (InputMode.isBrush(nextMode) && InputMode.isSLIC(nextMode))
+        {
+            if (InputMode.isWater(nextMode))
+                m_MaskCameras[EFFECT_WATER].labelTexture = m_SLICLabelTexture;
+            if (InputMode.isSky(nextMode))
+                m_MaskCameras[EFFECT_SKY].labelTexture = m_SLICLabelTexture;
+        }
     }
 
     public void RemoveSLIC()
@@ -256,6 +282,11 @@ public class EditorSceneMaster : MonoBehaviour
         m_SLICClient = null;
         m_SLICLabelTextureObject = null;
         m_SLICLabelTexture = null;
+
+        if (m_MaskCameras[EFFECT_WATER])
+            m_MaskCameras[EFFECT_WATER].labelTexture = null;
+        if (m_MaskCameras[EFFECT_SKY])
+            m_MaskCameras[EFFECT_SKY].labelTexture = null;
     }
 
 }

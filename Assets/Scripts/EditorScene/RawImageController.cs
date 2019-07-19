@@ -52,6 +52,19 @@ public class RawImageController : MonoBehaviour
         m_RectTransform.sizeDelta = m_ImageBaseScale * InputManager.Instance.MultiplicativeScale;
     }
 
+    public Rect GetRect()
+    {
+        Vector3[] corners = new Vector3[4];
+        m_RectTransform.GetWorldCorners(corners);
+        return new Rect(corners[0], m_RectTransform.rect.size);
+    }
+
+    public Vector2 RelativeCoords(Vector2 pos)
+    {
+        Rect rect = GetRect();
+        return new Vector2((pos.x - rect.xMin) / rect.width, (pos.y - rect.yMin) / rect.height);
+    }
+
     public void SetTexture(Texture texture)
     {
         m_RawImage.texture = texture;
