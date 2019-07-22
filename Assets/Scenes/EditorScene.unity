@@ -802,7 +802,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f9134aaecc9e488393b56ec92293495, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initTexture: {fileID: 2800000, guid: be05bfdcad03e4b79a6c857667f8775d, type: 3}
+  initTexture: {fileID: 2800000, guid: 8dc2fb29281f746f285a5244f02e2e8f, type: 3}
 --- !u!1 &954425853 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 947722260274316004, guid: 5d90e9cfbc79746059ae8283c3e019b0,
@@ -1286,12 +1286,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1846091524}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5b76086f4140741e184bfcd8b4d15ae3, type: 3}
+  m_Script: {fileID: 11500000, guid: a16d743c87c2b4bad9cc8ca13cda7885, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   LayerPrefab: {fileID: 2570545346817782448, guid: 5ffd6b561e8d743c6ace05dd84208826,
     type: 3}
-  MaskLayerPrefab: {fileID: 3906231884183306018, guid: e465dbd67cb93450297cc9b0c5984bc7,
+  MaskLayerPrefab: {fileID: 3906231884183306018, guid: 3ab4f64b6612d4d589cea38369373537,
     type: 3}
   StaticTexturePrefab: {fileID: 1514266587359271130, guid: 6028b7559a2dd47199aa55f362d9d1c5,
     type: 3}
@@ -1301,7 +1301,7 @@ MonoBehaviour:
     type: 3}
   BrushPrefab: {fileID: 1985476455385052664, guid: be30d766d7cd84b3283f31528cf96abb,
     type: 3}
-  MaskCameraPrefab: {fileID: 5181211198835112297, guid: 3b8d56459c955409184364c10f3c2f25,
+  MaskCameraPrefab: {fileID: 5181211198835112297, guid: f41d96e5e705743b8954f4e33a850c02,
     type: 3}
   container: {fileID: 63342699}
 --- !u!4 &1846091526

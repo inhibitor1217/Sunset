@@ -63,10 +63,14 @@ public class EditorSceneMaster : MonoBehaviour
     void Awake()
     {
         instance = this;
-#if UNITY_ANDROID && !UNITY_EDITOR
-        InitScene(PlayerPrefs.GetString("image_path"));
-#endif
     }
+
+#if UNITY_ANDROID && !UNITY_EDITOR
+    void Start()
+    {
+        InitScene(PlayerPrefs.GetString("image_path"));
+    }
+#endif
 
     public Rect GetRootRect()
     {

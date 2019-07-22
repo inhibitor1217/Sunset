@@ -11,10 +11,6 @@ public class InputModeToggle : MonoBehaviour
     void Awake()
     {
         m_Toggle = GetComponent<Toggle>();
-    }
-
-    void Start()
-    {
         InputMode.Subscribe(this);
     }
 
