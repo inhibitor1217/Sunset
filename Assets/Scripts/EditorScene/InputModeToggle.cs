@@ -5,8 +5,9 @@ public class InputModeToggle : MonoBehaviour
 {
     private Toggle m_Toggle;
 
-    public int modeOff;
-    public int modeOn;
+    public int modeToggle;
+    public int modeInteractable;
+    public int modeColorOn;
 
     void Awake()
     {
@@ -21,23 +22,24 @@ public class InputModeToggle : MonoBehaviour
 
     public void OnToggleChanged(bool isOn)
     {
-        InputMode.Instance.mode = isOn ? modeOn : modeOff;
+        InputMode.Instance.mode ^= modeToggle;
     }
 
     public void onInputModeChanged(int mode)
     {
-        if (mode != modeOn && mode != modeOff)
+        if ((mode & modeInteractable) == 0)
         {
             m_Toggle.interactable = false;
-            return;
         }
-        
-        m_Toggle.interactable = true;
-        var colors = m_Toggle.colors;
-        if (mode == modeOff)
-            colors.normalColor = Color.white;
-        else if (mode == modeOn)
-            colors.normalColor = Color.yellow;
-        m_Toggle.colors = colors;
+        else
+        {
+            m_Toggle.interactable = true;
+            var colors = m_Toggle.colors;
+            if ((mode & modeColorOn) == 0)
+                colors.normalColor = Color.white;
+            else
+                colors.normalColor = Color.yellow;
+            m_Toggle.colors = colors;
+        }
     }
 }

@@ -37,8 +37,8 @@ public class OpenCVSLICClient : MonoBehaviour
             return true;
         }
 
-        m_InTexWidth = inTex.width / 2;
-        m_InTexHeight = inTex.height / 2;
+        m_InTexWidth = inTex.width;
+        m_InTexHeight = inTex.height;
 
         _nextMode = nextMode;
         InputMode.Instance.SetModeWithoutSideEffect(InputMode.BUSY);

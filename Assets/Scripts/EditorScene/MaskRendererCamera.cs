@@ -15,22 +15,28 @@ public class MaskRendererCamera : MonoBehaviour
 
     void Update()
     {
+        m_Material.SetInt("_UseLabel",
+            InputMode.Instance.isSLIC()
+            && InputMode.Instance.isBrush()
+            && InputManager.Instance.held
+            && InputManager.Instance.withinContainer
+            ? 1 : 0);
+
+        m_Material.SetInt("_UseEraser",
+            InputMode.Instance.isBrush()
+            && InputMode.Instance.isErase()
+            ? 1 : 0);
+
         if (InputMode.Instance.isBrush() && InputMode.Instance.isSLIC())
         {
             if (labelTexture)
                 m_Material.SetTexture("_LabelTex", labelTexture.GetTexture());
-            
-            m_Material.SetInt("_UseLabel", InputManager.Instance.held ? 1 : 0);
 
             Vector2 inputTexCoords = EditorSceneMaster.Instance.RelativeCoordsToRootRect(InputManager.Instance.inputPosition);
             m_Material.SetVector("_InputCoords", new Vector4(
                 inputTexCoords.x, inputTexCoords.y,
                 InputManager.Instance.inputPosition.x, InputManager.Instance.inputPosition.y
             ));
-        }
-        else
-        {
-            m_Material.SetInt("_UseLabel", 0);
         }
     }
 

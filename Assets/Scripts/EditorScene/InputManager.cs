@@ -49,7 +49,7 @@ public class InputManager : MonoBehaviour
             pressed = (touch.phase == TouchPhase.Began);
             released = (touch.phase == TouchPhase.Ended);
 
-            if (withinContainer && InputMode.Instance.mode == InputMode.MOVE)
+            if (withinContainer && InputMode.Instance.isMove())
                 updatePosition(touch.deltaPosition);
         }
         else if (Input.touchCount == 2)

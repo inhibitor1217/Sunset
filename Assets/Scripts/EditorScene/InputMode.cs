@@ -21,6 +21,7 @@ public class InputMode
     public const int WATER = 0x08;
     public const int SKY = 0x10;
     public const int BUSY = 0x20;
+    public const int ERASE = 0x40;
 
     public static bool isMove(int mode) { return (mode & MOVE) != 0; }
     public bool isMove() { return isMove(_mode); }
@@ -34,6 +35,8 @@ public class InputMode
     public bool isSky() { return isSky(_mode); }
     public static bool isBusy(int mode) { return (mode & BUSY) != 0; }
     public bool isBusy() { return isBusy(_mode); }
+    public static bool isErase(int mode) { return (mode & ERASE) != 0; }
+    public bool isErase() { return isErase(_mode); }
 
     private int _mode = 0;
     public int mode { 
@@ -115,6 +118,7 @@ public class InputMode
         if (isWater(mode)) ret += "WATER ";
         if (isSky(mode)) ret += "SKY ";
         if (isBusy(mode)) ret += "BUSY ";
+        if (isErase(mode)) ret += "ERASE ";
         return ret;
     }
 
