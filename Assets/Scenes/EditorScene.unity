@@ -1299,6 +1299,8 @@ MonoBehaviour:
     type: 3}
   SLICLabelTexturePrefab: {fileID: 8145355472273369409, guid: 7bf5133494b264a8082adb241d635891,
     type: 3}
+  SLICContourTexturePrefab: {fileID: 2926417387484975901, guid: 7d288829ec1254516a9e91dd67d02d21,
+    type: 3}
   BrushPrefab: {fileID: 1985476455385052664, guid: be30d766d7cd84b3283f31528cf96abb,
     type: 3}
   MaskCameraPrefab: {fileID: 5181211198835112297, guid: f41d96e5e705743b8954f4e33a850c02,

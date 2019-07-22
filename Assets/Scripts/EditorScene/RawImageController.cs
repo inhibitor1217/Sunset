@@ -5,6 +5,7 @@ public class RawImageController : MonoBehaviour
 {
 
     public bool isRoot = false;
+    public float globalScale = 1f;
 
     private RawImage m_RawImage;
     private RectTransform m_RectTransform;
@@ -46,10 +47,10 @@ public class RawImageController : MonoBehaviour
             foreach (var maskCamera in m_MaskCameras)
             {
                 if (maskCamera)
-                    maskCamera.orthographicSize = .5f * m_ImageBaseScale.y * InputManager.Instance.MultiplicativeScale;
+                    maskCamera.orthographicSize = .5f * globalScale * m_ImageBaseScale.y * InputManager.Instance.MultiplicativeScale;
             }
         }
-        m_RectTransform.sizeDelta = m_ImageBaseScale * InputManager.Instance.MultiplicativeScale;
+        m_RectTransform.sizeDelta = globalScale * m_ImageBaseScale * InputManager.Instance.MultiplicativeScale;
     }
 
     public Rect GetRect()
@@ -76,10 +77,10 @@ public class RawImageController : MonoBehaviour
 
         if (isRoot)
             m_RectTransform.anchoredPosition = InputManager.Instance.Position * InputManager.Instance.MultiplicativeScale;
-        m_RectTransform.sizeDelta = m_ImageBaseScale * InputManager.Instance.MultiplicativeScale;
+        m_RectTransform.sizeDelta = globalScale * m_ImageBaseScale * InputManager.Instance.MultiplicativeScale;
 
-        InputManager.Instance.xBound = m_ImageBaseScale.x;
-        InputManager.Instance.yBound = m_ImageBaseScale.y;
+        InputManager.Instance.xBound = globalScale * m_ImageBaseScale.x;
+        InputManager.Instance.yBound = globalScale * m_ImageBaseScale.y;
     }
 
     public void SetMaskCamera(Camera camera, int maskIndex)

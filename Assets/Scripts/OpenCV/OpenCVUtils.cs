@@ -16,7 +16,7 @@ public static class OpenCVUtils
         return bytes;
     }
 
-    public static Color32[] OpenCVMatToColor32(byte[] bytes)
+    public static Color32[] OpenCVContourToColor32(byte[] bytes)
     {
         Color32[] colors = new Color32[bytes.Length];
         for (int i = 0; i < bytes.Length; i++)

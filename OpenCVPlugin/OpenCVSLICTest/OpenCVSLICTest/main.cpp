@@ -27,8 +27,8 @@ int main( int argc, char** argv )
     GaussianBlur(image, image, Size(3, 3), 0.8);
     cvtColor(image, image, COLOR_BGR2Lab);
 
-    Ptr<ximgproc::SuperpixelSLIC> slic = ximgproc::createSuperpixelSLIC(image, ximgproc::SLIC, 15, 10.0f);
-    slic->iterate();
+    Ptr<ximgproc::SuperpixelSLIC> slic = ximgproc::createSuperpixelSLIC(image, ximgproc::SLIC, 256, 1e10);
+    slic->iterate(10);
     slic->getLabelContourMask(outContour);
     out.setTo(Scalar(0, 0, 255), outContour);
     int numSuperpixels = slic->getNumberOfSuperpixels();

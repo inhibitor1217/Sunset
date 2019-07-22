@@ -13,6 +13,7 @@ public class EditorSceneMaster : MonoBehaviour
     public GameObject StaticTexturePrefab;
     public GameObject MaskTexturePrefab;
     public GameObject SLICLabelTexturePrefab;
+    // public GameObject SLICContourTexturePrefab;
     public GameObject BrushPrefab;
     public GameObject MaskCameraPrefab;
 
@@ -51,6 +52,8 @@ public class EditorSceneMaster : MonoBehaviour
     private OpenCVSLICClient m_SLICClient;
     private GameObject m_SLICLabelTextureObject;
     private SLICLabelTexture m_SLICLabelTexture;
+    // private GameObject m_SLICContourTextureObject;
+    // private SLICContourTexture m_SLICContourTexture;
 
     public const int EFFECT_WATER = 0;
     public const int EFFECT_SKY = 1;
@@ -158,7 +161,7 @@ public class EditorSceneMaster : MonoBehaviour
 
         m_MaskTextureObjects[maskIndex] = GameObject.Instantiate(MaskTexturePrefab);
         m_MaskTextures[maskIndex] = m_MaskTextureObjects[maskIndex].GetComponent<MaskTexture>();
-        m_MaskTextures[maskIndex].SetDimension(width, height);
+        m_MaskTextures[maskIndex].SetDimension(width / 2, height / 2);
 
         m_MaskCameraObjects[maskIndex] = GameObject.Instantiate(MaskCameraPrefab);
         m_MaskCameraObjects[maskIndex].transform.SetParent(m_RootLayerObject.transform);
@@ -227,7 +230,10 @@ public class EditorSceneMaster : MonoBehaviour
             m_MaskLayerObject.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
         }
         if (!m_MaskLayer)
+        {
             m_MaskLayer = m_MaskLayerObject.GetComponent<RawImageController>();
+            m_MaskLayer.globalScale = 2f;
+        }
 
         // Setup References
         m_MaskTextures[maskIndex].SetTarget(m_MaskLayer);
@@ -263,8 +269,13 @@ public class EditorSceneMaster : MonoBehaviour
             m_SLICLabelTextureObject = GameObject.Instantiate(SLICLabelTexturePrefab);
         if (!m_SLICLabelTexture)
             m_SLICLabelTexture = m_SLICLabelTextureObject.GetComponent<SLICLabelTexture>();
+        // if (!m_SLICContourTextureObject)
+        //     m_SLICContourTextureObject = GameObject.Instantiate(SLICContourTexturePrefab);
+        // if (!m_SLICContourTexture)
+        //     m_SLICContourTexture = m_SLICContourTextureObject.GetComponent<SLICContourTexture>();
 
         m_SLICClient.labelTextureProvider = m_SLICLabelTexture;
+        // m_SLICClient.contourTextureProvider = m_SLICContourTexture;
         m_SLICClient.Invoke(m_RootStaticTexture.GetTexture() as Texture2D, nextMode);
 
         if (InputMode.isBrush(nextMode) && InputMode.isSLIC(nextMode))
@@ -274,6 +285,11 @@ public class EditorSceneMaster : MonoBehaviour
             if (InputMode.isSky(nextMode))
                 m_MaskCameras[EFFECT_SKY].labelTexture = m_SLICLabelTexture;
         }
+
+        // GameObject tempLayer = GameObject.Instantiate(LayerPrefab);
+        // tempLayer.GetComponent<RectTransform>().SetParent(m_RootLayerObject.GetComponent<RectTransform>());
+        // tempLayer.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+        // m_SLICContourTexture.SetTarget(tempLayer.GetComponent<RawImageController>());
     }
 
     public void RemoveSLIC()
@@ -282,6 +298,8 @@ public class EditorSceneMaster : MonoBehaviour
             Destroy(m_SLICClient);
         if (m_SLICLabelTextureObject)
             Destroy(m_SLICLabelTextureObject);
+        // if (m_SLICContourTextureObject)
+        //     Destroy(m_SLICContourTextureObject);
 
         m_SLICClient = null;
         m_SLICLabelTextureObject = null;

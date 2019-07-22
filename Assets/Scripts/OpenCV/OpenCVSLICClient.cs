@@ -6,7 +6,7 @@ public class OpenCVSLICClient : MonoBehaviour
     public SLICLabelTexture labelTextureProvider;
     public SLICContourTexture contourTextureProvider;
 
-    private Texture2D m_ReadableTex;
+    private Texture2D m_ResizedTexture;
 
     private int[][] m_OutLabel = null;
     private byte[][] m_OutContour = null;
@@ -37,37 +37,34 @@ public class OpenCVSLICClient : MonoBehaviour
             return true;
         }
 
-        m_InTexWidth = inTex.width;
-        m_InTexHeight = inTex.height;
+        m_InTexWidth = inTex.width / 2;
+        m_InTexHeight = inTex.height / 2;
 
         _nextMode = nextMode;
         InputMode.Instance.SetModeWithoutSideEffect(InputMode.BUSY);
 
         __cached_inTex = inTex;
 
-        if (!inTex.isReadable)
-        {
-            RenderTexture renderTex = RenderTexture.GetTemporary(
-                m_InTexWidth,
-                m_InTexHeight,
-                0,
-                RenderTextureFormat.Default,
-                RenderTextureReadWrite.Linear
-            );
+        RenderTexture renderTex = RenderTexture.GetTemporary(
+            m_InTexWidth,
+            m_InTexHeight,
+            0,
+            RenderTextureFormat.Default,
+            RenderTextureReadWrite.Linear
+        );
 
-            Graphics.Blit(inTex, renderTex);
-            RenderTexture previous = RenderTexture.active;
-            RenderTexture.active = renderTex;
-            
-            m_ReadableTex = new Texture2D(m_InTexWidth, m_InTexHeight);
-            m_ReadableTex.ReadPixels(new Rect(0, 0, m_InTexWidth, m_InTexHeight), 0, 0);
-            m_ReadableTex.Apply();
-            
-            RenderTexture.active = previous;
-            RenderTexture.ReleaseTemporary(renderTex);
-        }
+        Graphics.Blit(inTex, renderTex);
+        RenderTexture previous = RenderTexture.active;
+        RenderTexture.active = renderTex;
+        
+        m_ResizedTexture = new Texture2D(m_InTexWidth, m_InTexHeight);
+        m_ResizedTexture.ReadPixels(new Rect(0, 0, m_InTexWidth, m_InTexHeight), 0, 0);
+        m_ResizedTexture.Apply();
+        
+        RenderTexture.active = previous;
+        RenderTexture.ReleaseTemporary(renderTex);
 
-        m_NumLevels = OpenCVSLIC.AsyncSLIC(inTex.isReadable ? inTex : m_ReadableTex, ref m_OutLabel, ref m_OutContour);
+        m_NumLevels = OpenCVSLIC.AsyncSLIC(m_ResizedTexture, ref m_OutLabel, ref m_OutContour);
 
         m_Invoked = true;
         m_InvokedTime = Time.time;

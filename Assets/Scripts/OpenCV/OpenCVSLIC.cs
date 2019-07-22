@@ -24,7 +24,7 @@ public static class OpenCVSLIC
             Color32[] inColors = inTex.GetPixels32();
 
             List<int> regionSizes = new List<int>();
-            for (int regionSize = 8; regionSize <= Mathf.Min(width, height) / 8; regionSize *= 2)
+            for (int regionSize = 4; regionSize <= Mathf.Min(width, height) / 8; regionSize *= 2)
             {
                 regionSizes.Add(regionSize);
             }

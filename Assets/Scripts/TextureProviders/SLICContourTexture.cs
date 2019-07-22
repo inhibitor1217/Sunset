@@ -26,7 +26,7 @@ public class SLICContourTexture : TextureProvider
         for (int level = 0; level < client.NumLevels; level++)
         {
             m_contourTextures[level] = new Texture2D(client.TexWidth, client.TexHeight, TextureFormat.ARGB32, false);
-            m_contourTextures[level].SetPixels32(OpenCVUtils.OpenCVMatToColor32(client.getContour(level)));
+            m_contourTextures[level].SetPixels32(OpenCVUtils.OpenCVContourToColor32(client.getContour(level)));
             m_contourTextures[level].Apply();
 
             m_contourTextures[level].wrapMode = TextureWrapMode.Clamp;
