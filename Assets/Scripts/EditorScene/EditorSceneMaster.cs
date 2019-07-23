@@ -13,7 +13,7 @@ public class EditorSceneMaster : MonoBehaviour
     public GameObject StaticTexturePrefab;
     public GameObject MaskTexturePrefab;
     public GameObject SLICLabelTexturePrefab;
-    // public GameObject SLICContourTexturePrefab;
+    public GameObject SLICContourTexturePrefab;
     public GameObject BrushPrefab;
     public GameObject MaskCameraPrefab;
 
@@ -161,7 +161,7 @@ public class EditorSceneMaster : MonoBehaviour
 
         m_MaskTextureObjects[maskIndex] = GameObject.Instantiate(MaskTexturePrefab);
         m_MaskTextures[maskIndex] = m_MaskTextureObjects[maskIndex].GetComponent<MaskTexture>();
-        m_MaskTextures[maskIndex].SetDimension(width / 2, height / 2);
+        m_MaskTextures[maskIndex].SetDimension(width, height);
 
         m_MaskCameraObjects[maskIndex] = GameObject.Instantiate(MaskCameraPrefab);
         m_MaskCameraObjects[maskIndex].transform.SetParent(m_RootLayerObject.transform);
@@ -232,7 +232,7 @@ public class EditorSceneMaster : MonoBehaviour
         if (!m_MaskLayer)
         {
             m_MaskLayer = m_MaskLayerObject.GetComponent<RawImageController>();
-            m_MaskLayer.globalScale = 2f;
+            // m_MaskLayer.globalScale = 2f;
         }
 
         // Setup References
