@@ -103,6 +103,7 @@ public class AlphaMaskedTexture : TextureProvider
         Texture alphaTex = m_AlphaTexture.GetTexture();
 
         m_RenderTexture = new RenderTexture(srcTex.width, srcTex.height, 0, RenderTextureFormat.ARGBHalf);
+        m_RenderTexture.useMipMap = false;
         m_RenderTexture.wrapMode = TextureWrapMode.Clamp;
         m_RenderTexture.filterMode = FilterMode.Point;
         

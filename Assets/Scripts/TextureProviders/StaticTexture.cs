@@ -21,7 +21,7 @@ public class StaticTexture: TextureProvider
     {
         staticTexture = texture;
 
-        m_Copy = new Texture2D(staticTexture.width, staticTexture.height, staticTexture.format, true);
+        m_Copy = new Texture2D(staticTexture.width, staticTexture.height, staticTexture.format, false);
         Graphics.CopyTexture(staticTexture, m_Copy);
 
         m_Copy.wrapMode = TextureWrapMode.Clamp;

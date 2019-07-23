@@ -40,15 +40,13 @@ public static class OpenCVSLIC
             RenderTexture.active = previous;
             RenderTexture.ReleaseTemporary(tempBuffer);
 
-            List<int> regionSizes = new List<int>();
+            numAsyncTasks = 0;
             for (var regionSize = MIN_REGION_SIZE; 
                 regionSize <= Mathf.Min(width, height) / MAX_REGION_RATIO; 
                 regionSize *= 2)
             {
-                regionSizes.Add(regionSize);
+                numAsyncTasks++;
             }
-
-            numAsyncTasks = regionSizes.Count;
 
             outLabel = new int[numAsyncTasks][];
             outContour = new byte[numAsyncTasks][];
@@ -63,11 +61,10 @@ public static class OpenCVSLIC
                 outLabel[i] = _outLabel;
                 outContour[i] = _outContour;
 
-                int regionSize = regionSizes[i];
                 int levelWidth = width >> i;
                 int levelHeight = height >> i;
 
-                new Thread(() => SLIC(inColors, levelWidth, levelHeight, _outLabel, _outContour, regionSize)).Start();
+                new Thread(() => SLIC(inColors, levelWidth, levelHeight, _outLabel, _outContour, MIN_REGION_SIZE)).Start();
             }
 
             return numAsyncTasks;

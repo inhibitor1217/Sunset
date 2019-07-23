@@ -45,6 +45,7 @@ public class MaskTexture : TextureProvider
     public void SetDimension(int width, int height)
     {
         m_RenderTexture = new RenderTexture(width, height, 0, RenderTextureFormat.RFloat);
+        m_RenderTexture.useMipMap = false;
         m_RenderTexture.antiAliasing = 4;
         m_RenderTexture.wrapMode = TextureWrapMode.Clamp;
         m_RenderTexture.filterMode = FilterMode.Point;
