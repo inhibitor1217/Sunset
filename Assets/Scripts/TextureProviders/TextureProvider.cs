@@ -73,7 +73,9 @@ public abstract class TextureProvider : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             if (m_PipeOutputs[i])
+            {
                 m_PipeOutputs[i].textureShouldUpdate = true;
+            }
         }
     }
 

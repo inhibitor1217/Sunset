@@ -12,6 +12,7 @@ public class EditorSceneMaster : MonoBehaviour
     public GameObject MaskLayerPrefab;
     public GameObject StaticTexturePrefab;
     public GameObject MaskTexturePrefab;
+    public GameObject AlphaMaskedTexturePrefab;
     public GameObject SLICLabelTexturePrefab;
     public GameObject SLICContourTexturePrefab;
     public GameObject BrushPrefab;
@@ -43,6 +44,8 @@ public class EditorSceneMaster : MonoBehaviour
     private MaskTexture[] m_MaskTextures = new MaskTexture[MAX_EFFECTS];
     private GameObject[] m_MaskCameraObjects = new GameObject[MAX_EFFECTS];
     private MaskRendererCamera[] m_MaskCameras = new MaskRendererCamera[MAX_EFFECTS];
+    private GameObject[] m_AlphaMaskedTextureObjects = new GameObject[MAX_EFFECTS];
+    private AlphaMaskedTexture[] m_AlphaMaskedTextures = new AlphaMaskedTexture[MAX_EFFECTS];
 
     // Brush
     private GameObject m_BrushObject;
@@ -168,6 +171,12 @@ public class EditorSceneMaster : MonoBehaviour
         m_MaskCameraObjects[maskIndex].transform.localPosition = Vector3.back;
         m_MaskCameras[maskIndex] = m_MaskCameraObjects[maskIndex].GetComponent<MaskRendererCamera>();
 
+        m_AlphaMaskedTextureObjects[maskIndex] = GameObject.Instantiate(AlphaMaskedTexturePrefab);
+        m_AlphaMaskedTextures[maskIndex] = m_AlphaMaskedTextureObjects[maskIndex].GetComponent<AlphaMaskedTexture>();
+        m_AlphaMaskedTextures[maskIndex].sourceTexture = m_RootStaticTexture;
+        m_AlphaMaskedTextures[maskIndex].alphaTexture  = m_MaskTextures[maskIndex];
+        m_AlphaMaskedTextures[maskIndex].Setup();
+
         Camera c = m_MaskCameraObjects[maskIndex].GetComponent<Camera>();
         switch (maskIndex)
         {
@@ -192,6 +201,9 @@ public class EditorSceneMaster : MonoBehaviour
         if (m_MaskCameraObjects[maskIndex])
             Destroy(m_MaskCameraObjects[maskIndex]);
 
+        if (m_AlphaMaskedTextureObjects[maskIndex])
+            Destroy(m_AlphaMaskedTextureObjects[maskIndex]);
+
         if (m_RootLayer)
             m_RootLayer.SetMaskCamera(null, maskIndex);
 
@@ -199,6 +211,8 @@ public class EditorSceneMaster : MonoBehaviour
         m_MaskTextures[maskIndex] = null;
         m_MaskCameraObjects[maskIndex] = null;
         m_MaskCameras[maskIndex] = null;
+        m_AlphaMaskedTextureObjects[maskIndex] = null;
+        m_AlphaMaskedTextures[maskIndex] = null;
     }
 
     public void CreateBrush(int maskIndex)

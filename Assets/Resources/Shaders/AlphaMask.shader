@@ -7,18 +7,6 @@ Shader "Compute/AlphaMask"
     }
     SubShader
     {
-        Tags
-        { 
-            "RenderType" = "Transparent"
-            "Queue" = "Transparent"
-        }
-       
-        Cull Off
-        Lighting Off
-        ZWrite Off
-        ZTest Always
-        Blend SrcAlpha OneMinusSrcAlpha
-        
         Pass
         {
             name "Default"
@@ -56,9 +44,7 @@ Shader "Compute/AlphaMask"
 
             half4 frag(v2f IN) : SV_Target
             {
-                half4 color;
-                color.rgb = tex2D(_MainTex , IN.texcoord).rgb;
-                color.a   = tex2D(_AlphaTex, IN.texcoord).r;
+                half4 color = lerp(half4(0, 0, 0, 0), tex2D(_MainTex , IN.texcoord), tex2D(_AlphaTex, IN.texcoord).r);
 
                 return color;
             }

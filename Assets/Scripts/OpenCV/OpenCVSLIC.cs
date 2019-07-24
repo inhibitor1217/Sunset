@@ -8,8 +8,8 @@ public static class OpenCVSLIC
     public static int numAsyncTasks { get; private set; } = 0;
     public static int asyncProgress { get; private set; } = 0;
 
-    public const int MIN_REGION_SIZE = 8;
-    public const float MAX_REGION_RATIO = 32f;
+    public const int MIN_REGION_SIZE = 16;
+    public const float MAX_REGION_RATIO = 16f;
     public const float RULER = 10f;
 
     public static int AsyncSLIC(Texture2D inTex, ref int[][] outLabel, ref byte[][] outContour)

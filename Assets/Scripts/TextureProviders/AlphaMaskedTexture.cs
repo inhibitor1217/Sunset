@@ -65,8 +65,10 @@ public class AlphaMaskedTexture : TextureProvider
 
     void Start()
     {
-        sourceTexture = defaultSourceTexture;
-        alphaTexture = defaultAlphaTexture;
+        if (defaultSourceTexture)
+            sourceTexture = defaultSourceTexture;
+        if (defaultAlphaTexture)
+            alphaTexture = defaultAlphaTexture;
     }
 
     new void OnDestroy()
@@ -87,8 +89,9 @@ public class AlphaMaskedTexture : TextureProvider
         if (!m_RenderTexture)
             return false;
 
-        Graphics.SetRenderTarget(m_RenderTexture, 0, CubemapFace.Unknown, 0);
-        GL.Clear(false, true, Color.black, 0);
+        m_AlphaMaskMaterial.SetTexture("_AlphaTex", m_AlphaTexture.GetTexture());
+
+        m_RenderTexture.DiscardContents();
         Graphics.Blit(m_SrcTexture.GetTexture(), m_RenderTexture, m_AlphaMaskMaterial);
         
         return true;
@@ -100,14 +103,11 @@ public class AlphaMaskedTexture : TextureProvider
             m_RenderTexture.Release();
 
         Texture srcTex = m_SrcTexture.GetTexture();
-        Texture alphaTex = m_AlphaTexture.GetTexture();
 
-        m_RenderTexture = new RenderTexture(srcTex.width, srcTex.height, 0, RenderTextureFormat.ARGBHalf);
+        m_RenderTexture = new RenderTexture(srcTex.width, srcTex.height, 0, RenderTextureFormat.ARGB32);
         m_RenderTexture.useMipMap = false;
         m_RenderTexture.wrapMode = TextureWrapMode.Clamp;
         m_RenderTexture.filterMode = FilterMode.Point;
-        
-        m_AlphaMaskMaterial.SetTexture("_AlphaTex", alphaTex);
     }
 
 }

@@ -593,7 +593,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f9134aaecc9e488393b56ec92293495, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initTexture: {fileID: 2800000, guid: 8dc2fb29281f746f285a5244f02e2e8f, type: 3}
+  initTexture: {fileID: 2800000, guid: 9f9a43fe426ff49f8a360a6f1b56f349, type: 3}
 --- !u!1 &954425853 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 947722260274316004, guid: 5d90e9cfbc79746059ae8283c3e019b0,
@@ -1617,6 +1617,8 @@ MonoBehaviour:
   StaticTexturePrefab: {fileID: 1514266587359271130, guid: 6028b7559a2dd47199aa55f362d9d1c5,
     type: 3}
   MaskTexturePrefab: {fileID: 259361741327100119, guid: 6c93cf42d8f2d47048c48d5420d8dcd3,
+    type: 3}
+  AlphaMaskedTexturePrefab: {fileID: 5813828614555942529, guid: ae2f0b65fbf4441e997e3b6802f9fc6b,
     type: 3}
   SLICLabelTexturePrefab: {fileID: 8145355472273369409, guid: 7bf5133494b264a8082adb241d635891,
     type: 3}
