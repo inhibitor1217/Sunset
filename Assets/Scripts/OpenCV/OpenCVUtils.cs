@@ -35,9 +35,9 @@ public static class OpenCVUtils
         for (int i = 0; i < labels.Length; i++)
         {
             colors[i] = new Color32(
-                (byte)((labels[i]      ) & 0xFF),
-                (byte)((labels[i] >>  8) & 0xFF),
                 (byte)((labels[i] >> 16) & 0xFF),
+                (byte)((labels[i] >>  8) & 0xFF),
+                (byte)((labels[i]      ) & 0xFF),
                 (byte)((labels[i] >> 24) & 0xFF)
             );
         }

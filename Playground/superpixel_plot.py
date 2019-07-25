@@ -119,6 +119,8 @@ def pca(X, weights=None):
     quartiles = weighted_quantile(FPC_distribution, [.03, .10, .20, .30, .40, .50, .60, .70, .80, .90, .97], weights)
     FPC_line = X_bar[..., np.newaxis].repeat(11, axis=1) + np.matmul(FPC[..., np.newaxis], quartiles[..., np.newaxis].transpose())
 
+    print(FPC_line.transpose())
+
     return X_bar, FPC, R_squared, FPC_distribution, FPC_line
 
 def draw_image(img, window_title='Display'):

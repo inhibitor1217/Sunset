@@ -1,14 +1,15 @@
 #include <opencv2/core.hpp>
-#include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
-#include <opencv2/highgui.hpp>
 
-#include <iostream>
-#include <string>
 #include <vector>
 
 using namespace cv;
 using namespace std;
+
+extern "C"
+{
+    void processPCA(uchar *inImageArray, uchar *inMaskArray, uchar *inLabelArray, int width, int height, int numSegments, uchar *outPaletteArray);
+}
 
 const float VALID_RATIO_THRESHOLD = .5f;
 
@@ -19,14 +20,18 @@ int computeStats(Mat *channels, const Mat &mask, const Mat &label, vector<Vec3f>
 void pca(Mat &X, const vector<int> &weights, Vec3f &center, Vec3f &fpc, vector<float> &fpc_components);
 void computePalette(const vector<float> &quartiles, const vector<float> &fpc_components, Vec3f center, Vec3f fpc, Mat &palette);
 
-void processPCA(const Mat &img, const Mat &labelEncoded, Mat &palette)
+void processPCA(uchar *inImageArray, uchar *inMaskArray, uchar *inLabelArray, int width, int height, int numSegments, uchar *outPaletteArray)
 {
     int num_valid_segments;
-    Mat img_channels[3], label, X;
+    Mat img, mask, labelEncoded, img_channels[3], label, X, palette;
     Vec3f center, fpc;
     vector<int>   weights;
     vector<float> fpc_components, quartiles { .03f, .1f, .2f, .3f, .4f, .5f, .6f, .7f, .8f, .9f, .97f };
     vector<Vec3f> average;
+    
+    img = Mat(height, width, CV_8UC4, inImageArray);
+    mask = Mat(height, width, CV_8UC1, inMaskArray);
+    labelEncoded = Mat(height, width, CV_8UC3, inLabelArray);
     
     decodeLabel(labelEncoded, label);
     convertToNormalizedLab(img, img_channels);
@@ -46,11 +51,18 @@ void processPCA(const Mat &img, const Mat &labelEncoded, Mat &palette)
     
     convertToRGB(palette, palette);
     
+    if (outPaletteArray)
+        std::memcpy(outPaletteArray, palette.data, palette.total() * palette.elemSize());
+    
+    img.release();
+    mask.release();
+    labelEncoded.release();
     img_channels[0].release();
     img_channels[1].release();
     img_channels[2].release();
     label.release();
     X.release();
+    palette.release();
 }
 
 void convertToNormalizedLab(const Mat &img, Mat *channels)
@@ -177,9 +189,6 @@ void pca(Mat &X, const vector<int> &weights, Vec3f &center, Vec3f &fpc, vector<f
     
     fpc = Vec3f(Vt.at<float>(0, 0), Vt.at<float>(0, 1), Vt.at<float>(0, 2));
     
-    cout << "CENTER: " << center << endl;
-    cout << "FPC:    " << fpc   << endl;
-    
     X_V = X * Vt.t();
     
     fpc_components = vector<float>(num_valid_segments);
@@ -217,20 +226,3 @@ void computePalette(const vector<float> &quartiles, const vector<float> &fpc_com
         palette.at<cv::Vec3f>(i, 0) = center + fpc * ( fpc_components[low] * (1.0f - t) + fpc_components[high] * t );
     }
 }
-
-int main( int argc, char** argv )
-{
-    Mat img, label_raw, palette;
-    
-    img = imread("ys-4-mask.png");
-    label_raw = imread("ys-4-slic.png");
-    
-    processPCA(img, label_raw, palette);
-    
-    cv::namedWindow("COLORS");
-    cv::imshow("COLORS", palette);
-    cv::waitKey(0);
-    
-    return 0;
-}
-

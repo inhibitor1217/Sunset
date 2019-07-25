@@ -5,10 +5,8 @@ public class OpenCVSLICClient : MonoBehaviour
 
     public SLICLabelTexture labelTextureProvider;
     public SLICContourTexture contourTextureProvider;
-
-    private int[][] m_OutLabel = null;
-    private byte[][] m_OutContour = null;
     
+    private OpenCVSLICData m_Data;
     public int NumLevels { get; private set; }
     private bool m_Invoked = false;
     private float m_InvokedTime;
@@ -35,7 +33,8 @@ public class OpenCVSLICClient : MonoBehaviour
 
         __cached_inTex = inTex;
 
-        NumLevels = OpenCVSLIC.AsyncSLIC(inTex, ref m_OutLabel, ref m_OutContour);
+        m_Data = new OpenCVSLICData();
+        NumLevels = OpenCVSLIC.AsyncSLIC(inTex, ref m_Data.outLabel, ref m_Data.outContour);
 
         m_Invoked = true;
         m_InvokedTime = Time.time;
@@ -46,12 +45,12 @@ public class OpenCVSLICClient : MonoBehaviour
 
     public int[] getLabel(int level)
     {
-        return m_OutLabel[level];
+        return m_Data.outLabel[level];
     }
 
     public byte[] getContour(int level)
     {
-        return m_OutContour[level];
+        return m_Data.outContour[level];
     }
 
     public int getWidth(int level)
@@ -88,6 +87,9 @@ public class OpenCVSLICClient : MonoBehaviour
                 labelTextureProvider.GenerateTextures(this);
             if (contourTextureProvider)
                 contourTextureProvider.GenerateTextures(this);
+            
+            m_Data = null;
+
             MessagePanel.Instance.Disable();
 
         }

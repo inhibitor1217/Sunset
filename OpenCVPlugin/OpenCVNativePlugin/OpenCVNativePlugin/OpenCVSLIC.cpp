@@ -32,5 +32,10 @@ int processSLIC(uchar *inputArray, int width, int height, int *outputLabelArray,
     if (outputContourArray)
         std::memcpy(outputContourArray, outputLabelContour.data, outputLabelContour.total() * outputLabelContour.elemSize());
     
+    slic.release();
+    input.release();
+    outputLabel.release();
+    outputLabelContour.release();
+    
     return numSuperpixels;
 }
