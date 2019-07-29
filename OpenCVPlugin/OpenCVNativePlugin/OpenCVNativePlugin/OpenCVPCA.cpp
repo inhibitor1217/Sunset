@@ -8,7 +8,7 @@ using namespace std;
 
 extern "C"
 {
-    void processPCA(uchar *inImageArray, uchar *inMaskArray, uchar *inLabelArray, int width, int height, int numSegments, uchar *outPaletteArray);
+    int processPCA(uchar *inImageArray, uchar *inMaskArray, uchar *inLabelArray, int width, int height, float *outPaletteArray);
 }
 
 const float VALID_RATIO_THRESHOLD = .5f;
@@ -20,7 +20,7 @@ int computeStats(Mat *channels, const Mat &mask, const Mat &label, vector<Vec3f>
 void pca(Mat &X, const vector<int> &weights, Vec3f &center, Vec3f &fpc, vector<float> &fpc_components);
 void computePalette(const vector<float> &quartiles, const vector<float> &fpc_components, Vec3f center, Vec3f fpc, Mat &palette);
 
-void processPCA(uchar *inImageArray, uchar *inMaskArray, uchar *inLabelArray, int width, int height, int numSegments, uchar *outPaletteArray)
+int processPCA(uchar *inImageArray, uchar *inMaskArray, uchar *inLabelArray, int width, int height, float *outPaletteArray)
 {
     int num_valid_segments;
     Mat img, mask, labelEncoded, img_channels[3], label, X, palette;
@@ -29,31 +29,40 @@ void processPCA(uchar *inImageArray, uchar *inMaskArray, uchar *inLabelArray, in
     vector<float> fpc_components, quartiles { .03f, .1f, .2f, .3f, .4f, .5f, .6f, .7f, .8f, .9f, .97f };
     vector<Vec3f> average;
     
-    img = Mat(height, width, CV_8UC4, inImageArray);
-    mask = Mat(height, width, CV_8UC1, inMaskArray);
+    img          = Mat(height, width, CV_8UC4, inImageArray);
+    mask         = Mat(height, width, CV_8UC1, inMaskArray);
     labelEncoded = Mat(height, width, CV_8UC3, inLabelArray);
-    
+
     decodeLabel(labelEncoded, label);
     convertToNormalizedLab(img, img_channels);
+
+    num_valid_segments = computeStats(img_channels, mask, label, average, weights);
     
-    num_valid_segments = computeStats(img_channels, img_channels[0], label, average, weights);
-    
-    X = Mat(num_valid_segments, 3, CV_32FC1);
-    for (int i = 0; i < num_valid_segments; i++)
+    if (num_valid_segments > 0)
     {
-        X.at<float>(i, 0) = average[i][0];
-        X.at<float>(i, 1) = average[i][1];
-        X.at<float>(i, 2) = average[i][2];
+        X = Mat(num_valid_segments, 3, CV_32FC1);
+        for (int i = 0; i < num_valid_segments; i++)
+        {
+            X.at<float>(i, 0) = average[i][0];
+            X.at<float>(i, 1) = average[i][1];
+            X.at<float>(i, 2) = average[i][2];
+        }
+        pca(X, weights, center, fpc, fpc_components);
+
+        computePalette(quartiles, fpc_components, center, fpc, palette);
+
+        convertToRGB(palette, palette);
+        
+        X.release();
     }
-    pca(X, weights, center, fpc, fpc_components);
-    
-    computePalette(quartiles, fpc_components, center, fpc, palette);
-    
-    convertToRGB(palette, palette);
-    
+    else
+    {
+        palette = Mat((int)quartiles.size(), 1, CV_32FC3, 0.0f);
+    }
+
     if (outPaletteArray)
-        std::memcpy(outPaletteArray, palette.data, palette.total() * palette.elemSize());
-    
+        memcpy(outPaletteArray, palette.data, palette.total() * palette.elemSize());
+
     img.release();
     mask.release();
     labelEncoded.release();
@@ -61,8 +70,9 @@ void processPCA(uchar *inImageArray, uchar *inMaskArray, uchar *inLabelArray, in
     img_channels[1].release();
     img_channels[2].release();
     label.release();
-    X.release();
     palette.release();
+    
+    return num_valid_segments;
 }
 
 void convertToNormalizedLab(const Mat &img, Mat *channels)
@@ -110,7 +120,7 @@ int computeStats(Mat *channels, const Mat &mask, const Mat &label, vector<Vec3f>
     minMaxLoc(label, NULL, &num_segments_double);
     num_segments = (int)num_segments_double;
     
-    seg_sum = Mat(num_segments, 3, CV_32FC1);
+    seg_sum = Mat::zeros(num_segments, 3, CV_32FC1);
     count = vector<int>(num_segments);
     valid_count = vector<int>(num_segments);
     
@@ -119,7 +129,7 @@ int computeStats(Mat *channels, const Mat &mask, const Mat &label, vector<Vec3f>
         for (int x = 0; x < label.cols; x++)
         {
             int cur_label = label.at<int>(y, x);
-            if (mask.at<float>(y, x) > 1.0f)
+            if (mask.at<uchar>(y, x) > 128)
             {
                 seg_sum.at<float>(cur_label, 0) += channels[0].at<float>(y, x);
                 seg_sum.at<float>(cur_label, 1) += channels[1].at<float>(y, x);

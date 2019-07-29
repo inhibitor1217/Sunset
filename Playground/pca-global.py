@@ -116,8 +116,8 @@ def pca(X, weights=None):
     print('PCA: R^2       = ' + str(R_squared))
 
     FPC_distribution = np.matmul(X - X_bar, Vt.transpose())[:, 0]
-    quartiles = weighted_quantile(FPC_distribution, [.03, .10, .20, .30, .40, .50, .60, .70, .80, .90, .97], weights)
-    FPC_line = X_bar[..., np.newaxis].repeat(11, axis=1) + np.matmul(FPC[..., np.newaxis], quartiles[..., np.newaxis].transpose())
+    quartiles = weighted_quantile(FPC_distribution, [.030, .143, .286, .428, .571, .714, .857, .970], weights)
+    FPC_line = X_bar[..., np.newaxis].repeat(8, axis=1) + np.matmul(FPC[..., np.newaxis], quartiles[..., np.newaxis].transpose())
 
     print(FPC_line.transpose())
 
@@ -212,27 +212,27 @@ def plot_slic_distribution(distribution, file_name, weights=None):
     plt.close(fig)
 
 file_names = [
-    'jj-1-mask',
-    # 'jj-2-mask',
-    # 'sc-1-mask',
-    # 'sc-2-mask',
-    # 'sc-3-mask',
-    # 'sc-4-mask',
-    # 'sf-1-mask',
-    # 'sf-2-mask',
-    # 'sf-3-mask',
-    # 'sf-4-mask',
-    # 'sf-5-mask',
-    # 'sf-6-mask',
-    # 'sf-7-mask',
-    # 'sf-8-mask',
-    # 'sf-9-mask',
-    # 'sf-10-mask',
-    # 'sf-11-mask',
-    # 'sf-12-mask',
-    # 'sf-13-mask',
-    # 'sf-14-mask',
-    # 'ys-4-mask',
+    'jj-1',
+    # 'jj-2',
+    # 'sc-1',
+    # 'sc-2',
+    # 'sc-3',
+    # 'sc-4',
+    # 'sf-1',
+    # 'sf-2',
+    # 'sf-3',
+    # 'sf-4',
+    # 'sf-5',
+    # 'sf-6',
+    # 'sf-7',
+    # 'sf-8',
+    # 'sf-9',
+    # 'sf-10',
+    # 'sf-11',
+    # 'sf-12',
+    # 'sf-13',
+    # 'sf-14',
+    # 'ys-4',
 ]
 
 if __name__ == "__main__":
@@ -242,13 +242,13 @@ if __name__ == "__main__":
     # f.write(','.join(columns) + '\n')   
 
     for file_name in file_names:
-        img = read_image('images/mask/' + file_name + '.png')
+        img = read_image('images/mask/' + file_name + '-mask.png')
         img_lab = preprocess(img)
 
         # num_seg, label, contour = slic(img_lab)
         # cv2.imwrite('images/slic/' + file_name + '.png', encode_label(label))
         
-        label = decode_label(cv2.imread('images/slic/' + file_name + '.png'))
+        label = decode_label(cv2.imread('images/slic/' + file_name + '-slic.png'))
         
         # draw_image(slic_contour(img, contour))
         num_labels, count, avg, stdev = slic_stats(img_lab, label)

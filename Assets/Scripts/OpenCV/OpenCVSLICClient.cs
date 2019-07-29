@@ -17,10 +17,12 @@ public class OpenCVSLICClient : MonoBehaviour
     // Cache
     private Texture2D __cached_inTex;
 
-    public bool Invoke(Texture2D inTex, int nextMode)
+    public bool Invoke(StaticTexture img, int nextMode)
     {
         if (OpenCVSLIC.asyncBusy)
             return false;
+
+        Texture2D inTex = img.GetReadableTexture();
 
         if (inTex == __cached_inTex)
         {

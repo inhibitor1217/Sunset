@@ -19,12 +19,30 @@ public class MaskTexture : TextureProvider
         if (InputMode.Instance.isBrush()
             && InputManager.Instance.withinContainer 
             && InputManager.Instance.released)
+        {
             textureShouldUpdate = true;
+        }
     }
 
     public override Texture GetTexture()
     {
         return m_RenderTexture;
+    }
+
+    public Texture2D GetReadableTexture()
+    {
+        int width  = m_RenderTexture.width;
+        int height = m_RenderTexture.height;
+
+        RenderTexture prev = RenderTexture.active;
+        RenderTexture.active = m_RenderTexture;
+
+        Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
+        tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+
+        RenderTexture.active = prev;
+
+        return tex;
     }
 
     public override bool Draw()

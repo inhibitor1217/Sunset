@@ -18,6 +18,11 @@ public class SLICLabelTexture : TextureProvider
         return m_CurTexture;
     }
 
+    public Texture2D GetLabelTexture()
+    {
+        return m_LabelTextures[0];
+    }
+
     public void GenerateTextures(OpenCVSLICClient client)
     {
         m_LabelTextures = new Texture2D[client.NumLevels];

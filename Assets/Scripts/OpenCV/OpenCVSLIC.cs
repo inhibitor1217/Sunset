@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Threading;
-using System.Collections.Generic;
 public static class OpenCVSLIC
 {
 
@@ -25,21 +24,6 @@ public static class OpenCVSLIC
             Debug.Log("OpenCV SLIC - Input Dimension [" + width + ", " + height + "]");
 #endif
 
-            // Copy inTex to readable texture
-            RenderTexture tempBuffer = RenderTexture.GetTemporary(
-                width, height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear
-            );
-            Graphics.Blit(inTex, tempBuffer);
-            RenderTexture previous = RenderTexture.active;
-            RenderTexture.active = tempBuffer;
-
-            Texture2D readable = new Texture2D(width, height);
-            readable.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-            readable.Apply();
-
-            RenderTexture.active = previous;
-            RenderTexture.ReleaseTemporary(tempBuffer);
-
             numAsyncTasks = 0;
             for (var regionSize = MIN_REGION_SIZE; 
                 regionSize <= Mathf.Min(width, height) / MAX_REGION_RATIO; 
@@ -54,7 +38,7 @@ public static class OpenCVSLIC
             for (int i = 0; i < numAsyncTasks; i++)
             {
                 // Use mipmap level
-                Color32[] inColors = readable.GetPixels32(i);
+                Color32[] inColors = inTex.GetPixels32(i);
 
                 int[] _outLabel = new int[inColors.Length];
                 byte[] _outContour = new byte[inColors.Length];
@@ -75,7 +59,7 @@ public static class OpenCVSLIC
     static void SLIC(Color32[] inColors, int width, int height, int[] outLabel, byte[] outContour, int regionSize)
     {
         int numSuperpixels = OpenCVLibAdapter.OpenCV_processSLIC(
-            OpenCVUtils.Color32ToOpenCVMat(inColors), width, height, 
+            OpenCVUtils.Color32ToOpenCVMat(inColors, OpenCVUtils.CV_8UC4), width, height, 
             outLabel, outContour,
             OpenCVLibAdapter.SLICAlgorithm__SLIC,
             regionSize,

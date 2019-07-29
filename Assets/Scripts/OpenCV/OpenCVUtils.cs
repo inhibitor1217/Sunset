@@ -3,16 +3,60 @@ using UnityEngine;
 public static class OpenCVUtils
 {
 
-    public static byte[] Color32ToOpenCVMat(Color32[] colors)
+    public const int CV_8UC1 = 0;
+    public const int CV_8UC2 = 1;
+    public const int CV_8UC3 = 2;
+    public const int CV_8UC4 = 3;
+
+    public static byte[] Color32ToOpenCVMat(Color32[] colors, int matType)
     {
-        byte[] bytes = new byte[colors.Length * 4];
+        byte[] bytes = null;
+
+        switch (matType)
+        {
+        case CV_8UC1:
+            bytes = new byte[colors.Length];
+            break;
+        case CV_8UC2:
+            bytes = new byte[colors.Length * 2];
+            break;
+        case CV_8UC3:
+            bytes = new byte[colors.Length * 3];
+            break;
+        case CV_8UC4:
+            bytes = new byte[colors.Length * 4];
+            break;
+        default:
+            break;
+        }
+
         for (int i = 0; i < colors.Length; i++)
         {
-            bytes[4 * i + 0] = colors[i].b;
-            bytes[4 * i + 1] = colors[i].g;
-            bytes[4 * i + 2] = colors[i].r;
-            bytes[4 * i + 3] = colors[i].a;
+            switch (matType)
+            {
+            case CV_8UC1:
+                bytes[i] = colors[i].r;
+                break;
+            case CV_8UC2:
+                bytes[2 * i + 0] = colors[i].r;
+                bytes[2 * i + 1] = colors[i].g;
+                break;
+            case CV_8UC3:
+                bytes[3 * i + 0] = colors[i].b;
+                bytes[3 * i + 1] = colors[i].g;
+                bytes[3 * i + 2] = colors[i].r;
+                break;
+            case CV_8UC4:
+                bytes[4 * i + 0] = colors[i].b;
+                bytes[4 * i + 1] = colors[i].g;
+                bytes[4 * i + 2] = colors[i].r;
+                bytes[4 * i + 3] = colors[i].a;
+                break;
+            default:
+                break;
+            }
         }
+
         return bytes;
     }
 

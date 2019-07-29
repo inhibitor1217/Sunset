@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 public class EditorSceneMaster : MonoBehaviour
 {
@@ -57,6 +56,17 @@ public class EditorSceneMaster : MonoBehaviour
     private SLICLabelTexture m_SLICLabelTexture;
     // private GameObject m_SLICContourTextureObject;
     // private SLICContourTexture m_SLICContourTexture;
+
+    // PCA
+    public OpenCVPCAClient m_PCAClient;
+    public void onInvokePCA() { 
+        m_PCAClient.Invoke(
+            m_RootStaticTexture, 
+            m_MaskTextures[EFFECT_WATER],
+            m_SLICLabelTexture,
+            InputMode.Instance.mode
+        );
+    }
 
     public const int EFFECT_WATER = 0;
     public const int EFFECT_SKY = 1;
@@ -290,7 +300,7 @@ public class EditorSceneMaster : MonoBehaviour
 
         m_SLICClient.labelTextureProvider = m_SLICLabelTexture;
         // m_SLICClient.contourTextureProvider = m_SLICContourTexture;
-        m_SLICClient.Invoke(m_RootStaticTexture.GetTexture() as Texture2D, nextMode);
+        m_SLICClient.Invoke(m_RootStaticTexture, nextMode);
 
         if (InputMode.isBrush(nextMode) && InputMode.isSLIC(nextMode))
         {
