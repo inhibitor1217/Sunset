@@ -79,6 +79,9 @@ def pca(img, slic_label, avg, max_level, level, x, y, width, height, out, iX, iY
         else:
             center  = np.zeros((3))
 
+    print(labels.shape[0])
+    print(center)
+
     if labels.shape[0] >= PCA_THRESHOLD:
         # Perform PCA via SVD
         X_prime = (X - center) * np.sqrt(weights)[..., np.newaxis]
@@ -125,16 +128,17 @@ def pca_octave(img, slic_label):
         window_height //= 2
         level += 1
 
+    level = 2
     pca(img, slic_label, segment_avg, level, 0, 0, 0, img.shape[0], img.shape[1], out, 0, 0, out_r2)
 
     return out, out_r2
 
 file_names = [
-    # 'jj-1',
+    'jj-1',
     # 'jj-2',
     # 'sc-1',
     # 'sc-2',
-    'sc-3',
+    # 'sc-3',
     # 'sc-4',
     # 'sf-1',
     # 'sf-2',

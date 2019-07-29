@@ -5,12 +5,16 @@
 
 #include <iostream>
 #include <string>
+#include <algorithm>
 #include <vector>
+#include <map>
 
 using namespace cv;
 using namespace std;
 
 const float VALID_RATIO_THRESHOLD = .5f;
+const float WINDOW_SIZE_THRESHOLD = 128*128;
+const float PERFORM_PCA_THRESHOLD = 50;
 
 void convertToNormalizedLab(const Mat &img, Mat *channels);
 void convertToRGB(const Mat& src, const Mat& dst);
@@ -18,6 +22,200 @@ void decodeLabel(const Mat& labelEncoded, Mat &label);
 int computeStats(Mat *channels, const Mat &mask, const Mat &label, vector<Vec3f> &average, vector<int> &weights);
 void pca(Mat &X, const vector<int> &weights, Vec3f &center, Vec3f &fpc, vector<float> &fpc_components);
 void computePalette(const vector<float> &quartiles, const vector<float> &fpc_components, Vec3f center, Vec3f fpc, Mat &palette);
+
+map<int, pair<Vec3f, float>> *pca_octave_rec(Mat *channels, const Mat &mask, const Mat &label, Mat *low, Mat *high, int level, int x, int y, int width, int height, int iX, int iY)
+{
+    if (level < 0)
+        return nullptr;
+    
+    auto *ret = new map<int, pair<Vec3f, float> >();
+    
+    if (level == 0)
+    {
+        for (int _y = y; _y < y + height; _y++)
+            for (int _x = x; _x < x + width; _x++)
+                if (mask.at<uchar>(_y, _x) > 0)
+                {
+                    int cur_label = label.at<int>(_y, _x);
+                    auto it = ret->find(cur_label);
+                    
+                    if (it == ret->end())
+                    {
+                        auto _r = ret->insert(make_pair(cur_label, make_pair(Vec3f(0, 0, 0), 0)));
+                        it = _r.first;
+                    }
+                    
+                    (it->second).first[0] += channels[0].at<float>(_y, _x);
+                    (it->second).first[1] += channels[1].at<float>(_y, _x);
+                    (it->second).first[2] += channels[2].at<float>(_y, _x);
+                    (it->second).second   += 1.0f;
+                }
+    }
+    else
+    {
+        auto r1 = pca_octave_rec(channels, mask, label, low, high, level-1, x, y, width/2, height/2, 2*iX, 2*iY);
+        auto r2 = pca_octave_rec(channels, mask, label, low, high, level-1, x + width/2, y, (width+1)/2, height/2, 2*iX+1, 2*iY);
+        auto r3 = pca_octave_rec(channels, mask, label, low, high, level-1, x, y + height/2, width/2, (height+1)/2, 2*iX, 2*iY+1);
+        auto r4 = pca_octave_rec(channels, mask, label, low, high, level-1, x + width/2, y + height/2, (width+1)/2, (height+1)/2, 2*iX+1, 2*iY+1);
+        
+        for (auto it = r1->begin(); it != r1->end(); it++)
+        {
+            auto _it = ret->find(it->first);
+            if (_it == ret->end())
+            {
+                auto _r = ret->insert(make_pair(it->first, make_pair(Vec3f(0, 0, 0), 0)));
+                _it = _r.first;
+            }
+            
+            (_it->second).first  += (it->second).first;
+            (_it->second).second += (it->second).second;
+        }
+        
+        for (auto it = r2->begin(); it != r2->end(); it++)
+        {
+            auto _it = ret->find(it->first);
+            if (_it == ret->end())
+            {
+                auto _r = ret->insert(make_pair(it->first, make_pair(Vec3f(0, 0, 0), 0)));
+                _it = _r.first;
+            }
+            
+            (_it->second).first  += (it->second).first;
+            (_it->second).second += (it->second).second;
+        }
+        
+        for (auto it = r3->begin(); it != r3->end(); it++)
+        {
+            auto _it = ret->find(it->first);
+            if (_it == ret->end())
+            {
+                auto _r = ret->insert(make_pair(it->first, make_pair(Vec3f(0, 0, 0), 0)));
+                _it = _r.first;
+            }
+            
+            (_it->second).first  += (it->second).first;
+            (_it->second).second += (it->second).second;
+        }
+        
+        for (auto it = r4->begin(); it != r4->end(); it++)
+        {
+            auto _it = ret->find(it->first);
+            if (_it == ret->end())
+            {
+                auto _r = ret->insert(make_pair(it->first, make_pair(Vec3f(0, 0, 0), 0)));
+                _it = _r.first;
+            }
+            
+            (_it->second).first  += (it->second).first;
+            (_it->second).second += (it->second).second;
+        }
+        
+        r1->clear();
+        r2->clear();
+        r3->clear();
+        r4->clear();
+        
+        free(r1);
+        free(r2);
+        free(r3);
+        free(r4);
+    }
+    
+    Mat X, X_prime, X_V, U, S, Vt;
+    Vec3f center = Vec3f(0, 0, 0), fpc;
+    float weight_sum = 0.0f;
+    
+    if (ret->size() >= PERFORM_PCA_THRESHOLD)
+    {
+        for (auto it = ret->begin(); it != ret->end(); it++)
+        {
+            center += (it->second).first;
+            weight_sum += (it->second).second;
+        }
+        
+        if (weight_sum > 0)
+        {
+            center /= weight_sum;
+            X       = Mat((int)ret->size(), 3, CV_32FC1);
+            X_prime = Mat((int)ret->size(), 3, CV_32FC1);
+            
+            int i = 0;
+            for (auto it = ret->begin(); it != ret->end(); it++, i++)
+            {
+                Vec3f x_i = (it->second).first / (it->second).second - center;
+                X.at<float>(i, 0) = x_i[0];
+                X.at<float>(i, 1) = x_i[1];
+                X.at<float>(i, 2) = x_i[2];
+                
+                Vec3f x_prime_i = x_i * sqrt((it->second).second);
+                X_prime.at<float>(i, 0) = x_prime_i[0];
+                X_prime.at<float>(i, 1) = x_prime_i[1];
+                X_prime.at<float>(i, 2) = x_prime_i[2];
+            }
+            
+            SVD::compute(X_prime, U, S, Vt);
+            if (Vt.at<float>(0, 0) < 0)
+                Vt = -Vt;
+            
+            fpc = Vec3f(Vt.at<float>(0, 0), Vt.at<float>(0, 1), Vt.at<float>(0, 2));
+            
+            X_V = X * Vt.t();
+            vector<float> X_e1 = vector<float>((int)ret->size());
+            for (int i = 0; i < (int)ret->size(); i++)
+            {
+                X_e1[i] = X_V.at<float>(i, 0);
+            }
+            sort(X_e1.begin(), X_e1.end());
+            
+            low [level].at<Vec3f>(iY, iX) = center + fpc * X_e1[ round(.05 * (float)ret->size()) ];
+            high[level].at<Vec3f>(iY, iX) = center + fpc * X_e1[ round(.95 * (float)ret->size()) ];
+            
+            X.release();
+            X_prime.release();
+            X_V.release();
+            U.release();
+            S.release();
+            Vt.release();
+        }
+    }
+    else
+    {
+        low [level].at<Vec3f>(iY, iX) = Vec3f(0, 0, 0);
+        high[level].at<Vec3f>(iY, iX) = Vec3f(0, 0, 0);
+    }
+    
+    return ret;
+}
+
+void pca_octave(Mat *channels, const Mat &mask, const Mat &label, Mat *&low, Mat *&high, int &levels)
+{
+    int _width  = label.cols;
+    int _height = label.rows;
+    
+    levels = 0;
+    while (_width * _height >= WINDOW_SIZE_THRESHOLD)
+    {
+        levels++; _width >>= 1; _height >>= 1;
+    }
+    
+    low  = (Mat *) malloc(sizeof(Mat) * levels);
+    high = (Mat *) malloc(sizeof(Mat) * levels);
+    
+    for (int level = 0; level < levels; level++)
+    {
+        low [level] = Mat(1 << (levels - 1 - level), 1 << (levels - 1 - level), CV_32FC3);
+        high[level] = Mat(1 << (levels - 1 - level), 1 << (levels - 1 - level), CV_32FC3);
+    }
+    
+    pca_octave_rec(channels, mask, label, low, high, levels - 1, 0, 0, label.cols, label.rows, 0, 0);
+    
+    for (int level = 0; level < levels; level++)
+    {
+        convertToRGB(low[level],  low[level] );
+        convertToRGB(high[level], high[level]);
+    }
+    
+}
 
 void processPCA(const Mat &img, const Mat &labelEncoded, Mat &palette)
 {
@@ -69,7 +267,7 @@ void convertToNormalizedLab(const Mat &img, Mat *channels)
 
 void convertToRGB(const Mat& src, const Mat& dst)
 {
-    cvtColor(src, dst, cv::COLOR_Lab2BGR);
+    cv::cvtColor(src, dst, cv::COLOR_Lab2BGR);
 }
 
 void decodeLabel(const Mat& labelEncoded, Mat &label)
@@ -220,16 +418,37 @@ void computePalette(const vector<float> &quartiles, const vector<float> &fpc_com
 
 int main( int argc, char** argv )
 {
-    Mat img, label_raw, palette;
+    Mat img, label_raw, palette, img_channels[3], *low, *high;
     
-    img = imread("ys-4-mask.png");
-    label_raw = imread("ys-4-slic.png");
+    img = imread("sf-5-mask.png");
+    label_raw = imread("sf-5-slic.png");
     
-    processPCA(img, label_raw, palette);
+    split(img, img_channels);
     
-    cv::namedWindow("COLORS");
-    cv::imshow("COLORS", palette);
-    cv::waitKey(0);
+//    processPCA(img, label_raw, palette);
+    
+    int levels;
+    Mat label, img_channels_lab[3];
+    
+    decodeLabel(label_raw, label);
+    convertToNormalizedLab(img, img_channels_lab);
+    
+    pca_octave(img_channels_lab, img_channels[0], label, low, high, levels);
+    
+    for (int i = levels - 1; i >= 0; i--)
+    {
+        imshow("COLORS", low[i]);
+        waitKey(0);
+        imshow("COLORS", high[i]);
+        waitKey(0);
+    }
+    
+    free(low);
+    free(high);
+    
+//    cv::namedWindow("COLORS");
+//    cv::imshow("COLORS", palette);
+//    cv::waitKey(0);
     
     return 0;
 }

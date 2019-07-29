@@ -20,6 +20,8 @@ int computeStats(Mat *channels, const Mat &mask, const Mat &label, vector<Vec3f>
 void pca(Mat &X, const vector<int> &weights, Vec3f &center, Vec3f &fpc, vector<float> &fpc_components);
 void computePalette(const vector<float> &quartiles, const vector<float> &fpc_components, Vec3f center, Vec3f fpc, Mat &palette);
 
+void pca_octave(Mat *channels, const Mat &mask, const Mat &label, Mat *centers, Mat *fpcs);
+
 int processPCA(uchar *inImageArray, uchar *inMaskArray, uchar *inLabelArray, int width, int height, float *outPaletteArray)
 {
     int num_valid_segments;
@@ -37,7 +39,7 @@ int processPCA(uchar *inImageArray, uchar *inMaskArray, uchar *inLabelArray, int
     convertToNormalizedLab(img, img_channels);
 
     num_valid_segments = computeStats(img_channels, mask, label, average, weights);
-    
+
     if (num_valid_segments > 0)
     {
         X = Mat(num_valid_segments, 3, CV_32FC1);
@@ -52,7 +54,7 @@ int processPCA(uchar *inImageArray, uchar *inMaskArray, uchar *inLabelArray, int
         computePalette(quartiles, fpc_components, center, fpc, palette);
 
         convertToRGB(palette, palette);
-        
+
         X.release();
     }
     else
