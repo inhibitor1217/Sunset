@@ -50,8 +50,10 @@ public class AlphaMaskedTexture : TextureProvider
         }
     }
 
+#if UNITY_EDITOR
     public TextureProvider defaultSourceTexture = null;
     public TextureProvider defaultAlphaTexture = null;
+#endif
 
     private RenderTexture m_RenderTexture;
     private Material m_AlphaMaskMaterial;
@@ -63,12 +65,16 @@ public class AlphaMaskedTexture : TextureProvider
         m_AlphaMaskMaterial = new Material(Shader.Find("Compute/AlphaMask"));
     }
 
-    void Start()
+    new void Start()
     {
+        base.Start();
+
+#if UNITY_EDITOR
         if (defaultSourceTexture)
             sourceTexture = defaultSourceTexture;
         if (defaultAlphaTexture)
             alphaTexture = defaultAlphaTexture;
+#endif
     }
 
     new void OnDestroy()

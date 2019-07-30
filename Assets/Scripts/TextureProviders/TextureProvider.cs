@@ -3,6 +3,10 @@
 public abstract class TextureProvider : MonoBehaviour
 {
 
+#if UNITY_EDITOR
+    public RawImageController defaultTarget;
+#endif
+
     private TextureProvider[] m_PipeInputs  = { null, null, null, null };
     private TextureProvider[] m_PipeOutputs = { null, null, null, null };
 
@@ -16,6 +20,14 @@ public abstract class TextureProvider : MonoBehaviour
         TextureProviderManager.AddTextureProvider(this);
 
         textureShouldUpdate = true;
+    }
+
+    protected void Start()
+    {
+#if UNITY_EDITOR
+        if (defaultTarget)
+            SetTarget(defaultTarget);
+#endif
     }
 
     protected void OnDestroy()
@@ -34,11 +46,16 @@ public abstract class TextureProvider : MonoBehaviour
     public abstract bool Draw();
     public abstract Texture GetTexture();
 
+    public void SetTarget()
+    {
+        if (m_Target)
+            m_Target.SetTexture(GetTexture());
+    }
+
     public void SetTarget(RawImageController target)
     {
         m_Target = target;
-        if (m_Target)
-            m_Target.SetTexture(GetTexture());
+        SetTarget();
     }
 
     public static void Link(TextureProvider src, int srcIndex, TextureProvider dst, int dstIndex)

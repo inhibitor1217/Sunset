@@ -21,7 +21,7 @@ public class InputManager : MonoBehaviour
     public bool held { get; private set; } = false;
     public bool withinContainer { get; private set; } = false;
 
-    public const float MIN_SCALE = 0.8f;
+    public const float MIN_SCALE = 0.5f;
     public const float MAX_SCALE = 32.0f;
     public const float SCALE_MULTIPLIER = 1.1f;
     public const float MAX_SCALE_LOG = 1.50515f;

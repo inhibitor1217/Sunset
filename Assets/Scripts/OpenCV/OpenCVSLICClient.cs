@@ -7,7 +7,6 @@ public class OpenCVSLICClient : MonoBehaviour
     public SLICContourTexture contourTextureProvider;
     
     private OpenCVSLICData m_Data;
-    public int NumLevels { get; private set; }
     private bool m_Invoked = false;
     private float m_InvokedTime;
     private int m_prevProgress;
@@ -36,7 +35,9 @@ public class OpenCVSLICClient : MonoBehaviour
         __cached_inTex = inTex;
 
         m_Data = new OpenCVSLICData();
-        NumLevels = OpenCVSLIC.AsyncSLIC(inTex, ref m_Data.outLabel, ref m_Data.outContour);
+        m_Data.levels = OpenCVSLIC.AsyncSLIC(inTex, ref m_Data.outLabel, ref m_Data.outContour);
+        m_Data.width = inTex.width;
+        m_Data.height = inTex.height;
 
         m_Invoked = true;
         m_InvokedTime = Time.time;
@@ -45,31 +46,11 @@ public class OpenCVSLICClient : MonoBehaviour
         return true;
     }
 
-    public int[] getLabel(int level)
-    {
-        return m_Data.outLabel[level];
-    }
-
-    public byte[] getContour(int level)
-    {
-        return m_Data.outContour[level];
-    }
-
-    public int getWidth(int level)
-    {
-        return __cached_inTex.width >> level;
-    }
-
-    public int getHeight(int level)
-    {
-        return __cached_inTex.height >> level;
-    }
-
     void Update()
     {
         if (m_Invoked && m_prevProgress != OpenCVSLIC.asyncProgress)
         {
-            MessagePanel.Instance.ShowMessage("OpenCV - SLIC 이미지 처리 중... (" + OpenCVSLIC.asyncProgress + "/" + NumLevels + ")");
+            MessagePanel.Instance.ShowMessage("OpenCV - SLIC 이미지 처리 중... (" + OpenCVSLIC.asyncProgress + "/" + m_Data.levels + ")");
             m_prevProgress = OpenCVSLIC.asyncProgress;
         }
 
@@ -86,9 +67,9 @@ public class OpenCVSLICClient : MonoBehaviour
             Debug.Log("OpenCVSLICClient - Finished AsyncSLIC in " + (Time.time - m_InvokedTime) + " seconds.");
 #endif
             if (labelTextureProvider)
-                labelTextureProvider.GenerateTextures(this);
+                labelTextureProvider.GenerateTextures(m_Data);
             if (contourTextureProvider)
-                contourTextureProvider.GenerateTextures(this);
+                contourTextureProvider.GenerateTextures(m_Data);
             
             m_Data = null;
 

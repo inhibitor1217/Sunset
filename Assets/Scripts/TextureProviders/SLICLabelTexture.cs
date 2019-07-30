@@ -23,15 +23,15 @@ public class SLICLabelTexture : TextureProvider
         return m_LabelTextures[0];
     }
 
-    public void GenerateTextures(OpenCVSLICClient client)
+    public void GenerateTextures(OpenCVSLICData data)
     {
-        m_LabelTextures = new Texture2D[client.NumLevels];
+        m_LabelTextures = new Texture2D[data.levels];
         m_PrevLevel = -1;
 
-        for (int level = 0; level < client.NumLevels; level++)
+        for (int level = 0; level < data.levels; level++)
         {
-            m_LabelTextures[level] = new Texture2D(client.getWidth(level), client.getHeight(level), TextureFormat.ARGB32, false);
-            m_LabelTextures[level].SetPixels32(OpenCVUtils.OpenCVLabelToColor32(client.getLabel(level)));
+            m_LabelTextures[level] = new Texture2D(data.getWidth(level), data.getHeight(level), TextureFormat.ARGB32, false);
+            m_LabelTextures[level].SetPixels32(OpenCVUtils.OpenCVLabelToColor32(data.outLabel[level]));
             m_LabelTextures[level].Apply();
 
             m_LabelTextures[level].wrapMode = TextureWrapMode.Clamp;

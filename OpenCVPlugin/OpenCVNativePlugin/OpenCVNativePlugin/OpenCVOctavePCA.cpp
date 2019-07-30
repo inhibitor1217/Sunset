@@ -235,6 +235,15 @@ void pca_octave(Mat *channels, const Mat &mask, const Mat &label, int levels, Ma
     
     pca_octave_rec(channels, mask, label, low, high, levels - 1, 0, 0, label.cols, label.rows, 0, 0);
     
+    for (int level = levels - 1; level >= 0; level--)
+        for (int iX = 0; iX < (1 << (levels - 1 - level)); iX++)
+            for (int iY = 0; iY < (1 << (levels - 1 - level)); iY++)
+                if (level < levels - 1 && low[level].at<Vec3f>(iY, iX)[0] == 0.0f)
+                {
+                    low [level].at<Vec3f>(iY, iX) = low [level + 1].at<Vec3f>(iY/2, iX/2);
+                    high[level].at<Vec3f>(iY, iX) = high[level + 1].at<Vec3f>(iY/2, iX/2);
+                }
+    
     for (int level = 0; level < levels; level++)
     {
         convertToRGB(low[level],  low[level] );

@@ -137,8 +137,10 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         m_RenderTexture.filterMode = FilterMode.Point;
     }
 
-    void Start()
+    new void Start()
     {
+        base.Start();
+        
         noiseType = (int)_noiseType;
         fractalType = (int)_fractalType;
         seed = _seed;

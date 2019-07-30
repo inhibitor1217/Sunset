@@ -18,15 +18,15 @@ public class SLICContourTexture : TextureProvider
         return m_CurTexture;
     }
 
-    public void GenerateTextures(OpenCVSLICClient client)
+    public void GenerateTextures(OpenCVSLICData data)
     {
-        m_contourTextures = new Texture2D[client.NumLevels];
+        m_contourTextures = new Texture2D[data.levels];
         m_PrevLevel = -1;
 
-        for (int level = 0; level < client.NumLevels; level++)
+        for (int level = 0; level < data.levels; level++)
         {
-            m_contourTextures[level] = new Texture2D(client.getWidth(level), client.getHeight(level), TextureFormat.ARGB32, false);
-            m_contourTextures[level].SetPixels32(OpenCVUtils.OpenCVContourToColor32(client.getContour(level)));
+            m_contourTextures[level] = new Texture2D(data.getWidth(level), data.getHeight(level), TextureFormat.ARGB32, false);
+            m_contourTextures[level].SetPixels32(OpenCVUtils.OpenCVContourToColor32(data.outContour[level]));
             m_contourTextures[level].Apply();
 
             m_contourTextures[level].wrapMode = TextureWrapMode.Clamp;

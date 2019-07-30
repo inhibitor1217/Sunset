@@ -43,8 +43,6 @@ public class EditorSceneMaster : MonoBehaviour
     private MaskTexture[] m_MaskTextures = new MaskTexture[MAX_EFFECTS];
     private GameObject[] m_MaskCameraObjects = new GameObject[MAX_EFFECTS];
     private MaskRendererCamera[] m_MaskCameras = new MaskRendererCamera[MAX_EFFECTS];
-    // private GameObject[] m_AlphaMaskedTextureObjects = new GameObject[MAX_EFFECTS];
-    // private AlphaMaskedTexture[] m_AlphaMaskedTextures = new AlphaMaskedTexture[MAX_EFFECTS];
 
     // Brush
     private GameObject m_BrushObject;
@@ -54,12 +52,14 @@ public class EditorSceneMaster : MonoBehaviour
     private OpenCVSLICClient m_SLICClient;
     private GameObject m_SLICLabelTextureObject;
     private SLICLabelTexture m_SLICLabelTexture;
-    // private GameObject m_SLICContourTextureObject;
-    // private SLICContourTexture m_SLICContourTexture;
 
     // PCA
     public OpenCVPCAClient m_PCAClient;
-    public void onInvokePCA() { 
+    public StaticTexture m_LowStaticTexture;
+    public StaticTexture m_HighStaticTexture;
+    public void onInvokePCA() {
+        m_PCAClient.lowStaticTexture = m_LowStaticTexture;
+        m_PCAClient.highStaticTexture = m_HighStaticTexture;
         m_PCAClient.Invoke(
             m_RootStaticTexture, 
             m_MaskTextures[EFFECT_WATER],
@@ -67,6 +67,13 @@ public class EditorSceneMaster : MonoBehaviour
             InputMode.Instance.mode
         );
     }
+    public GameObject m_WaterLayerObject;
+    public RawImageController m_WaterLayer;
+    public GameObject m_FractalRuntimeTextureObject;
+    public FractalNoiseRuntimeTexture m_FractalRuntimeTexture;
+    public GameObject m_WaterTextureObject;
+    public WaterTexture m_WaterTexture;
+
 
     public const int EFFECT_WATER = 0;
     public const int EFFECT_SKY = 1;
@@ -166,6 +173,17 @@ public class EditorSceneMaster : MonoBehaviour
 
         // Update All Texture Providers in the Render Chain
         TextureProviderManager.UpdateEager();
+
+        // TEMP
+        m_WaterLayerObject = GameObject.Instantiate(LayerPrefab);
+        m_WaterLayerObject.GetComponent<RectTransform>().SetParent(m_RootLayerObject.GetComponent<RectTransform>());
+            m_WaterLayerObject.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+        m_WaterLayer = m_WaterLayerObject.GetComponent<RawImageController>();
+        m_WaterTexture.lowTexture = m_LowStaticTexture;
+        m_WaterTexture.highTexture = m_HighStaticTexture;
+        m_WaterTexture.maskTexture = m_MaskTextures[EFFECT_WATER];
+        m_WaterTexture.Setup();
+        m_WaterTexture.SetTarget(m_WaterLayer);
     }
 
     public void CreateMask(int maskIndex)
@@ -180,12 +198,6 @@ public class EditorSceneMaster : MonoBehaviour
         m_MaskCameraObjects[maskIndex].transform.SetParent(m_RootLayerObject.transform);
         m_MaskCameraObjects[maskIndex].transform.localPosition = Vector3.back;
         m_MaskCameras[maskIndex] = m_MaskCameraObjects[maskIndex].GetComponent<MaskRendererCamera>();
-
-        // m_AlphaMaskedTextureObjects[maskIndex] = GameObject.Instantiate(AlphaMaskedTexturePrefab);
-        // m_AlphaMaskedTextures[maskIndex] = m_AlphaMaskedTextureObjects[maskIndex].GetComponent<AlphaMaskedTexture>();
-        // m_AlphaMaskedTextures[maskIndex].sourceTexture = m_RootStaticTexture;
-        // m_AlphaMaskedTextures[maskIndex].alphaTexture  = m_MaskTextures[maskIndex];
-        // m_AlphaMaskedTextures[maskIndex].Setup();
 
         Camera c = m_MaskCameraObjects[maskIndex].GetComponent<Camera>();
         switch (maskIndex)
@@ -211,8 +223,6 @@ public class EditorSceneMaster : MonoBehaviour
         if (m_MaskCameraObjects[maskIndex])
             Destroy(m_MaskCameraObjects[maskIndex]);
 
-        // if (m_AlphaMaskedTextureObjects[maskIndex])
-        //     Destroy(m_AlphaMaskedTextureObjects[maskIndex]);
 
         if (m_RootLayer)
             m_RootLayer.SetMaskCamera(null, maskIndex);
@@ -221,8 +231,6 @@ public class EditorSceneMaster : MonoBehaviour
         m_MaskTextures[maskIndex] = null;
         m_MaskCameraObjects[maskIndex] = null;
         m_MaskCameras[maskIndex] = null;
-        // m_AlphaMaskedTextureObjects[maskIndex] = null;
-        // m_AlphaMaskedTextures[maskIndex] = null;
     }
 
     public void CreateBrush(int maskIndex)
@@ -256,7 +264,6 @@ public class EditorSceneMaster : MonoBehaviour
         if (!m_MaskLayer)
         {
             m_MaskLayer = m_MaskLayerObject.GetComponent<RawImageController>();
-            // m_MaskLayer.globalScale = 2f;
         }
 
         // Setup References
@@ -293,13 +300,8 @@ public class EditorSceneMaster : MonoBehaviour
             m_SLICLabelTextureObject = GameObject.Instantiate(SLICLabelTexturePrefab);
         if (!m_SLICLabelTexture)
             m_SLICLabelTexture = m_SLICLabelTextureObject.GetComponent<SLICLabelTexture>();
-        // if (!m_SLICContourTextureObject)
-        //     m_SLICContourTextureObject = GameObject.Instantiate(SLICContourTexturePrefab);
-        // if (!m_SLICContourTexture)
-        //     m_SLICContourTexture = m_SLICContourTextureObject.GetComponent<SLICContourTexture>();
 
         m_SLICClient.labelTextureProvider = m_SLICLabelTexture;
-        // m_SLICClient.contourTextureProvider = m_SLICContourTexture;
         m_SLICClient.Invoke(m_RootStaticTexture, nextMode);
 
         if (InputMode.isBrush(nextMode) && InputMode.isSLIC(nextMode))
@@ -309,11 +311,6 @@ public class EditorSceneMaster : MonoBehaviour
             if (InputMode.isSky(nextMode))
                 m_MaskCameras[EFFECT_SKY].labelTexture = m_SLICLabelTexture;
         }
-
-        // GameObject tempLayer = GameObject.Instantiate(LayerPrefab);
-        // tempLayer.GetComponent<RectTransform>().SetParent(m_RootLayerObject.GetComponent<RectTransform>());
-        // tempLayer.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
-        // m_SLICContourTexture.SetTarget(tempLayer.GetComponent<RawImageController>());
     }
 
     public void RemoveSLIC()
@@ -322,8 +319,6 @@ public class EditorSceneMaster : MonoBehaviour
             Destroy(m_SLICClient);
         if (m_SLICLabelTextureObject)
             Destroy(m_SLICLabelTextureObject);
-        // if (m_SLICContourTextureObject)
-        //     Destroy(m_SLICContourTextureObject);
 
         m_SLICClient = null;
         m_SLICLabelTextureObject = null;

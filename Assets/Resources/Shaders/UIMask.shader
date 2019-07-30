@@ -78,7 +78,11 @@ Shader "UI/Mask"
             half4 frag(v2f IN) : SV_Target
             {
                 half4 color = _Color;
-                color.a *= tex2D(_MainTex, IN.texcoord).r;
+                float v = tex2D(_MainTex, IN.texcoord).r;
+
+                clip(v - 0.01);
+
+                color.a *= v;
 
                 return color;
             }

@@ -60,6 +60,21 @@ public static class OpenCVUtils
         return bytes;
     }
 
+    public static Color32[] OpenCVFloatArrayToColor32(float[] values)
+    {
+        Color32[] colors = new Color32[values.Length / 3];
+        for (int i = 0; i < colors.Length; i++)
+        {
+            colors[i] = new Color32(
+                (byte)Mathf.RoundToInt(values[3 * i + 2] * 255f),
+                (byte)Mathf.RoundToInt(values[3 * i + 1] * 255f),
+                (byte)Mathf.RoundToInt(values[3 * i + 0] * 255f),
+                255
+            );
+        }
+        return colors;
+    }
+
     public static Color32[] OpenCVContourToColor32(byte[] bytes)
     {
         Color32[] colors = new Color32[bytes.Length];

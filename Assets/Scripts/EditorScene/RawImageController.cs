@@ -79,8 +79,11 @@ public class RawImageController : MonoBehaviour
             m_RectTransform.anchoredPosition = InputManager.Instance.Position * InputManager.Instance.MultiplicativeScale;
         m_RectTransform.sizeDelta = globalScale * m_ImageBaseScale * InputManager.Instance.MultiplicativeScale;
 
-        InputManager.Instance.xBound = globalScale * m_ImageBaseScale.x;
-        InputManager.Instance.yBound = globalScale * m_ImageBaseScale.y;
+        if (isRoot)
+        {
+            InputManager.Instance.xBound = globalScale * m_ImageBaseScale.x;
+            InputManager.Instance.yBound = globalScale * m_ImageBaseScale.y;
+        }
     }
 
     public void SetMaskCamera(Camera camera, int maskIndex)
