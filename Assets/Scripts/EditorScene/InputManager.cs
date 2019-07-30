@@ -84,7 +84,6 @@ public class InputManager : MonoBehaviour
 #else
         float inputX = Input.GetAxis("Horizontal");
         float inputY = Input.GetAxis("Vertical");
-        updatePosition(-15f * new Vector2(inputX, inputY));
 
         held = Input.GetMouseButton(0);
         inputPosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
@@ -92,6 +91,7 @@ public class InputManager : MonoBehaviour
         pressed = Input.GetMouseButtonDown(0);
         released = Input.GetMouseButtonUp(0);
 
+        updatePosition(-15f * new Vector2(inputX, inputY));
         if (Input.GetKey(KeyCode.Q))
             updateScale(SCALE_MULTIPLIER);
         else if (Input.GetKey(KeyCode.W))

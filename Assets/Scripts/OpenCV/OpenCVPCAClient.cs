@@ -39,7 +39,7 @@ public class OpenCVPCAClient : MonoBehaviour
     {
         if (m_Invoked)
         {
-            MessagePanel.Instance.ShowMessage("OpenCV - PCA 이미지 처리 중...");
+            MessagePanel.Instance.ShowMessage("영역 설정 적용 중...", "OpenCV - PCA Procedure");
         }
 
         if (m_Invoked && !OpenCVPCA.asyncBusy)
@@ -76,14 +76,14 @@ public class OpenCVPCAClient : MonoBehaviour
                 lowStaticTexture.SetStaticTexture(lowTexture);
                 lowStaticTexture.SetTarget();
                 lowStaticTexture.staticTexture.filterMode = FilterMode.Bilinear;
-                lowStaticTexture.staticTexture.wrapMode = TextureWrapMode.Repeat;
+                lowStaticTexture.staticTexture.wrapMode = TextureWrapMode.Clamp;
             }
             if (highStaticTexture)
             {
                 highStaticTexture.SetStaticTexture(highTexture);
                 highStaticTexture.SetTarget();
                 highStaticTexture.staticTexture.filterMode = FilterMode.Bilinear;
-                highStaticTexture.staticTexture.wrapMode = TextureWrapMode.Repeat;
+                highStaticTexture.staticTexture.wrapMode = TextureWrapMode.Clamp;
             }
 
             m_Data = null;

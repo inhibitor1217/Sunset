@@ -50,7 +50,7 @@ public class OpenCVSLICClient : MonoBehaviour
     {
         if (m_Invoked && m_prevProgress != OpenCVSLIC.asyncProgress)
         {
-            MessagePanel.Instance.ShowMessage("OpenCV - SLIC 이미지 처리 중... (" + OpenCVSLIC.asyncProgress + "/" + m_Data.levels + ")");
+            MessagePanel.Instance.ShowMessage("이미지 전처리 중...", "OpenCV - SLIC Procedure (" + OpenCVSLIC.asyncProgress + "/" + m_Data.levels + ")");
             m_prevProgress = OpenCVSLIC.asyncProgress;
         }
 

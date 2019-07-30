@@ -37,6 +37,8 @@ public class InputMode
     public bool isBusy() { return isBusy(_mode); }
     public static bool isErase(int mode) { return (mode & ERASE) != 0; }
     public bool isErase() { return isErase(_mode); }
+    public static bool isMode(int mode1, int mode2) { return (mode1 & mode2) != 0; }
+    public bool isMode(int mode) { return isMode(_mode, mode); }
 
     private int _mode = 0;
     public int mode { 
@@ -58,10 +60,20 @@ public class InputMode
                     EditorSceneMaster.Instance.RemoveBrush(EditorSceneMaster.EFFECT_SKY);
                 }
 
-                if (isSLIC(value))
+                if (isBrush(_mode) && !isBrush(value))
                 {
-                    EditorSceneMaster.Instance.CreateSLIC(value);
-                    return;
+                    if (isWater(_mode) && EditorSceneMaster.Instance.isMaskDirty(EditorSceneMaster.EFFECT_WATER))
+                    {
+                        EditorSceneMaster.Instance.InvokePCA(EditorSceneMaster.EFFECT_WATER, value);
+                        EditorSceneMaster.Instance.setMaskDirty(EditorSceneMaster.EFFECT_WATER, false);
+                        return;
+                    }
+                    else if (isSky(_mode) && EditorSceneMaster.Instance.isMaskDirty(EditorSceneMaster.EFFECT_SKY))
+                    {
+                        EditorSceneMaster.Instance.InvokePCA(EditorSceneMaster.EFFECT_SKY, value);
+                        EditorSceneMaster.Instance.setMaskDirty(EditorSceneMaster.EFFECT_SKY, false);
+                        return;
+                    }
                 }
 
                 SetModeWithoutSideEffect(value);

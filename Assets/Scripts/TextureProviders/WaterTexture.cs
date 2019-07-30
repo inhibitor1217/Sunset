@@ -157,7 +157,7 @@ public class WaterTexture : TextureProvider
         Texture noiseTex = m_NoiseTex.GetTexture();
 
         m_RenderTexture = new RenderTexture(noiseTex.width, noiseTex.height, 0, RenderTextureFormat.ARGB32);
-        m_RenderTexture.useMipMap = true;
+        m_RenderTexture.useMipMap = false;
         m_RenderTexture.wrapMode = TextureWrapMode.Repeat;
         m_RenderTexture.filterMode = FilterMode.Bilinear;
     }

@@ -8,29 +8,35 @@ public class MessagePanel : MonoBehaviour
     public static MessagePanel Instance { get { return m_Instance; } }
 
     private Image m_Image;
-    private Text m_Text;
+    public Text mainText;
+    public Text subText;
 
     void Awake()
     {
         m_Instance = this;
 
         m_Image = GetComponent<Image>();
-        m_Text = GetComponentInChildren<Text>();
 
         Disable();
     }
 
-    public void ShowMessage(string msg)
+    public void ShowMessage(string mainMsg, string subMsg)
     {
         m_Image.enabled = true;
-        m_Text.enabled = true;
-        m_Text.text = msg;
+        mainText.enabled = true;
+        subText.enabled = true;
+        
+        if (mainMsg != null)
+            mainText.text = mainMsg;
+        if (subMsg != null)
+            subText.text = subMsg;
     }
 
     public void Disable()
     {
         m_Image.enabled = false;
-        m_Text.enabled = false;
+        mainText.enabled = false;
+        subText.enabled = false;
     }
 
 }
