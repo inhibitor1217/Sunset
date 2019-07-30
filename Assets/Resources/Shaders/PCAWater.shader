@@ -2,10 +2,10 @@ Shader "Compute/PCAWater"
 {
     Properties
     {
-        _MainTex ("Source", 2D) = "white" {}
-        _LowTex  ("Low", 2D) = "white" {}
-        _HighTex ("High", 2D) = "white" {}
-        _MaskTex ("Mask", 2D) = "white" {}
+        _MainTex ("Source", 2D) = "black" {}
+        _LowTex  ("Low", 2D) = "black" {}
+        _HighTex ("High", 2D) = "black" {}
+        _MaskTex ("Mask", 2D) = "black" {}
     }
     SubShader
     {
@@ -49,10 +49,9 @@ Shader "Compute/PCAWater"
             half4 frag(v2f IN) : SV_Target
             {
                 float a = tex2D(_MaskTex, IN.texcoord).r;
-                clip(a - 0.01);
 
                 half4 color = lerp(tex2D(_LowTex, IN.texcoord), tex2D(_HighTex, IN.texcoord), tex2D(_MainTex, IN.texcoord).r);
-                color.a = a;
+                color *= a;
 
                 return color;
             }
