@@ -13,6 +13,9 @@ public static class OpenCVLibAdapter
     [DllImport("OpenCVNativePlugin")]
     private extern static int processPCA(byte[] inImageArray, byte[] inMaskArray, byte[] inLabelArray, 
         int width, int height, float[] outPaletteArray);
+    [DllImport("OpenCVNativePlugin")]
+    private extern static void processOctavePCA(byte[] inImageArray, byte[] inMaskArray, byte[] inLabelArray, 
+        int width, int height, int levels, float[] outPaletteArray);
 #endif
     public const int SLICAlgorithm__SLIC = 100;
     public const int SLICAlgorithm__SLICO = 101;
@@ -31,5 +34,12 @@ public static class OpenCVLibAdapter
     )
     {
         return processPCA(inImageArray, inMaskArray, inLabelArray, width, height, outPaletteArray);
+    }
+
+    public static void OpenCV_processOctavePCA(
+        byte[] inImageArray, byte[] inMaskArray, byte[] inLabelArray, int width, int height, int levels, float[] outPaletteArray
+    )
+    {
+        processOctavePCA(inImageArray, inMaskArray, inLabelArray, width, height, levels, outPaletteArray);
     }
 }

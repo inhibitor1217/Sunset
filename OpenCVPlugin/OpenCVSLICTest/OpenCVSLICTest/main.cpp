@@ -435,12 +435,18 @@ int main( int argc, char** argv )
     
     pca_octave(img_channels_lab, img_channels[0], label, low, high, levels);
     
+//    for (int i = levels - 1; i >= 0; i--)
+//    {
+//        imshow("COLORS", low[i]);
+//        waitKey(0);
+//        imshow("COLORS", high[i]);
+//        waitKey(0);
+//    }
+    
     for (int i = levels - 1; i >= 0; i--)
     {
-        imshow("COLORS", low[i]);
-        waitKey(0);
-        imshow("COLORS", high[i]);
-        waitKey(0);
+        cout << low[i].total() * low[i].elemSize() / sizeof(float) << endl;
+        cout << high[i].total() * high[i].elemSize() / sizeof(float) << endl;
     }
     
     free(low);

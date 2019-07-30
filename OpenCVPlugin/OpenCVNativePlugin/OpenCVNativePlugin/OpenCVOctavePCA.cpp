@@ -12,7 +12,7 @@ const float PERFORM_PCA_THRESHOLD = 50;
 
 extern "C"
 {
-    void processOctavePCA(uchar *inImageArray, uchar *inMaskArray, uchar *inLabelArray, int width, int height, int levels, float **outLowArray, float **outHighArray);
+    void processOctavePCA(uchar *inImageArray, uchar *inMaskArray, uchar *inLabelArray, int width, int height, int levels, float *outPaletteArray);
 }
 
 extern void convertToNormalizedLab(const Mat &img, Mat *channels);
@@ -22,7 +22,7 @@ extern void decodeLabel(const Mat& labelEncoded, Mat &label);
 map<int, pair<Vec3f, float>> *pca_octave_rec(Mat *channels, const Mat &mask, const Mat &label, Mat *low, Mat *high, int level, int x, int y, int width, int height, int iX, int iY);
 void pca_octave(Mat *channels, const Mat &mask, const Mat &label, int levels, Mat *low, Mat *high);
 
-void processOctavePCA(uchar *inImageArray, uchar *inMaskArray, uchar *inLabelArray, int width, int height, int levels, float **outLowArray, float **outHighArray)
+void processOctavePCA(uchar *inImageArray, uchar *inMaskArray, uchar *inLabelArray, int width, int height, int levels, float *outPaletteArray)
 {
     Mat img, mask, labelEncoded, img_channels[3], label, low[levels], high[levels];
     
@@ -35,12 +35,15 @@ void processOctavePCA(uchar *inImageArray, uchar *inMaskArray, uchar *inLabelArr
     
     pca_octave(img_channels, mask, label, levels, low, high);
     
-    for (int level = 0; level < levels; level++)
+    for (int level = levels - 1; level >= 0; level--)
     {
-        if (outLowArray)
-            memcpy(outLowArray[level], low[level].data, low[level].total() * low[level].elemSize());
-        if (outHighArray)
-            memcpy(outHighArray[level], high[level].data, high[level].total() * high[level].elemSize());
+        if (outPaletteArray)
+        {
+            memcpy(outPaletteArray, low[level].data, low[level].total() * low[level].elemSize());
+            outPaletteArray += low[level].total() * low[level].elemSize() / sizeof(float);
+            memcpy(outPaletteArray, high[level].data, high[level].total() * high[level].elemSize());
+            outPaletteArray += high[level].total() * high[level].elemSize() / sizeof(float);
+        }
     }
     
     img.release();

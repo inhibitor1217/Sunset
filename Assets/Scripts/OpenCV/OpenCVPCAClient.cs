@@ -10,8 +10,7 @@ public class OpenCVPCAClient : MonoBehaviour
     
     private float[] m_PaletteArray;
 
-    [SerializeField]
-    private Color32[] m_Palette;
+    private const int OCTAVE_LEVELS = 5;
 
     public bool Invoke(StaticTexture img, MaskTexture mask, SLICLabelTexture label, int nextMode)
     {
@@ -21,7 +20,7 @@ public class OpenCVPCAClient : MonoBehaviour
         _nextMode = nextMode;
         InputMode.Instance.SetModeWithoutSideEffect(InputMode.BUSY);
 
-        OpenCVPCA.AsyncPCA(img.GetReadableTexture(), mask.GetReadableTexture(), label.GetLabelTexture(), m_PaletteArray);
+        OpenCVPCA.AsyncPCA(img.GetReadableTexture(), mask.GetReadableTexture(), label.GetLabelTexture(), OCTAVE_LEVELS, m_PaletteArray);
 
         m_Invoked = true;
         m_InvokedTime = Time.time;
@@ -31,8 +30,13 @@ public class OpenCVPCAClient : MonoBehaviour
 
     void Awake()
     {
-        m_PaletteArray = new float[33];
-        m_Palette = new Color32[11];
+        int size = 0;
+        for (int i = 0; i < OCTAVE_LEVELS; i++)
+        {
+            size += 2 * 3 * (1 << (2 * (OCTAVE_LEVELS - i - 1)));
+        }
+
+        m_PaletteArray = new float[size];
     }
 
     void Update()
@@ -52,15 +56,6 @@ public class OpenCVPCAClient : MonoBehaviour
             Debug.Log("OpenCVPCAClient - Finished AsyncPCA in " + (Time.time - m_InvokedTime) + " seconds.");
 #endif
             
-            for (int i = 0; i < 11; i++)
-            {
-                m_Palette[i] = new Color32(
-                    (byte)Mathf.RoundToInt(m_PaletteArray[3 * i + 2] * 255f), 
-                    (byte)Mathf.RoundToInt(m_PaletteArray[3 * i + 1] * 255f), 
-                    (byte)Mathf.RoundToInt(m_PaletteArray[3 * i + 0] * 255f),
-                    255
-                );
-            }
 
             MessagePanel.Instance.Disable();
         }
