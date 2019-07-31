@@ -7,7 +7,9 @@ public class InputModeToggle : MonoBehaviour
 
     public int modeToggle;
     public int modeInteractable;
+    public int modeNotInteractable;
     public int modeColorOn;
+    public Color activeColor;
 
     void Awake()
     {
@@ -27,7 +29,11 @@ public class InputModeToggle : MonoBehaviour
 
     public void onInputModeChanged(int mode)
     {
-        if ((mode & modeInteractable) == 0)
+        if ((mode & modeInteractable) != modeInteractable)
+        {
+            m_Toggle.interactable = false;
+        }
+        else if ((mode & modeNotInteractable) != 0)
         {
             m_Toggle.interactable = false;
         }
@@ -35,10 +41,10 @@ public class InputModeToggle : MonoBehaviour
         {
             m_Toggle.interactable = true;
             var colors = m_Toggle.colors;
-            if ((mode & modeColorOn) == 0)
-                colors.normalColor = Color.white;
+            if ((mode & modeColorOn) == modeColorOn)
+                colors.normalColor = activeColor;
             else
-                colors.normalColor = Color.yellow;
+                colors.normalColor = Color.white;
             m_Toggle.colors = colors;
         }
     }
