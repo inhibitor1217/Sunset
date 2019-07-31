@@ -159,7 +159,9 @@ public class FractalNoiseRuntimeTexture : TextureProvider
 
     void Update()
     {
-        if (enableEvolution)
+        if (enableEvolution
+            && !InputMode.Instance.isBrush()
+            && !InputMode.Instance.isBusy ())
             textureShouldUpdate = true;
     }
 

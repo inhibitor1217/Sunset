@@ -11,9 +11,10 @@ public class EditorSceneMaster : MonoBehaviour
     public GameObject MaskLayerPrefab;
     public GameObject StaticTexturePrefab;
     public GameObject MaskTexturePrefab;
-    public GameObject AlphaMaskedTexturePrefab;
+    public GameObject EffectTexturePrefab;
     public GameObject SLICLabelTexturePrefab;
     public GameObject SLICContourTexturePrefab;
+    public GameObject FractalNoiseRuntimeTexturePrefab;
     public GameObject BrushPrefab;
     public GameObject MaskCameraPrefab;
 
@@ -59,6 +60,14 @@ public class EditorSceneMaster : MonoBehaviour
     private StaticTexture[] m_LowStaticTextures = new StaticTexture[MAX_EFFECTS];
     private GameObject[] m_HighStaticTextureObjects = new GameObject[MAX_EFFECTS];
     private StaticTexture[] m_HighStaticTextures = new StaticTexture[MAX_EFFECTS];
+
+    // Effect
+    private GameObject m_FractalNoiseRuntimeTextureObject;
+    private FractalNoiseRuntimeTexture m_FractalNoiseRuntimeTexture;
+    private GameObject[] m_EffectTextureObjects = new GameObject[MAX_EFFECTS];
+    private EffectTexture[] m_EffectTextures = new EffectTexture[MAX_EFFECTS];
+    private GameObject[] m_EffectLayerObjects = new GameObject[MAX_EFFECTS];
+    private RawImageController[] m_EffectLayers = new RawImageController[MAX_EFFECTS];
 
     public const int EFFECT_WATER = 0;
     public const int EFFECT_SKY = 1;
@@ -135,19 +144,23 @@ public class EditorSceneMaster : MonoBehaviour
             Destroy(m_RootStaticTextureObject);
 
         // Mask Components
-        for (int i = 0; i < MAX_EFFECTS; i++)
-            RemoveMask(i);
+        RemoveMask(EFFECT_WATER);
+        RemoveMask(EFFECT_SKY);
 
         // Brush
-        for (int i = 0; i < MAX_EFFECTS; i++)
-            RemoveBrush(i);
+        RemoveBrush(EFFECT_WATER);
+        RemoveBrush(EFFECT_SKY);
 
         // SLIC
         RemoveSLIC();
 
         // PCA
-        for (int i = 0; i < MAX_EFFECTS; i++)
-            RemovePCA(i);
+        RemovePCA(EFFECT_WATER);
+        RemovePCA(EFFECT_SKY);
+
+        // Effect
+        RemoveEffect(EFFECT_WATER);
+        RemoveEffect(EFFECT_SKY);
 
         Debug.Log("Initialize Scene with texture [" + rootTexture.width + ", " + rootTexture.height + "]");
 
@@ -385,6 +398,9 @@ public class EditorSceneMaster : MonoBehaviour
                 m_SLICLabelTexture,
                 nextMode
             );
+
+            // TEMP
+            CreateEffect(maskIndex);
         }
     }
 
@@ -399,6 +415,66 @@ public class EditorSceneMaster : MonoBehaviour
         m_LowStaticTextures[maskIndex] = null;
         m_HighStaticTextureObjects[maskIndex] = null;
         m_HighStaticTextures[maskIndex] = null;
+    }
+
+    public void CreateEffect(int maskIndex)
+    {
+        // Initialize Noise
+        if (!m_FractalNoiseRuntimeTextureObject)
+        {
+            m_FractalNoiseRuntimeTextureObject = GameObject.Instantiate(FractalNoiseRuntimeTexturePrefab);
+            m_FractalNoiseRuntimeTextureObject.name = "Fractal Noise Runtime Texture";
+        }
+        if (!m_FractalNoiseRuntimeTexture)
+        {
+            m_FractalNoiseRuntimeTexture = m_FractalNoiseRuntimeTextureObject.GetComponent<FractalNoiseRuntimeTexture>();
+        }
+
+        if (!m_EffectTextureObjects[maskIndex])
+        {
+            m_EffectTextureObjects[maskIndex] = GameObject.Instantiate(EffectTexturePrefab);
+            m_EffectTextureObjects[maskIndex].name = "Effect Texture: " + maskIndexToString(maskIndex);
+        }
+        if (!m_EffectTextures[maskIndex])
+            m_EffectTextures[maskIndex] = m_EffectTextureObjects[maskIndex].GetComponent<EffectTexture>();
+        if (!m_EffectLayerObjects[maskIndex])
+        {
+            m_EffectLayerObjects[maskIndex] = GameObject.Instantiate(LayerPrefab);
+            m_EffectLayerObjects[maskIndex].name = "Layer: Effect " + maskIndexToString(maskIndex);
+            m_EffectLayerObjects[maskIndex].GetComponent<RectTransform>().SetParent(m_RootLayerObject.GetComponent<RectTransform>());
+            m_EffectLayerObjects[maskIndex].GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+        }
+        if (!m_EffectLayers[maskIndex])
+        {
+            m_EffectLayers[maskIndex] = m_EffectLayerObjects[maskIndex].GetComponent<RawImageController>();
+            // TEMP
+            m_EffectLayers[maskIndex].globalScale = 8;
+        }
+
+        m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
+        m_EffectTextures[maskIndex].lowTexture = m_LowStaticTextures[maskIndex];
+        m_EffectTextures[maskIndex].highTexture = m_HighStaticTextures[maskIndex];
+        m_EffectTextures[maskIndex].maskTexture = m_MaskTextures[maskIndex];
+        m_EffectTextures[maskIndex].Setup();
+
+        m_EffectTextures[maskIndex].SetTarget(m_EffectLayers[maskIndex]);
+    }
+
+    public void RemoveEffect(int maskIndex)
+    {
+        if (m_FractalNoiseRuntimeTextureObject)
+            Destroy(m_FractalNoiseRuntimeTextureObject);
+        if (m_EffectTextureObjects[maskIndex])
+            Destroy(m_EffectTextureObjects[maskIndex]);
+        if (m_EffectLayerObjects[maskIndex])
+            Destroy(m_EffectLayerObjects[maskIndex]);
+        
+        m_FractalNoiseRuntimeTextureObject = null;
+        m_FractalNoiseRuntimeTexture = null;
+        m_EffectTextureObjects[maskIndex] = null;
+        m_EffectTextures[maskIndex] = null;
+        m_EffectLayerObjects[maskIndex] = null;
+        m_EffectLayers[maskIndex] = null;
     }
 
 }

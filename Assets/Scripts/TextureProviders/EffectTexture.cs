@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class WaterTexture : TextureProvider
+public class EffectTexture : TextureProvider
 {
 
 #if UNITY_EDITOR
