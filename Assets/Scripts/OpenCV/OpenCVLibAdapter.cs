@@ -6,6 +6,12 @@ public static class OpenCVLibAdapter
     [DllImport("OpenCVAndroidPlugin")]
     private extern static int processSLIC(byte[] inputArray, int width, int height, 
         int[] outputLabelArray, byte[] outputContourArray, int algorithm, int region_size, float ruler);
+    [DllImport("OpenCVAndroidPlugin")]
+    private extern static int processPCA(byte[] inImageArray, byte[] inMaskArray, byte[] inLabelArray, 
+        int width, int height, float[] outPaletteArray);
+    [DllImport("OpenCVAndroidPlugin")]
+    private extern static void processOctavePCA(byte[] inImageArray, byte[] inMaskArray, byte[] inLabelArray, 
+        int width, int height, int levels, float[] outPaletteArray);
 #else
     [DllImport("OpenCVNativePlugin")]
     private extern static int processSLIC(byte[] inputArray, int width, int height, 
