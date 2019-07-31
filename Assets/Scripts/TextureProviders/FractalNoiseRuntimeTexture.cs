@@ -163,6 +163,9 @@ public class FractalNoiseRuntimeTexture : TextureProvider
             && !InputMode.Instance.isBrush()
             && !InputMode.Instance.isBusy ())
             textureShouldUpdate = true;
+
+        if (!HasOutput())
+            Destroy(gameObject);
     }
 
     new void OnDestroy()

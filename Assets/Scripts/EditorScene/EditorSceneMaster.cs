@@ -56,10 +56,8 @@ public class EditorSceneMaster : MonoBehaviour
 
     // PCA
     private OpenCVPCAClient m_PCAClient;
-    private GameObject[] m_LowStaticTextureObjects = new GameObject[MAX_EFFECTS];
-    private StaticTexture[] m_LowStaticTextures = new StaticTexture[MAX_EFFECTS];
-    private GameObject[] m_HighStaticTextureObjects = new GameObject[MAX_EFFECTS];
-    private StaticTexture[] m_HighStaticTextures = new StaticTexture[MAX_EFFECTS];
+    private GameObject[] m_PaletteTextureObjects = new GameObject[MAX_EFFECTS];
+    private StaticTexture[] m_PaletteTextures = new StaticTexture[MAX_EFFECTS];
 
     // Effect
     private GameObject m_FractalNoiseRuntimeTextureObject;
@@ -370,51 +368,36 @@ public class EditorSceneMaster : MonoBehaviour
 
     public void CreatePCA(int maskIndex)
     {
-        if (!m_LowStaticTextureObjects[maskIndex])
+        if (!m_PaletteTextureObjects[maskIndex])
         {
-            m_LowStaticTextureObjects[maskIndex] = GameObject.Instantiate(StaticTexturePrefab);
-            m_LowStaticTextureObjects[maskIndex].name = "Static Texture: PCALow " + maskIndexToString(maskIndex);
+            m_PaletteTextureObjects[maskIndex] = GameObject.Instantiate(StaticTexturePrefab);
+            m_PaletteTextureObjects[maskIndex].name = "Static Texture: PCAPalette " + maskIndexToString(maskIndex);
         }
-        if (!m_LowStaticTextures[maskIndex])
-            m_LowStaticTextures[maskIndex] = m_LowStaticTextureObjects[maskIndex].GetComponent<StaticTexture>();
-        if (!m_HighStaticTextureObjects[maskIndex])
-        {
-            m_HighStaticTextureObjects[maskIndex] = GameObject.Instantiate(StaticTexturePrefab);
-            m_HighStaticTextureObjects[maskIndex].name = "Static Texture: PCAHigh " + maskIndexToString(maskIndex);
-        }
-        if (!m_HighStaticTextures[maskIndex])
-            m_HighStaticTextures[maskIndex] = m_HighStaticTextureObjects[maskIndex].GetComponent<StaticTexture>();
+        if (!m_PaletteTextures[maskIndex])
+            m_PaletteTextures[maskIndex] = m_PaletteTextureObjects[maskIndex].GetComponent<StaticTexture>();
     }
 
     public void InvokePCA(int maskIndex, int nextMode)
     {
-        if (m_PCAClient && m_LowStaticTextures[maskIndex] && m_HighStaticTextures[maskIndex])
+        if (m_PCAClient && m_PaletteTextures[maskIndex])
         {
-            m_PCAClient.lowStaticTexture  = m_LowStaticTextures [maskIndex];
-            m_PCAClient.highStaticTexture = m_HighStaticTextures[maskIndex];
+            m_PCAClient.paletteTextureProvider  = m_PaletteTextures[maskIndex];
             m_PCAClient.Invoke(
                 m_RootStaticTexture,
                 m_MaskTextures[maskIndex],
                 m_SLICLabelTexture,
                 nextMode
             );
-
-            // TEMP
-            CreateEffect(maskIndex);
         }
     }
 
     public void RemovePCA(int maskIndex)
     {
-        if (m_LowStaticTextureObjects[maskIndex])
-            Destroy(m_LowStaticTextureObjects[maskIndex]);
-        if (m_HighStaticTextureObjects[maskIndex])
-            Destroy(m_HighStaticTextureObjects[maskIndex]);
+        if (m_PaletteTextureObjects[maskIndex])
+            Destroy(m_PaletteTextureObjects[maskIndex]);
         
-        m_LowStaticTextureObjects[maskIndex] = null;
-        m_LowStaticTextures[maskIndex] = null;
-        m_HighStaticTextureObjects[maskIndex] = null;
-        m_HighStaticTextures[maskIndex] = null;
+        m_PaletteTextureObjects[maskIndex] = null;
+        m_PaletteTextures[maskIndex] = null;
     }
 
     public void CreateEffect(int maskIndex)
@@ -452,8 +435,7 @@ public class EditorSceneMaster : MonoBehaviour
         }
 
         m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
-        m_EffectTextures[maskIndex].lowTexture = m_LowStaticTextures[maskIndex];
-        m_EffectTextures[maskIndex].highTexture = m_HighStaticTextures[maskIndex];
+        m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
         m_EffectTextures[maskIndex].maskTexture = m_MaskTextures[maskIndex];
         m_EffectTextures[maskIndex].Setup();
 
@@ -462,15 +444,11 @@ public class EditorSceneMaster : MonoBehaviour
 
     public void RemoveEffect(int maskIndex)
     {
-        if (m_FractalNoiseRuntimeTextureObject)
-            Destroy(m_FractalNoiseRuntimeTextureObject);
         if (m_EffectTextureObjects[maskIndex])
             Destroy(m_EffectTextureObjects[maskIndex]);
         if (m_EffectLayerObjects[maskIndex])
             Destroy(m_EffectLayerObjects[maskIndex]);
-        
-        m_FractalNoiseRuntimeTextureObject = null;
-        m_FractalNoiseRuntimeTexture = null;
+
         m_EffectTextureObjects[maskIndex] = null;
         m_EffectTextures[maskIndex] = null;
         m_EffectLayerObjects[maskIndex] = null;

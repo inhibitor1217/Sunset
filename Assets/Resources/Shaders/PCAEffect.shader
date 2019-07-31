@@ -1,10 +1,9 @@
-Shader "Compute/PCAWater"
+Shader "Compute/PCAEffect"
 {
     Properties
     {
         _MainTex ("Source", 2D) = "black" {}
-        _LowTex  ("Low", 2D) = "black" {}
-        _HighTex ("High", 2D) = "black" {}
+        _PaletteTex  ("Palette", 2D) = "black" {}
         _MaskTex ("Mask", 2D) = "black" {}
     }
     SubShader
@@ -20,8 +19,7 @@ Shader "Compute/PCAWater"
             #pragma fragment frag
 
             sampler2D _MainTex;
-            sampler2D _LowTex;
-            sampler2D _HighTex;
+            sampler2D _PaletteTex;
             sampler2D _MaskTex;
 
             struct appdata_t
@@ -50,7 +48,7 @@ Shader "Compute/PCAWater"
             {
                 float a = tex2D(_MaskTex, IN.texcoord).r;
 
-                half4 color = lerp(tex2D(_LowTex, IN.texcoord), tex2D(_HighTex, IN.texcoord), tex2D(_MainTex, IN.texcoord).r);
+                half4 color = lerp(tex2D(_PaletteTex, IN.texcoord * (1, 0.5)), tex2D(_PaletteTex, IN.texcoord * (1, 0.5) + (0, 0.5)), tex2D(_MainTex, IN.texcoord).r);
                 color *= a;
 
                 return color;

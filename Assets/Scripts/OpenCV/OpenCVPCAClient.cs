@@ -3,8 +3,7 @@ using UnityEngine;
 public class OpenCVPCAClient : MonoBehaviour
 {
 
-    public StaticTexture lowStaticTexture;
-    public StaticTexture highStaticTexture;
+    public StaticTexture paletteTextureProvider;
 
     private bool m_Invoked = false;
     private float m_InvokedTime;
@@ -51,39 +50,25 @@ public class OpenCVPCAClient : MonoBehaviour
 #if UNITY_EDITOR
             Debug.Log("OpenCVPCAClient - Finished AsyncPCA in " + (Time.time - m_InvokedTime) + " seconds.");
 #endif
-            float[][] lowPalette = new float[m_Data.levels][], highPalette = new float[m_Data.levels][];
+            float[][] palette = new float[m_Data.levels][];
             for (int level = 0, idx = 0; level < m_Data.levels; level++)
             {
-                int size = 3 * (1 << (2 * level));
-                lowPalette [level] = new float[size];
-                highPalette[level] = new float[size];
+                int size = 3 * (1 << (2 * level + 1));
+                palette[level] = new float[size];
                 for (int i = 0; i < size; i++)
-                    lowPalette [level][i] = m_Data.paletteArray[idx++];
-                for (int i = 0; i < size; i++)
-                    highPalette[level][i] = m_Data.paletteArray[idx++];
+                    palette[level][i] = m_Data.paletteArray[idx++];
             }
-
-            Texture2D lowTexture = new Texture2D(1 << (m_Data.levels - 1), 1 << (m_Data.levels - 1), TextureFormat.RGB24, false);
-            lowTexture.SetPixels32(OpenCVUtils.OpenCVFloatArrayToColor32(lowPalette[m_Data.levels - 1]));
-            lowTexture.Apply();
             
-            Texture2D highTexture = new Texture2D(1 << (m_Data.levels - 1), 1 << (m_Data.levels - 1), TextureFormat.RGB24, false);
-            highTexture.SetPixels32(OpenCVUtils.OpenCVFloatArrayToColor32(highPalette[m_Data.levels - 1]));
-            highTexture.Apply();
+            Texture2D paletteTexture = new Texture2D(1 << (m_Data.levels - 1), 1 << (m_Data.levels), TextureFormat.RGB24, false);
+            paletteTexture.SetPixels32(OpenCVUtils.OpenCVFloatArrayToColor32(palette[m_Data.levels - 1]));
+            paletteTexture.Apply();
 
-            if (lowStaticTexture)
+            if (paletteTextureProvider)
             {
-                lowStaticTexture.SetStaticTexture(lowTexture);
-                lowStaticTexture.SetTarget();
-                lowStaticTexture.staticTexture.filterMode = FilterMode.Bilinear;
-                lowStaticTexture.staticTexture.wrapMode = TextureWrapMode.Clamp;
-            }
-            if (highStaticTexture)
-            {
-                highStaticTexture.SetStaticTexture(highTexture);
-                highStaticTexture.SetTarget();
-                highStaticTexture.staticTexture.filterMode = FilterMode.Bilinear;
-                highStaticTexture.staticTexture.wrapMode = TextureWrapMode.Clamp;
+                paletteTextureProvider.SetStaticTexture(paletteTexture);
+                paletteTextureProvider.SetTarget();
+                paletteTextureProvider.staticTexture.filterMode = FilterMode.Bilinear;
+                paletteTextureProvider.staticTexture.wrapMode = TextureWrapMode.Clamp;
             }
 
             m_Data = null;

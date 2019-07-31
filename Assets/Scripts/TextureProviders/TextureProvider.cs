@@ -7,7 +7,9 @@ public abstract class TextureProvider : MonoBehaviour
     public RawImageController defaultTarget;
 #endif
 
+    [SerializeField]
     private TextureProvider[] m_PipeInputs  = { null, null, null, null };
+    [SerializeField]
     private TextureProvider[] m_PipeOutputs = { null, null, null, null };
 
     protected RawImageController m_Target = null;
@@ -73,6 +75,14 @@ public abstract class TextureProvider : MonoBehaviour
             if (dst.m_PipeInputs[i] == src)
                 dst.m_PipeInputs[i] = null;
         }
+    }
+
+    public bool HasOutput()
+    {
+        bool ret = false;
+        for (int i = 0; i < 4; i++)
+            ret |= (m_PipeOutputs[i] != null);
+        return ret;
     }
 
     public int SeekFreeIndex()

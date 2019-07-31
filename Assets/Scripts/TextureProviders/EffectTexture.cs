@@ -4,58 +4,34 @@ public class EffectTexture : TextureProvider
 {
 
 #if UNITY_EDITOR
-    public TextureProvider defaultLowTex;
-    public TextureProvider defaultHighTex;
+    public TextureProvider defaultPaletteTex;
     public TextureProvider defaultNoiseTex;
     public TextureProvider defaultMaskTex;
 #endif
 
-    private const int LOW_SRC_INDEX = 0;
-    private const int HIGH_SRC_INDEX = 1;
-    private const int NOISE_SRC_INDEX = 2;
-    private const int MASK_SRC_INDEX = 3;
+    private const int PALETTE_SRC_INDEX = 0;
+    private const int NOISE_SRC_INDEX = 1;
+    private const int MASK_SRC_INDEX = 2;
 
-    private TextureProvider m_LowTex = null;
-    public TextureProvider lowTexture {
-        get { return m_LowTex; }
+    private TextureProvider m_PaletteTex = null;
+    public TextureProvider paletteTexture {
+        get { return m_PaletteTex; }
         set {
-            if (m_LowTex == value)
+            if (m_PaletteTex == value)
                 return;
 
             if (value && value.SeekFreeIndex() == -1)
             {
-                Debug.Log("WaterTexture: Low Texture Pipeline Output is Full.");
+                Debug.Log("WaterTexture: Palette Texture Pipeline Output is Full.");
                 return;
             }
 
-            if (m_LowTex)
-                TextureProvider.Unlink(m_LowTex, this);
+            if (m_PaletteTex)
+                TextureProvider.Unlink(m_PaletteTex, this);
             if (value)
-                TextureProvider.Link(value, value.SeekFreeIndex(), this, LOW_SRC_INDEX);
+                TextureProvider.Link(value, value.SeekFreeIndex(), this, PALETTE_SRC_INDEX);
             
-            m_LowTex = value;
-        }
-    }
-
-    private TextureProvider m_HighTex = null;
-    public TextureProvider highTexture {
-        get { return m_HighTex; }
-        set {
-            if (m_HighTex == value)
-                return;
-            
-            if (value && value.SeekFreeIndex() == -1)
-            {
-                Debug.Log("WaterTexture: High Texture Pipeline Output is Full.");
-                return;
-            }
-
-            if (m_HighTex)
-                TextureProvider.Unlink(m_HighTex, this);
-            if (value)
-                TextureProvider.Link(value, value.SeekFreeIndex(), this, HIGH_SRC_INDEX);
-
-            m_HighTex = value;
+            m_PaletteTex = value;
         }
     }
 
@@ -110,7 +86,7 @@ public class EffectTexture : TextureProvider
     {
         base.Awake();
 
-        m_PCAWaterMaterial = new Material(Shader.Find("Compute/PCAWater"));
+        m_PCAWaterMaterial = new Material(Shader.Find("Compute/PCAEffect"));
     }
 
     new void Start()
@@ -118,10 +94,8 @@ public class EffectTexture : TextureProvider
         base.Start();
 
 #if UNITY_EDITOR
-        if (defaultLowTex)
-            lowTexture = defaultLowTex;
-        if (defaultHighTex)
-            highTexture = defaultHighTex;
+        if (defaultPaletteTex)
+            paletteTexture = defaultPaletteTex;
         if (defaultNoiseTex)
             noiseTexture = defaultNoiseTex;
         if (defaultMaskTex)
@@ -134,8 +108,7 @@ public class EffectTexture : TextureProvider
         if (!m_RenderTexture)
             return false;
 
-        m_PCAWaterMaterial.SetTexture("_LowTex", m_LowTex.GetTexture());
-        m_PCAWaterMaterial.SetTexture("_HighTex", m_HighTex.GetTexture());
+        m_PCAWaterMaterial.SetTexture("_PaletteTex", m_PaletteTex.GetTexture());
         m_PCAWaterMaterial.SetTexture("_MaskTex", m_MaskTex.GetTexture());
 
         m_RenderTexture.DiscardContents();
