@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 259361741327100117}
   - component: {fileID: 259361741327100118}
+  - component: {fileID: 1171947011658508569}
   m_Layer: 0
   m_Name: MaskTexture
   m_TagString: Untagged
@@ -43,8 +44,41 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5d196a432be941e693bca555e3499c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Texture: {fileID: 0}
+  defaultTarget: {fileID: 0}
+  m_PipeInputs:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  m_PipeOutputs:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   textureShouldUpdate: 0
-  maskCamera: {fileID: 0}
-  referenceWidth: 852
-  referenceHeight: 480
+  dirty: 0
+  mode: 0
+--- !u!114 &1171947011658508569
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 259361741327100119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04449a546c6da4fdb9c00d147935537c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultTarget: {fileID: 0}
+  m_PipeInputs:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  m_PipeOutputs:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  textureShouldUpdate: 0

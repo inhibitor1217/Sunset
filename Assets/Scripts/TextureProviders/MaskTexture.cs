@@ -62,12 +62,7 @@ public class MaskTexture : TextureProvider
         return false;
     }
 
-    public void SetDimension(Texture texture)
-    {
-        SetDimension(texture.width, texture.height);
-    }
-
-    public void SetDimension(int width, int height)
+    public void Setup(int width, int height)
     {
         m_RenderTexture = new RenderTexture(width, height, 0, RenderTextureFormat.R8);
         m_RenderTexture.useMipMap = false;

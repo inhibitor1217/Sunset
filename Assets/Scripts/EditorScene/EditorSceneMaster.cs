@@ -42,6 +42,7 @@ public class EditorSceneMaster : MonoBehaviour
     // Mask Components
     private GameObject[] m_MaskTextureObjects = new GameObject[MAX_EFFECTS];
     private MaskTexture[] m_MaskTextures = new MaskTexture[MAX_EFFECTS];
+    private BlurTexture[] m_BlurredMaskTextures = new BlurTexture[MAX_EFFECTS];
     private GameObject[] m_MaskCameraObjects = new GameObject[MAX_EFFECTS];
     private MaskRendererCamera[] m_MaskCameras = new MaskRendererCamera[MAX_EFFECTS];
 
@@ -240,7 +241,10 @@ public class EditorSceneMaster : MonoBehaviour
         m_MaskTextureObjects[maskIndex] = GameObject.Instantiate(MaskTexturePrefab);
         m_MaskTextureObjects[maskIndex].name = "Mask Texture: " + maskIndexToString(maskIndex);
         m_MaskTextures[maskIndex] = m_MaskTextureObjects[maskIndex].GetComponent<MaskTexture>();
-        m_MaskTextures[maskIndex].SetDimension(width, height);
+        m_MaskTextures[maskIndex].Setup(width, height);
+        m_BlurredMaskTextures[maskIndex] = m_MaskTextureObjects[maskIndex].GetComponent<BlurTexture>();
+        m_BlurredMaskTextures[maskIndex].sourceTexture = m_MaskTextures[maskIndex];
+        m_BlurredMaskTextures[maskIndex].Setup();
         switch (maskIndex)
         {
         case EFFECT_WATER:
@@ -461,28 +465,29 @@ public class EditorSceneMaster : MonoBehaviour
             m_EffectLayers[maskIndex] = m_EffectLayerObjects[maskIndex].GetComponent<RawImageController>();
         }
 
-        m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
-        m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
-        m_EffectTextures[maskIndex].maskTexture = m_MaskTextures[maskIndex];
-        m_EffectTextures[maskIndex].Setup();
-
-        m_EffectTextures[maskIndex].SetTarget(m_EffectLayers[maskIndex]);
-
         if (maskIndex == EFFECT_WATER)
         {
             switch (effectType)
             {
             case WATER_TYPE_CALM:
-                m_FractalNoiseRuntimeTexture.scale = new Vector2(32, 128);
-                m_FractalNoiseRuntimeTexture.contrast = 1f;
                 m_FractalNoiseRuntimeTexture.noiseType = 4;
                 m_FractalNoiseRuntimeTexture.fractalType = 0;
+                m_FractalNoiseRuntimeTexture.scale = new Vector2(32, 128);
+                m_FractalNoiseRuntimeTexture.brightness = -.3f;
+                m_FractalNoiseRuntimeTexture.contrast = 2f;
+
+                m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
+                m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
+                m_EffectTextures[maskIndex].maskTexture = m_BlurredMaskTextures[maskIndex];
+                m_EffectTextures[maskIndex].Setup(width, height);
                 break;
             default:
                 RemoveEffect(maskIndex);
                 break;
             }
         }
+
+        m_EffectTextures[maskIndex].SetTarget(m_EffectLayers[maskIndex]);
     }
 
     public void RemoveEffect(int maskIndex)

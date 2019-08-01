@@ -80,6 +80,7 @@ public class EffectTexture : TextureProvider
     }
 
     private RenderTexture m_RenderTexture;
+    [SerializeField]
     private Material m_PCAWaterMaterial;
 
     new void Awake()
@@ -122,14 +123,12 @@ public class EffectTexture : TextureProvider
         return m_RenderTexture;
     }
 
-    public void Setup()
+    public void Setup(int width, int height)
     {
         if (m_RenderTexture)
             m_RenderTexture.Release();
 
-        Texture maskTex = m_MaskTex.GetTexture();
-
-        m_RenderTexture = new RenderTexture(maskTex.width, maskTex.height, 0, RenderTextureFormat.ARGB32);
+        m_RenderTexture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32);
         m_RenderTexture.useMipMap = false;
         m_RenderTexture.wrapMode = TextureWrapMode.Repeat;
         m_RenderTexture.filterMode = FilterMode.Bilinear;

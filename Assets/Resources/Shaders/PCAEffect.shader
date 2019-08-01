@@ -5,6 +5,12 @@ Shader "Compute/PCAEffect"
         _MainTex ("Source", 2D) = "black" {}
         _PaletteTex  ("Palette", 2D) = "black" {}
         _MaskTex ("Mask", 2D) = "black" {}
+
+        _Horizon ("Horizon", Range(0, 1.5)) = .5
+        _Fov_Y   ("Fov Y", Range(0, 1.57)) = .785
+        _Yaw     ("Yaw", Range(-1.57, 1.57)) = 0 
+
+        _FogColor ("Fog Color", Color) = (.76, .80, .89, 1)
     }
     SubShader
     {
@@ -27,12 +33,11 @@ Shader "Compute/PCAEffect"
             float2 _MainTex_TexelSize;
             float2 _MaskTex_TexelSize;
             
-            static float HORIZON = 1.5;
-            static float FOV_Y = .25 * PI;
-            static float YAW = .4 * PI;
+            float _Horizon;
+            float _Fov_Y;
+            float _Yaw;
 
-            static float ALPHA = 1.0 / tan(YAW + FOV_Y);
-            static float BETA  = cos(FOV_Y) / (sin(YAW + FOV_Y) + cos(YAW));
+            half4 _FogColor;
 
             struct appdata_t
             {
@@ -58,18 +63,29 @@ Shader "Compute/PCAEffect"
 
             half4 frag(v2f IN) : SV_Target
             {
+                float Alpha = 1.0 / tan(_Yaw + _Fov_Y); 
+                float Beta  = cos(_Fov_Y) / (sin(_Yaw + _Fov_Y) + cos(_Yaw));
+
                 float a = tex2D(_MaskTex, IN.texcoord).r;
-                float perspective = ALPHA + BETA * (IN.texcoord.y) / (HORIZON - IN.texcoord.y);
-                half4 color = a > 0.01
-                    ? lerp(
-                        tex2D(_PaletteTex, half2(IN.texcoord.x, .5 * IN.texcoord.y)),      // LOW 
-                        tex2D(_PaletteTex, half2(IN.texcoord.x, .5 * IN.texcoord.y + .5)), // HIGH 
-                        tex2D(_MainTex   , perspective * half2(
-                            (IN.texcoord.x - .5), 
-                            IN.texcoord.y
-                        )).r // VALUE
-                    )
-                    : half4(0, 0, 0, 0);
+                float Y = Alpha + Beta * (IN.texcoord.y) / abs(_Horizon - IN.texcoord.y);
+
+                if (a < 0.01)
+                    return half4(0, 0, 0, 0);
+
+                half4 color = lerp(
+                    tex2D(_PaletteTex, half2(IN.texcoord.x, .5 * IN.texcoord.y)),      // LOW 
+                    tex2D(_PaletteTex, half2(IN.texcoord.x, .5 * IN.texcoord.y + .5)), // HIGH 
+                    tex2D(_MainTex   , half2(
+                        (IN.texcoord.x - .5) * (1 + abs(Y)), 
+                        Y
+                    )).r // VALUE
+                );
+
+                // FOG
+                color = lerp(color, _FogColor, smoothstep(_Horizon - .1, _Horizon, IN.texcoord.y));
+
+                // MASK BOUNDARY MIX
+                color *= a;
 
                 return color;
             }
