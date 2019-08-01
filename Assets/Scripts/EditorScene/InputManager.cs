@@ -49,7 +49,9 @@ public class InputManager : MonoBehaviour
             pressed = (touch.phase == TouchPhase.Began);
             released = (touch.phase == TouchPhase.Ended);
 
-            if (withinContainer && InputMode.Instance.isMove())
+            if (withinContainer 
+                && InputMode.Instance.isMove()
+                && !InputMode.Instance.isBusy())
                 updatePosition(touch.deltaPosition);
         }
         else if (Input.touchCount == 2)
@@ -77,8 +79,11 @@ public class InputManager : MonoBehaviour
                 float prevMagnitude = (touch1Prev - touch0Prev).magnitude;
                 float currMagnitude = (touch1.position - touch0.position).magnitude;
 
-                updateScale(currMagnitude / prevMagnitude);
-                updatePosition(.5f * (touch0.deltaPosition + touch1.deltaPosition));
+                if (!InputMode.Instance.isBusy())
+                {
+                    updateScale(currMagnitude / prevMagnitude);
+                    updatePosition(.5f * (touch0.deltaPosition + touch1.deltaPosition));
+                }
             }
         }
 #else

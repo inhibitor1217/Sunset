@@ -127,9 +127,9 @@ public class EffectTexture : TextureProvider
         if (m_RenderTexture)
             m_RenderTexture.Release();
 
-        Texture noiseTex = m_NoiseTex.GetTexture();
+        Texture maskTex = m_MaskTex.GetTexture();
 
-        m_RenderTexture = new RenderTexture(noiseTex.width, noiseTex.height, 0, RenderTextureFormat.ARGB32);
+        m_RenderTexture = new RenderTexture(maskTex.width, maskTex.height, 0, RenderTextureFormat.ARGB32);
         m_RenderTexture.useMipMap = false;
         m_RenderTexture.wrapMode = TextureWrapMode.Repeat;
         m_RenderTexture.filterMode = FilterMode.Bilinear;

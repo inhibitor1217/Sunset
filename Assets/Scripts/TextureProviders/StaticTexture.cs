@@ -24,6 +24,9 @@ public class StaticTexture: TextureProvider
         
         if (staticTexture == null)
             return null;
+
+        if (staticTexture.isReadable)
+            return staticTexture;
         
         int width  = staticTexture.width;
         int height = staticTexture.height;

@@ -44,13 +44,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   defaultTarget: {fileID: 0}
+  m_PipeInputs:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  m_PipeOutputs:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   textureShouldUpdate: 0
-  resolution: 256
+  resolution: 128
   _seed: 0
   _noiseType: 4
   _fractalType: 0
   _offset: {x: 0, y: 0}
-  _scale: {x: 32, y: 256}
+  _scale: {x: 32, y: 32}
   _rotation: 0
   _complexity: 6
   _subInfluence: 0.5

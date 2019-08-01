@@ -1056,7 +1056,7 @@ PrefabInstance:
     - target: {fileID: 6616701514722969122, guid: 4d85443c9254c41588473e0b0a9064ad,
         type: 3}
       propertyPath: m_Text
-      value: "\uD6A8\uACFC I"
+      value: Calm
       objectReference: {fileID: 0}
     - target: {fileID: 6616701515418471042, guid: 4d85443c9254c41588473e0b0a9064ad,
         type: 3}
@@ -1324,7 +1324,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f9134aaecc9e488393b56ec92293495, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initTexture: {fileID: 2800000, guid: 9ff00c41788334cf4859bf41dd5d30fe, type: 3}
+  initTexture: {fileID: 2800000, guid: 08c9b4844510d46b7a9eea1177340576, type: 3}
 --- !u!1 &381636776
 GameObject:
   m_ObjectHideFlags: 0
@@ -2604,6 +2604,11 @@ PrefabInstance:
       propertyPath: m_Color.b
       value: 0.9
       objectReference: {fileID: 0}
+    - target: {fileID: 947722260274316006, guid: 5d90e9cfbc79746059ae8283c3e019b0,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
     - target: {fileID: 947722259622488740, guid: 5d90e9cfbc79746059ae8283c3e019b0,
         type: 3}
       propertyPath: m_SizeDelta.x
@@ -2619,11 +2624,6 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -22
       objectReference: {fileID: 0}
-    - target: {fileID: 947722260274316006, guid: 5d90e9cfbc79746059ae8283c3e019b0,
-        type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5d90e9cfbc79746059ae8283c3e019b0, type: 3}
 --- !u!224 &1474055239 stripped
@@ -2912,6 +2912,11 @@ PrefabInstance:
       propertyPath: m_Color.b
       value: 0.9
       objectReference: {fileID: 0}
+    - target: {fileID: 947722260274316006, guid: 5d90e9cfbc79746059ae8283c3e019b0,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
     - target: {fileID: 947722259622488740, guid: 5d90e9cfbc79746059ae8283c3e019b0,
         type: 3}
       propertyPath: m_SizeDelta.x
@@ -2927,11 +2932,6 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -22
       objectReference: {fileID: 0}
-    - target: {fileID: 947722260274316006, guid: 5d90e9cfbc79746059ae8283c3e019b0,
-        type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5d90e9cfbc79746059ae8283c3e019b0, type: 3}
 --- !u!1 &1580504968

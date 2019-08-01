@@ -69,6 +69,7 @@ public class EditorSceneMaster : MonoBehaviour
 
     public const int EFFECT_WATER = 0;
     public const int EFFECT_SKY = 1;
+    public const int WATER_TYPE_CALM = 0;
     public const int LAYER_WATER = 8;
     public const int LAYER_SKY = 9;
     public const int MASK_WATER = 0x100;
@@ -112,7 +113,33 @@ public class EditorSceneMaster : MonoBehaviour
 #if UNITY_ANDROID && !UNITY_EDITOR
     public void InitScene(string path)
     {
-        InitScene(NativeGallery.LoadImageAtPath(path));
+        Texture2D tex = NativeGallery.LoadImageAtPath(path);
+        
+        if (tex.width <= 2048 && tex.height <= 2048)
+            InitScene(tex);
+        else
+        {
+            Texture2D resizedTex;
+            if (tex.width > tex.height)
+                resizedTex = new Texture2D(2048, Mathf.FloorToInt((float)tex.height * (2048f / (float)tex.width)));
+            else
+                resizedTex = new Texture2D(Mathf.FloorToInt((float)tex.width * (2048f / (float)tex.height)), 2048);
+
+            RenderTexture temp = RenderTexture.GetTemporary(
+                resizedTex.width, resizedTex.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear
+            );
+            Graphics.Blit(tex, temp);
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture.active = temp;
+
+            resizedTex.ReadPixels(new Rect(0, 0, resizedTex.width, resizedTex.height), 0, 0);
+            resizedTex.Apply();
+
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(temp);
+
+            InitScene(resizedTex);
+        }
     }
 #endif
 
@@ -400,7 +427,9 @@ public class EditorSceneMaster : MonoBehaviour
         m_PaletteTextures[maskIndex] = null;
     }
 
-    public void CreateEffect(int maskIndex)
+    public void Calm() { CreateEffect(EFFECT_WATER, WATER_TYPE_CALM); }
+
+    public void CreateEffect(int maskIndex, int effectType)
     {
         // Initialize Noise
         if (!m_FractalNoiseRuntimeTextureObject)
@@ -430,8 +459,6 @@ public class EditorSceneMaster : MonoBehaviour
         if (!m_EffectLayers[maskIndex])
         {
             m_EffectLayers[maskIndex] = m_EffectLayerObjects[maskIndex].GetComponent<RawImageController>();
-            // TEMP
-            m_EffectLayers[maskIndex].globalScale = 8;
         }
 
         m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
@@ -440,6 +467,22 @@ public class EditorSceneMaster : MonoBehaviour
         m_EffectTextures[maskIndex].Setup();
 
         m_EffectTextures[maskIndex].SetTarget(m_EffectLayers[maskIndex]);
+
+        if (maskIndex == EFFECT_WATER)
+        {
+            switch (effectType)
+            {
+            case WATER_TYPE_CALM:
+                m_FractalNoiseRuntimeTexture.scale = new Vector2(32, 128);
+                m_FractalNoiseRuntimeTexture.contrast = 1f;
+                m_FractalNoiseRuntimeTexture.noiseType = 4;
+                m_FractalNoiseRuntimeTexture.fractalType = 0;
+                break;
+            default:
+                RemoveEffect(maskIndex);
+                break;
+            }
+        }
     }
 
     public void RemoveEffect(int maskIndex)
