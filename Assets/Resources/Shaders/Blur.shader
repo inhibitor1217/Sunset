@@ -1,3 +1,5 @@
+// Reference: https://www.ronja-tutorials.com/2018/08/27/postprocessing-blur.html
+
 Shader "Compute/Blur" {
 	Properties{
 		[HideInInspector]_MainTex ("Texture", 2D) = "white" {}

@@ -7,11 +7,13 @@ public class EffectTexture : TextureProvider
     public TextureProvider defaultPaletteTex;
     public TextureProvider defaultNoiseTex;
     public TextureProvider defaultMaskTex;
+    public TextureProvider defaultEnvTex;
 #endif
 
     private const int PALETTE_SRC_INDEX = 0;
     private const int NOISE_SRC_INDEX = 1;
     private const int MASK_SRC_INDEX = 2;
+    private const int ENV_SRC_INDEX = 3;
 
     private TextureProvider m_PaletteTex = null;
     public TextureProvider paletteTexture {
@@ -22,7 +24,7 @@ public class EffectTexture : TextureProvider
 
             if (value && value.SeekFreeIndex() == -1)
             {
-                Debug.Log("WaterTexture: Palette Texture Pipeline Output is Full.");
+                Debug.Log("EffectTexture: Palette Texture Pipeline Output is Full.");
                 return;
             }
 
@@ -44,7 +46,7 @@ public class EffectTexture : TextureProvider
             
             if (value && value.SeekFreeIndex() == -1)
             {
-                Debug.Log("WaterTexture: Noise Texture Pipeline Output is Full.");
+                Debug.Log("EffectTexture: Noise Texture Pipeline Output is Full.");
                 return;
             }
 
@@ -66,7 +68,7 @@ public class EffectTexture : TextureProvider
             
             if (value && value.SeekFreeIndex() == -1)
             {
-                Debug.Log("WaterTexture: Mask Texture Pipeline Output is Full.");
+                Debug.Log("EffectTexture: Mask Texture Pipeline Output is Full.");
                 return;
             }
 
@@ -79,15 +81,39 @@ public class EffectTexture : TextureProvider
         }
     }
 
+    private TextureProvider m_EnvTex = null;
+    public TextureProvider environmentTexture {
+        get { return m_EnvTex; }
+        set {
+            if (m_EnvTex == value)
+                return;
+            
+            if (value && value.SeekFreeIndex() == -1)
+            {
+                Debug.Log("EffectTexture: Environment Texture Pipeline Output is Full.");
+                return;
+            }
+
+            if (m_EnvTex)
+                TextureProvider.Unlink(m_EnvTex, this);
+            if (value)
+                TextureProvider.Link(value, value.SeekFreeIndex(), this, ENV_SRC_INDEX);
+
+            m_EnvTex = value;
+        }
+    }
+
     private RenderTexture m_RenderTexture;
     [SerializeField]
-    private Material m_PCAWaterMaterial;
+    private Material m_WaterMaterial;
+    private int m_CalmPass;
 
     new void Awake()
     {
         base.Awake();
 
-        m_PCAWaterMaterial = new Material(Shader.Find("Compute/PCAEffect"));
+        m_WaterMaterial = new Material(Shader.Find("Compute/WaterEffect"));
+        m_CalmPass = m_WaterMaterial.FindPass("Calm");
     }
 
     new void Start()
@@ -101,6 +127,8 @@ public class EffectTexture : TextureProvider
             noiseTexture = defaultNoiseTex;
         if (defaultMaskTex)
             maskTexture = defaultMaskTex;
+        if (defaultEnvTex)
+            environmentTexture = defaultEnvTex;
 #endif
     }
 
@@ -109,11 +137,8 @@ public class EffectTexture : TextureProvider
         if (!m_RenderTexture)
             return false;
 
-        m_PCAWaterMaterial.SetTexture("_PaletteTex", m_PaletteTex.GetTexture());
-        m_PCAWaterMaterial.SetTexture("_MaskTex", m_MaskTex.GetTexture());
-
         m_RenderTexture.DiscardContents();
-        Graphics.Blit(m_NoiseTex.GetTexture(), m_RenderTexture, m_PCAWaterMaterial);
+        Graphics.Blit(m_NoiseTex.GetTexture(), m_RenderTexture, m_WaterMaterial, m_CalmPass);
 
         return true;
     }
@@ -123,7 +148,7 @@ public class EffectTexture : TextureProvider
         return m_RenderTexture;
     }
 
-    public void Setup(int width, int height)
+    public void Setup(Texture2D rootImageTex, int width, int height)
     {
         if (m_RenderTexture)
             m_RenderTexture.Release();
@@ -132,6 +157,11 @@ public class EffectTexture : TextureProvider
         m_RenderTexture.useMipMap = false;
         m_RenderTexture.wrapMode = TextureWrapMode.Repeat;
         m_RenderTexture.filterMode = FilterMode.Bilinear;
+
+        m_WaterMaterial.SetTexture("_ImgTex", rootImageTex);
+        m_WaterMaterial.SetTexture("_PaletteTex", m_PaletteTex.GetTexture());
+        m_WaterMaterial.SetTexture("_MaskTex", m_MaskTex.GetTexture());
+        m_WaterMaterial.SetTexture("_EnvTex", m_EnvTex.GetTexture());
     }
 
 }

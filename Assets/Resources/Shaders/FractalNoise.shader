@@ -8,7 +8,7 @@ Shader "Compute/FractalNoise"
         _GlobalOffsetScale ("Global Offset, Scale", Vector) = (0, 0, 8, 8)
         _GlobalRotation ("Global Rotation", Range(-360, 360)) = 0
         
-        _Complexity ("Complexity", Int) = 6
+        _Complexity ("Complexity", Int) = 3
         _SubOffsetScale("Sub Offset, Scale", Vector) = (0, 0, 2, 2)
         _SubRotation("Sub Rotation", Range(-360, 360)) = 0
         _SubInfluence("Sub Influence", Range(0, 1)) = .5

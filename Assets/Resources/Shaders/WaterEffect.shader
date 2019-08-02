@@ -1,25 +1,24 @@
-Shader "Compute/PCAEffect"
+Shader "Compute/WaterEffect"
 {
     Properties
     {
-        _MainTex ("Source", 2D) = "black" {}
-        _PaletteTex  ("Palette", 2D) = "black" {}
-        _MaskTex ("Mask", 2D) = "black" {}
+        _MainTex    ("Source",      2D) = "black" {}
+        _ImgTex     ("Image",       2D) = "black" {}
+        _PaletteTex ("Palette",     2D) = "black" {}
+        _MaskTex    ("Mask",        2D) = "black" {}
+        _EnvTex     ("Environment", 2D) = "black" {}
 
-        _Horizon ("Horizon", Range(0, 1.5)) = .5
+        _Horizon ("Horizon", Range(0, 1.5)) = .7
         _Fov_Y   ("Fov Y", Range(0, 1.57)) = .785
         _Yaw     ("Yaw", Range(-1.57, 1.57)) = 0 
-
-        _FogColor ("Fog Color", Color) = (.76, .80, .89, 1)
     }
     SubShader
     {
         Pass
         {
-            name "Default"
+            name "Calm"
         CGPROGRAM
             #include "UnityCG.cginc"
-            #include "UnityUI.cginc"
 
             #pragma vertex vert
             #pragma fragment frag
@@ -27,8 +26,10 @@ Shader "Compute/PCAEffect"
             static float PI = 3.141593;
 
             sampler2D _MainTex;
+            sampler2D _ImgTex;
             sampler2D _PaletteTex;
             sampler2D _MaskTex;
+            sampler2D _EnvTex;
 
             float2 _MainTex_TexelSize;
             float2 _MaskTex_TexelSize;
@@ -36,8 +37,6 @@ Shader "Compute/PCAEffect"
             float _Horizon;
             float _Fov_Y;
             float _Yaw;
-
-            half4 _FogColor;
 
             struct appdata_t
             {
@@ -63,29 +62,29 @@ Shader "Compute/PCAEffect"
 
             half4 frag(v2f IN) : SV_Target
             {
+                float alpha = tex2D(_MaskTex, IN.texcoord).r;
+
+                if (alpha < 0.01)
+                    return half4(0, 0, 0, 0);
+
                 float Alpha = 1.0 / tan(_Yaw + _Fov_Y); 
                 float Beta  = cos(_Fov_Y) / (sin(_Yaw + _Fov_Y) + cos(_Yaw));
 
-                float a = tex2D(_MaskTex, IN.texcoord).r;
-                float Y = Alpha + Beta * (IN.texcoord.y) / abs(_Horizon - IN.texcoord.y);
+                float y_n = IN.texcoord.y / _Horizon;
+                float y_p = Alpha + Beta / abs(1/y_n - 1);
 
-                if (a < 0.01)
-                    return half4(0, 0, 0, 0);
-
-                half4 color = lerp(
-                    tex2D(_PaletteTex, half2(IN.texcoord.x, .5 * IN.texcoord.y)),      // LOW 
-                    tex2D(_PaletteTex, half2(IN.texcoord.x, .5 * IN.texcoord.y + .5)), // HIGH 
-                    tex2D(_MainTex   , half2(
-                        (IN.texcoord.x - .5) * (1 + abs(Y)), 
-                        Y
-                    )).r // VALUE
-                );
+                half4 low  = tex2D(_PaletteTex, half2(IN.texcoord.x, .5 * IN.texcoord.y));
+                half4 high = tex2D(_PaletteTex, half2(IN.texcoord.x, .5 * IN.texcoord.y + .5));
+                half4 envMap = tex2D(_EnvTex, IN.texcoord);
+                
+                half4 color = envMap;
 
                 // FOG
-                color = lerp(color, _FogColor, smoothstep(_Horizon - .1, _Horizon, IN.texcoord.y));
+                half4 fogColor = tex2D(_ImgTex, half2(IN.texcoord.x, _Horizon));
+                color = lerp(color, fogColor, smoothstep(_Horizon - .1, _Horizon, IN.texcoord.y));
 
                 // MASK BOUNDARY MIX
-                color *= a;
+                color *= alpha;
 
                 return color;
             }

@@ -69,5 +69,5 @@ MonoBehaviour:
   _subOffset: {x: 0, y: 0}
   _brightness: 0
   _contrast: 3
-  _enableEvolution: 1
-  _evolutionSpeed: 1
+  _enableEvolution: 0
+  _evolutionSpeed: 0

@@ -46,6 +46,11 @@ public class EditorSceneMaster : MonoBehaviour
     private GameObject[] m_MaskCameraObjects = new GameObject[MAX_EFFECTS];
     private MaskRendererCamera[] m_MaskCameras = new MaskRendererCamera[MAX_EFFECTS];
 
+    // Water
+    private GameObject m_EnvMapTextureObject;
+    private MaskMirrorTexture m_MaskMirrorTexture;
+    private EnvironmentTexture m_EnvMapTexture;
+
     // Brush
     private GameObject m_BrushObject;
     private BrushController m_Brush;
@@ -245,6 +250,20 @@ public class EditorSceneMaster : MonoBehaviour
         m_BlurredMaskTextures[maskIndex] = m_MaskTextureObjects[maskIndex].GetComponent<BlurTexture>();
         m_BlurredMaskTextures[maskIndex].sourceTexture = m_MaskTextures[maskIndex];
         m_BlurredMaskTextures[maskIndex].Setup();
+
+        if (maskIndex == EFFECT_WATER)
+        {
+            m_MaskMirrorTexture = m_MaskTextureObjects[maskIndex].AddComponent<MaskMirrorTexture>();
+            m_MaskMirrorTexture.sourceTexture = m_BlurredMaskTextures[maskIndex];
+            m_MaskMirrorTexture.Setup();
+
+            m_EnvMapTexture = m_MaskTextureObjects[maskIndex].AddComponent<EnvironmentTexture>();
+            m_EnvMapTexture.imageTexture = m_RootStaticTexture;
+            m_EnvMapTexture.maskTexture = m_BlurredMaskTextures[maskIndex];
+            m_EnvMapTexture.boundaryTexture = m_MaskMirrorTexture;
+            m_EnvMapTexture.Setup();
+        }
+
         switch (maskIndex)
         {
         case EFFECT_WATER:
@@ -295,10 +314,16 @@ public class EditorSceneMaster : MonoBehaviour
         m_MaskTextures[maskIndex] = null;
         m_MaskCameraObjects[maskIndex] = null;
         m_MaskCameras[maskIndex] = null;
+        m_BlurredMaskTextures[maskIndex] = null;
+
+        if (maskIndex == EFFECT_WATER)
+        {
+            m_MaskMirrorTexture = null;
+            m_EnvMapTexture = null;
+        }
     }
 
-    public bool isMaskDirty(int maskIndex) { return m_MaskTextures[maskIndex] ? m_MaskTextures[maskIndex].dirty : false; }
-    public void setMaskDirty(int maskIndex, bool value) { if (m_MaskTextures[maskIndex]) m_MaskTextures[maskIndex].dirty = value; }
+    public MaskTexture GetMaskTexture(int maskIndex) { return m_MaskTextures[maskIndex]; }
 
     public void CreateBrush(int maskIndex)
     {
@@ -340,6 +365,12 @@ public class EditorSceneMaster : MonoBehaviour
 
         // Activate Camera
         m_MaskCameraObjects[maskIndex].GetComponent<Camera>().enabled = true;
+
+        // Disable All Effects
+        if (m_EffectLayerObjects[EFFECT_WATER])
+            m_EffectLayerObjects[EFFECT_WATER].SetActive(false);
+        if (m_EffectLayerObjects[EFFECT_SKY])
+            m_EffectLayerObjects[EFFECT_SKY].SetActive(false);
     }
 
     public void RemoveBrush(int maskIndex)
@@ -359,6 +390,12 @@ public class EditorSceneMaster : MonoBehaviour
         m_Brush = null;
         m_MaskLayerObject = null;
         m_MaskLayer = null;
+
+        // Enable All Effects
+        if (m_EffectLayerObjects[EFFECT_WATER])
+            m_EffectLayerObjects[EFFECT_WATER].SetActive(true);
+        if (m_EffectLayerObjects[EFFECT_SKY])
+            m_EffectLayerObjects[EFFECT_SKY].SetActive(true);
     }
 
     public void CreateSLIC()
@@ -473,13 +510,16 @@ public class EditorSceneMaster : MonoBehaviour
                 m_FractalNoiseRuntimeTexture.noiseType = 4;
                 m_FractalNoiseRuntimeTexture.fractalType = 0;
                 m_FractalNoiseRuntimeTexture.scale = new Vector2(32, 128);
+                m_FractalNoiseRuntimeTexture.complexity = 3;
                 m_FractalNoiseRuntimeTexture.brightness = -.3f;
                 m_FractalNoiseRuntimeTexture.contrast = 2f;
 
                 m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
                 m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
                 m_EffectTextures[maskIndex].maskTexture = m_BlurredMaskTextures[maskIndex];
-                m_EffectTextures[maskIndex].Setup(width, height);
+                m_EffectTextures[maskIndex].environmentTexture = m_EnvMapTexture;
+                
+                m_EffectTextures[maskIndex].Setup(m_RootStaticTexture.GetTexture() as Texture2D, width, height);
                 break;
             default:
                 RemoveEffect(maskIndex);

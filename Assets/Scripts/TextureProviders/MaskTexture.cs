@@ -6,6 +6,7 @@ public class MaskTexture : TextureProvider
     private Camera m_MaskCamera;
     private RenderTexture m_RenderTexture = null;
 
+    private bool modified = false;
     [HideInInspector]
     public bool dirty = false;
     [HideInInspector]
@@ -23,11 +24,16 @@ public class MaskTexture : TextureProvider
     {
         if (InputMode.Instance.isBrush()
             && InputMode.Instance.isMode(mode)
-            && InputManager.Instance.withinContainer 
-            && InputManager.Instance.released)
+            && InputManager.Instance.withinContainer
+            && InputManager.Instance.held)
         {
-            textureShouldUpdate = true;
+            modified = true;   
+        }
+
+        if (InputManager.Instance.released && modified)
+        {
             dirty = true;
+            modified = false;
         }
     }
 

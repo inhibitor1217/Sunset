@@ -62,16 +62,18 @@ public class InputMode
 
                 if (isBrush(_mode) && !isBrush(value))
                 {
-                    if (isWater(_mode) && EditorSceneMaster.Instance.isMaskDirty(EditorSceneMaster.EFFECT_WATER))
+                    if (isWater(_mode) && EditorSceneMaster.Instance.GetMaskTexture(EditorSceneMaster.EFFECT_WATER).dirty)
                     {
                         EditorSceneMaster.Instance.InvokePCA(EditorSceneMaster.EFFECT_WATER, value);
-                        EditorSceneMaster.Instance.setMaskDirty(EditorSceneMaster.EFFECT_WATER, false);
+                        EditorSceneMaster.Instance.GetMaskTexture(EditorSceneMaster.EFFECT_WATER).textureShouldUpdate = true;
+                        EditorSceneMaster.Instance.GetMaskTexture(EditorSceneMaster.EFFECT_WATER).dirty = false;
                         return;
                     }
-                    else if (isSky(_mode) && EditorSceneMaster.Instance.isMaskDirty(EditorSceneMaster.EFFECT_SKY))
+                    else if (isSky(_mode) && EditorSceneMaster.Instance.GetMaskTexture(EditorSceneMaster.EFFECT_SKY).dirty)
                     {
                         EditorSceneMaster.Instance.InvokePCA(EditorSceneMaster.EFFECT_SKY, value);
-                        EditorSceneMaster.Instance.setMaskDirty(EditorSceneMaster.EFFECT_SKY, false);
+                        EditorSceneMaster.Instance.GetMaskTexture(EditorSceneMaster.EFFECT_SKY).textureShouldUpdate = true;
+                        EditorSceneMaster.Instance.GetMaskTexture(EditorSceneMaster.EFFECT_SKY).dirty = false;
                         return;
                     }
                 }
