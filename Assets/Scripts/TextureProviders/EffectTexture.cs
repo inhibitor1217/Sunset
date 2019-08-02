@@ -3,13 +3,6 @@ using UnityEngine;
 public class EffectTexture : TextureProvider
 {
 
-#if UNITY_EDITOR
-    public TextureProvider defaultPaletteTex;
-    public TextureProvider defaultNoiseTex;
-    public TextureProvider defaultMaskTex;
-    public TextureProvider defaultEnvTex;
-#endif
-
     private const int PALETTE_SRC_INDEX = 0;
     private const int NOISE_SRC_INDEX = 1;
     private const int MASK_SRC_INDEX = 2;
@@ -59,8 +52,8 @@ public class EffectTexture : TextureProvider
         }
     }
 
-    private TextureProvider m_MaskTex = null;
-    public TextureProvider maskTexture {
+    private MaskTexture m_MaskTex = null;
+    public MaskTexture maskTexture {
         get { return m_MaskTex; }
         set {
             if (m_MaskTex == value)
@@ -116,26 +109,15 @@ public class EffectTexture : TextureProvider
         m_CalmPass = m_WaterMaterial.FindPass("Calm");
     }
 
-    new void Start()
-    {
-        base.Start();
-
-#if UNITY_EDITOR
-        if (defaultPaletteTex)
-            paletteTexture = defaultPaletteTex;
-        if (defaultNoiseTex)
-            noiseTexture = defaultNoiseTex;
-        if (defaultMaskTex)
-            maskTexture = defaultMaskTex;
-        if (defaultEnvTex)
-            environmentTexture = defaultEnvTex;
-#endif
-    }
-
     public override bool Draw()
     {
         if (!m_RenderTexture)
             return false;
+
+        m_WaterMaterial.SetTexture("_ImgTex", EditorSceneMaster.Instance.GetRootTextureProvider().GetBlurredTexture());
+        m_WaterMaterial.SetTexture("_PaletteTex", m_PaletteTex.GetTexture());
+        m_WaterMaterial.SetTexture("_MaskTex", maskTexture.GetBlurredTexture());
+        m_WaterMaterial.SetTexture("_EnvTex", m_EnvTex.GetTexture());
 
         m_RenderTexture.DiscardContents();
         Graphics.Blit(m_NoiseTex.GetTexture(), m_RenderTexture, m_WaterMaterial, m_CalmPass);
@@ -148,7 +130,7 @@ public class EffectTexture : TextureProvider
         return m_RenderTexture;
     }
 
-    public void Setup(Texture2D rootImageTex, int width, int height)
+    public void Setup(int width, int height)
     {
         if (m_RenderTexture)
             m_RenderTexture.Release();
@@ -157,11 +139,6 @@ public class EffectTexture : TextureProvider
         m_RenderTexture.useMipMap = false;
         m_RenderTexture.wrapMode = TextureWrapMode.Repeat;
         m_RenderTexture.filterMode = FilterMode.Bilinear;
-
-        m_WaterMaterial.SetTexture("_ImgTex", rootImageTex);
-        m_WaterMaterial.SetTexture("_PaletteTex", m_PaletteTex.GetTexture());
-        m_WaterMaterial.SetTexture("_MaskTex", m_MaskTex.GetTexture());
-        m_WaterMaterial.SetTexture("_EnvTex", m_EnvTex.GetTexture());
     }
 
 }

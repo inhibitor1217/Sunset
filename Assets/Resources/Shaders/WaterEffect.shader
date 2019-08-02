@@ -9,7 +9,7 @@ Shader "Compute/WaterEffect"
         _EnvTex     ("Environment", 2D) = "black" {}
 
         _Horizon ("Horizon", Range(0, 1.5)) = .7
-        _Fov_Y   ("Fov Y", Range(0, 1.57)) = .785
+        _Fov_Y   ("Fov Y", Range(0, 1.57)) = .4
         _Yaw     ("Yaw", Range(-1.57, 1.57)) = 0 
     }
     SubShader
@@ -73,11 +73,14 @@ Shader "Compute/WaterEffect"
                 float y_n = IN.texcoord.y / _Horizon;
                 float y_p = Alpha + Beta / abs(1/y_n - 1);
 
+                float r = tex2D(_MainTex, half2(IN.texcoord.x, y_p)).r;
+
                 half4 low  = tex2D(_PaletteTex, half2(IN.texcoord.x, .5 * IN.texcoord.y));
                 half4 high = tex2D(_PaletteTex, half2(IN.texcoord.x, .5 * IN.texcoord.y + .5));
-                half4 envMap = tex2D(_EnvTex, IN.texcoord);
+                half4 envMap = tex2D(_EnvTex, IN.texcoord + .1 * (1 - pow(y_n, 3)) * half2(r, r));
                 
-                half4 color = envMap;
+                half4 diffuse = lerp(low, high, r);
+                half4 color   = lerp(diffuse, envMap, .3 * .7 + pow(y_n, 3));
 
                 // FOG
                 half4 fogColor = tex2D(_ImgTex, half2(IN.texcoord.x, _Horizon));

@@ -42,7 +42,6 @@ public class EditorSceneMaster : MonoBehaviour
     // Mask Components
     private GameObject[] m_MaskTextureObjects = new GameObject[MAX_EFFECTS];
     private MaskTexture[] m_MaskTextures = new MaskTexture[MAX_EFFECTS];
-    private BlurTexture[] m_BlurredMaskTextures = new BlurTexture[MAX_EFFECTS];
     private GameObject[] m_MaskCameraObjects = new GameObject[MAX_EFFECTS];
     private MaskRendererCamera[] m_MaskCameras = new MaskRendererCamera[MAX_EFFECTS];
 
@@ -105,6 +104,11 @@ public class EditorSceneMaster : MonoBehaviour
         InitScene(PlayerPrefs.GetString("image_path"));
     }
 #endif
+
+    public StaticTexture GetRootTextureProvider()
+    {
+        return m_RootStaticTexture;
+    }
 
     public Rect GetRootRect()
     {
@@ -247,9 +251,6 @@ public class EditorSceneMaster : MonoBehaviour
         m_MaskTextureObjects[maskIndex].name = "Mask Texture: " + maskIndexToString(maskIndex);
         m_MaskTextures[maskIndex] = m_MaskTextureObjects[maskIndex].GetComponent<MaskTexture>();
         m_MaskTextures[maskIndex].Setup(width, height);
-        m_BlurredMaskTextures[maskIndex] = m_MaskTextureObjects[maskIndex].GetComponent<BlurTexture>();
-        m_BlurredMaskTextures[maskIndex].sourceTexture = m_MaskTextures[maskIndex];
-        m_BlurredMaskTextures[maskIndex].Setup();
 
         if (maskIndex == EFFECT_WATER)
         {
@@ -259,7 +260,7 @@ public class EditorSceneMaster : MonoBehaviour
 
             m_EnvMapTexture = m_MaskTextureObjects[maskIndex].AddComponent<EnvironmentTexture>();
             m_EnvMapTexture.imageTexture = m_RootStaticTexture;
-            m_EnvMapTexture.maskTexture = m_BlurredMaskTextures[maskIndex];
+            m_EnvMapTexture.maskTexture = m_MaskTextures[maskIndex];
             m_EnvMapTexture.boundaryTexture = m_MaskMirrorTexture;
             m_EnvMapTexture.Setup();
         }
@@ -314,7 +315,6 @@ public class EditorSceneMaster : MonoBehaviour
         m_MaskTextures[maskIndex] = null;
         m_MaskCameraObjects[maskIndex] = null;
         m_MaskCameras[maskIndex] = null;
-        m_BlurredMaskTextures[maskIndex] = null;
 
         if (maskIndex == EFFECT_WATER)
         {
@@ -509,17 +509,17 @@ public class EditorSceneMaster : MonoBehaviour
             case WATER_TYPE_CALM:
                 m_FractalNoiseRuntimeTexture.noiseType = 4;
                 m_FractalNoiseRuntimeTexture.fractalType = 0;
-                m_FractalNoiseRuntimeTexture.scale = new Vector2(32, 128);
+                m_FractalNoiseRuntimeTexture.scale = new Vector2(16, 128);
                 m_FractalNoiseRuntimeTexture.complexity = 3;
-                m_FractalNoiseRuntimeTexture.brightness = -.3f;
+                m_FractalNoiseRuntimeTexture.brightness = -.5f;
                 m_FractalNoiseRuntimeTexture.contrast = 2f;
 
                 m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
                 m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
-                m_EffectTextures[maskIndex].maskTexture = m_BlurredMaskTextures[maskIndex];
+                m_EffectTextures[maskIndex].maskTexture = m_MaskTextures[maskIndex];
                 m_EffectTextures[maskIndex].environmentTexture = m_EnvMapTexture;
                 
-                m_EffectTextures[maskIndex].Setup(m_RootStaticTexture.GetTexture() as Texture2D, width, height);
+                m_EffectTextures[maskIndex].Setup(width, height);
                 break;
             default:
                 RemoveEffect(maskIndex);

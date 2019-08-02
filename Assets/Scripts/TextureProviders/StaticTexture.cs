@@ -6,6 +6,21 @@ public class StaticTexture: TextureProvider
     public Texture2D staticTexture;
     
     private Texture2D m_ReadableTexture;
+    private RenderTexture m_BlurredTexture;
+
+    private Material m_BlurMaterial;
+    private int m_HorizontalBlurPass;
+    private int m_VerticalBlurPass;
+
+    new void Awake()
+    {
+        base.Awake();
+
+        m_BlurMaterial = new Material(Shader.Find("Compute/Blur"));
+        m_BlurMaterial.SetFloat("_BlurSize", .05f);
+        m_HorizontalBlurPass = m_BlurMaterial.FindPass("Horizontal");
+        m_VerticalBlurPass   = m_BlurMaterial.FindPass("Vertical");
+    }
 
     public override bool Draw()
     {
@@ -49,6 +64,17 @@ public class StaticTexture: TextureProvider
         return m_ReadableTexture;
     }
 
+    public Texture GetBlurredTexture()
+    {
+        if (m_BlurredTexture)
+            return m_BlurredTexture;
+
+        m_BlurredTexture = new RenderTexture(staticTexture.width / 4, staticTexture.height / 4, 0, RenderTextureFormat.ARGB32);
+        Graphics.Blit(staticTexture, m_BlurredTexture, m_BlurMaterial, m_HorizontalBlurPass);
+
+        return m_BlurredTexture;
+    }
+
     public void SetStaticTexture(Texture2D texture)
     {
         staticTexture = texture;
@@ -57,6 +83,7 @@ public class StaticTexture: TextureProvider
         staticTexture.filterMode = FilterMode.Point;
 
         m_ReadableTexture = null;
+        m_BlurredTexture = null;
         
         textureShouldUpdate = true;
     }

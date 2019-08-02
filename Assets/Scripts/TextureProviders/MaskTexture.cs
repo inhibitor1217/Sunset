@@ -4,13 +4,30 @@ public class MaskTexture : TextureProvider
 {
 
     private Camera m_MaskCamera;
+    [SerializeField]
     private RenderTexture m_RenderTexture = null;
+    [SerializeField]
+    private RenderTexture m_BlurredTexture = null;
 
     private bool modified = false;
     [HideInInspector]
     public bool dirty = false;
     [HideInInspector]
     public int mode;
+
+    private Material m_BlurMaterial;
+    private int m_HorizontalBlurPass;
+    private int m_VerticalBlurPass;
+
+    new void Awake()
+    {
+        base.Awake();
+
+        m_BlurMaterial = new Material(Shader.Find("Compute/Blur"));
+        m_BlurMaterial.SetFloat("_BlurSize", .03f);
+        m_HorizontalBlurPass = m_BlurMaterial.FindPass("Horizontal");
+        m_VerticalBlurPass   = m_BlurMaterial.FindPass("Vertical");
+    }
 
     new void OnDestroy()
     {
@@ -58,14 +75,19 @@ public class MaskTexture : TextureProvider
         return tex;
     }
 
+    public Texture GetBlurredTexture()
+    {
+        return m_BlurredTexture;
+    }
+
     public override bool Draw()
     {
-        if (m_RenderTexture)
-        {
-            return true;
-        }
+        if (!m_RenderTexture)
+            return false;
 
-        return false;
+        Graphics.Blit(m_RenderTexture, m_BlurredTexture, m_BlurMaterial, m_HorizontalBlurPass);
+
+        return true;
     }
 
     public void Setup(int width, int height)
@@ -75,6 +97,11 @@ public class MaskTexture : TextureProvider
         m_RenderTexture.antiAliasing = 4;
         m_RenderTexture.wrapMode = TextureWrapMode.Clamp;
         m_RenderTexture.filterMode = FilterMode.Point;
+
+        m_BlurredTexture = new RenderTexture(width / 4, height / 4, 0, RenderTextureFormat.R8);
+        m_RenderTexture.useMipMap = false;
+        m_RenderTexture.wrapMode = TextureWrapMode.Clamp;
+        m_RenderTexture.filterMode = FilterMode.Bilinear;
     }
 
     public void SetCamera(Camera camera)

@@ -29,8 +29,8 @@ public class EnvironmentTexture : TextureProvider
         }
     }
 
-    private TextureProvider m_MaskTexture = null;
-    public TextureProvider maskTexture {
+    private MaskTexture m_MaskTexture = null;
+    public MaskTexture maskTexture {
         get { return m_MaskTexture; }
         set {
             if (m_MaskTexture == value)
@@ -51,8 +51,8 @@ public class EnvironmentTexture : TextureProvider
         }
     }
 
-    private TextureProvider m_BoundaryTexture = null;
-    public TextureProvider boundaryTexture {
+    private MaskMirrorTexture m_BoundaryTexture = null;
+    public MaskMirrorTexture boundaryTexture {
         get { return m_BoundaryTexture; }
         set {
             if (m_BoundaryTexture == value)
@@ -79,16 +79,18 @@ public class EnvironmentTexture : TextureProvider
     private Material m_EnvMapMaterial;
     private Material m_BlurMaterial;
     private int m_HorizontalBlurPass;
+    private int m_VerticalBlurPass;
 
     new void Awake()
     {
         base.Awake();
 
         m_EnvMapMaterial = new Material(Shader.Find("Compute/EnvMap"));
+        
         m_BlurMaterial = new Material(Shader.Find("Compute/Blur"));
+        m_BlurMaterial.SetFloat("_BlurSize", .05f);
         m_HorizontalBlurPass = m_BlurMaterial.FindPass("Horizontal");
-
-        m_BlurMaterial.SetFloat("_BlurSize", .03f);
+        m_VerticalBlurPass   = m_BlurMaterial.FindPass("Vertical");
     }
 
     public override Texture GetTexture()
@@ -100,6 +102,10 @@ public class EnvironmentTexture : TextureProvider
     {
         if (!m_RenderTexture)
             return false;
+
+        m_EnvMapMaterial.SetTexture("_ImgTex", imageTexture.GetTexture());
+        m_EnvMapMaterial.SetTexture("_MaskTex", maskTexture.GetBlurredTexture());
+        m_EnvMapMaterial.SetTexture("_BoundaryTex", boundaryTexture.GetTexture());
 
         m_RenderTexture.DiscardContents();
         Graphics.Blit(null, m_RenderTexture, m_EnvMapMaterial);
@@ -119,10 +125,6 @@ public class EnvironmentTexture : TextureProvider
         m_RenderTexture.useMipMap = false;
         m_RenderTexture.wrapMode = TextureWrapMode.Clamp;
         m_RenderTexture.filterMode = FilterMode.Bilinear;
-
-        m_EnvMapMaterial.SetTexture("_ImgTex", imageTexture.GetTexture());
-        m_EnvMapMaterial.SetTexture("_MaskTex", maskTexture.GetTexture());
-        m_EnvMapMaterial.SetTexture("_BoundaryTex", boundaryTexture.GetTexture());
     }
 
 

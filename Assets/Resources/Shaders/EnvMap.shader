@@ -6,7 +6,7 @@ Shader "Compute/EnvMap"
         _MaskTex ("Mask", 2D) = "black" {}
         _BoundaryTex ("Boundary", 2D) = "white" {}
 
-        _SkyColor ("Sky Color", Color) = (0.76, 0.80, 0.86, 1)
+        _SkyColor ("Sky Color", Color) = (1, 1, 1, 1)
     }
     SubShader
     {
@@ -57,7 +57,7 @@ Shader "Compute/EnvMap"
                 float boundary_y = tex2D(_BoundaryTex, IN.texcoord).r;
                 float reflected_y = 3 * boundary_y - 2 * IN.texcoord.y;
                 float mask_reflected = tex2D(_MaskTex, half2(IN.texcoord.x, reflected_y)).r;
-                float use_envmap = max(mask_reflected, smoothstep(0.8, 1.0, reflected_y));
+                float use_envmap = max(mask_reflected, smoothstep(0.9, 1.0, reflected_y));
 
                 half4 color = lerp(tex2D(_ImgTex, half2(IN.texcoord.x, reflected_y)), _SkyColor, use_envmap);
 
