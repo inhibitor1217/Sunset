@@ -254,7 +254,7 @@ public class EditorSceneMaster : MonoBehaviour
         if (maskIndex == EFFECT_WATER)
         {
             m_MaskMirrorTexture = m_MaskTextureObjects[maskIndex].AddComponent<MaskMirrorTexture>();
-            m_MaskMirrorTexture.sourceTexture = m_BlurredMaskTextures[maskIndex];
+            m_MaskMirrorTexture.sourceTexture = m_MaskTextures[maskIndex];
             m_MaskMirrorTexture.Setup();
 
             m_EnvMapTexture = m_MaskTextureObjects[maskIndex].AddComponent<EnvironmentTexture>();
