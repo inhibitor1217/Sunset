@@ -19,8 +19,6 @@ public class MaskTexture : TextureProvider
     private int m_HorizontalBlurPass;
     private int m_VerticalBlurPass;
 
-    public const int MASK_COMPRESS_RATIO = 2;
-
     new void Awake()
     {
         base.Awake();
@@ -62,10 +60,10 @@ public class MaskTexture : TextureProvider
         return m_RenderTexture;
     }
 
-    public Texture2D GetReadableTexture(int ratio=1)
+    public Texture2D GetReadableTexture()
     {
-        int width  = m_RenderTexture.width  * ratio;
-        int height = m_RenderTexture.height * ratio;
+        int width  = m_RenderTexture.width;
+        int height = m_RenderTexture.height;
         
         RenderTexture temp = RenderTexture.GetTemporary(width, height);
         RenderTexture prev = RenderTexture.active;
@@ -141,7 +139,7 @@ public class MaskTexture : TextureProvider
 
     public void Setup(int width, int height)
     {
-        m_RenderTexture = new RenderTexture(width / MASK_COMPRESS_RATIO, height / MASK_COMPRESS_RATIO, 0, RenderTextureFormat.ARGB32);
+        m_RenderTexture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32);
         m_RenderTexture.useMipMap = false;
         m_RenderTexture.antiAliasing = 4;
         m_RenderTexture.wrapMode = TextureWrapMode.Clamp;

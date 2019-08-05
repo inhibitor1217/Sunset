@@ -18,15 +18,21 @@ public class EditorGalleryButton : MonoBehaviour
 #if UNITY_ANDROID && !UNITY_EDITOR
     void onClick()
     {
+        if (InputMode.Instance.isBusy())
+            return;
+            
         NativeGallery.Permission permission = NativeGallery.GetImageFromGallery(
             (path) => {
-                EditorSceneMaster.Instance.InitScene(path);
+                StartCoroutine(EditorSceneMaster.Instance.InitScene(path));
             }
         );
     }
 #else
     void onClick()
     {
+        if (InputMode.Instance.isBusy())
+            return;
+
         if (initTexture)
             EditorSceneMaster.Instance.InitScene(initTexture);
     }

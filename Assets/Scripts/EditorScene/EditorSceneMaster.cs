@@ -1,10 +1,12 @@
 using UnityEngine;
+using System.Collections;
 
 public class EditorSceneMaster : MonoBehaviour
 {
 
     private static EditorSceneMaster instance;
     public static EditorSceneMaster Instance { get { return instance; } }
+
 
     [Header("Prefabs")]
     public GameObject LayerPrefab;
@@ -100,9 +102,16 @@ public class EditorSceneMaster : MonoBehaviour
 #if UNITY_ANDROID && !UNITY_EDITOR
     void Start()
     {
-        InitScene(PlayerPrefs.GetString("image_path"));
+        InputMode.Instance.mode = InputMode.BUSY;
+        MessagePanel.Instance.ShowMessage("이미지 불러오는 중..", "");
+        StartCoroutine(InitScene(PlayerPrefs.GetString("image_path")));
     }
 #endif
+
+    void Update()
+    {
+        
+    }
 
     public StaticTexture GetRootTextureProvider()
     {
@@ -120,43 +129,54 @@ public class EditorSceneMaster : MonoBehaviour
     }
 
 #if UNITY_ANDROID && !UNITY_EDITOR
-    public void InitScene(string path)
+    public IEnumerator InitScene(string path)
     {
+        yield return new WaitForEndOfFrame();
+
         Texture2D tex = NativeGallery.LoadImageAtPath(path);
-        
-        if (tex.width <= 2048 && tex.height <= 2048)
-            InitScene(tex);
-        else
+
+        int width = 1;
+        int height = 1;
+
+        while (width < 2048)
         {
-            Texture2D resizedTex;
-            if (tex.width > tex.height)
-                resizedTex = new Texture2D(2048, Mathf.FloorToInt((float)tex.height * (2048f / (float)tex.width)));
+            if (2 * width < tex.width || 2 * width - tex.width < tex.width - width)
+                width *= 2;
             else
-                resizedTex = new Texture2D(Mathf.FloorToInt((float)tex.width * (2048f / (float)tex.height)), 2048);
-
-            RenderTexture temp = RenderTexture.GetTemporary(
-                resizedTex.width, resizedTex.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear
-            );
-            Graphics.Blit(tex, temp);
-            RenderTexture previous = RenderTexture.active;
-            RenderTexture.active = temp;
-
-            resizedTex.ReadPixels(new Rect(0, 0, resizedTex.width, resizedTex.height), 0, 0);
-            resizedTex.Apply();
-
-            RenderTexture.active = previous;
-            RenderTexture.ReleaseTemporary(temp);
-
-            InitScene(resizedTex);
+                break;
         }
+        while (height < 2048)
+        {
+            if (2 * height < tex.height || 2 * height - tex.height < tex.height - height)
+                height *= 2;
+            else
+                break;
+        }
+
+        Texture2D resizedTex = new Texture2D(width, height);
+
+        RenderTexture temp = RenderTexture.GetTemporary(
+            width, height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear
+        );
+        Graphics.Blit(tex, temp);
+        RenderTexture previous = RenderTexture.active;
+        RenderTexture.active = temp;
+
+        resizedTex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+        resizedTex.Apply();
+
+        RenderTexture.active = previous;
+        RenderTexture.ReleaseTemporary(temp);
+
+        InputMode.Instance.SetModeWithoutSideEffect(0);
+        MessagePanel.Instance.Disable();
+
+        InitScene(resizedTex);
     }
 #endif
 
     public void InitScene(Texture2D rootTexture)
     {
-        if (InputMode.Instance.isBusy())
-            return;
-
         // ** Clean up **
 
         // Managers
@@ -351,7 +371,6 @@ public class EditorSceneMaster : MonoBehaviour
         if (!m_MaskLayer)
         {
             m_MaskLayer = m_MaskLayerObject.GetComponent<RawImageController>();
-            m_MaskLayer.globalScale = MaskTexture.MASK_COMPRESS_RATIO;
         }
 
         // Setup References
@@ -510,7 +529,6 @@ public class EditorSceneMaster : MonoBehaviour
 
                 m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
                 m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
-                // m_EffectTextures[maskIndex].maskTexture = m_MaskTextures[maskIndex];
                 m_EffectTextures[maskIndex].environmentTexture = m_EnvMapTexture;
                 
                 m_EffectTextures[maskIndex].Setup(width, height);

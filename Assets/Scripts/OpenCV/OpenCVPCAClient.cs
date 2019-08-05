@@ -28,7 +28,7 @@ public class OpenCVPCAClient : MonoBehaviour
         m_Data.paletteArray = new float[PALETTE_SIZE];
         OpenCVPCA.AsyncPCA(
             img.GetReadableTexture(), 
-            mask.GetReadableTexture(MaskTexture.MASK_COMPRESS_RATIO),
+            mask.GetReadableTexture(),
             label.GetLabelTexture(), 
             OCTAVE_LEVELS, 
             m_Data.paletteArray
