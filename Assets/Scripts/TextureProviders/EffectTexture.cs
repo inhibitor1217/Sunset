@@ -5,8 +5,7 @@ public class EffectTexture : TextureProvider
 
     private const int PALETTE_SRC_INDEX = 0;
     private const int NOISE_SRC_INDEX = 1;
-    private const int MASK_SRC_INDEX = 2;
-    private const int ENV_SRC_INDEX = 3;
+    private const int ENV_SRC_INDEX = 2;
 
     private TextureProvider m_PaletteTex = null;
     public TextureProvider paletteTexture {
@@ -52,28 +51,6 @@ public class EffectTexture : TextureProvider
         }
     }
 
-    private MaskTexture m_MaskTex = null;
-    public MaskTexture maskTexture {
-        get { return m_MaskTex; }
-        set {
-            if (m_MaskTex == value)
-                return;
-            
-            if (value && value.SeekFreeIndex() == -1)
-            {
-                Debug.Log("EffectTexture: Mask Texture Pipeline Output is Full.");
-                return;
-            }
-
-            if (m_MaskTex)
-                TextureProvider.Unlink(m_MaskTex, this);
-            if (value)
-                TextureProvider.Link(value, value.SeekFreeIndex(), this, MASK_SRC_INDEX);
-
-            m_MaskTex = value;
-        }
-    }
-
     private TextureProvider m_EnvTex = null;
     public TextureProvider environmentTexture {
         get { return m_EnvTex; }
@@ -116,7 +93,6 @@ public class EffectTexture : TextureProvider
 
         m_WaterMaterial.SetTexture("_ImgTex", EditorSceneMaster.Instance.GetRootTextureProvider().GetBlurredTexture());
         m_WaterMaterial.SetTexture("_PaletteTex", m_PaletteTex.GetTexture());
-        m_WaterMaterial.SetTexture("_MaskTex", maskTexture.GetBlurredTexture());
         m_WaterMaterial.SetTexture("_EnvTex", m_EnvTex.GetTexture());
 
         m_RenderTexture.DiscardContents();

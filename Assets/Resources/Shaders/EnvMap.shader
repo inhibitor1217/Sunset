@@ -2,9 +2,8 @@ Shader "Compute/EnvMap"
 {
     Properties
     {
-        _ImgTex ("Image", 2D) = "black" {}
-        _MaskTex ("Mask", 2D) = "black" {}
-        _BoundaryTex ("Boundary", 2D) = "white" {}
+        _MainTex ("Image", 2D) = "black" {}
+        _MaskTex ("Mask",  2D) = "black" {}
 
         _SkyColor ("Sky Color", Color) = (1, 1, 1, 1)
     }
@@ -13,17 +12,17 @@ Shader "Compute/EnvMap"
         Pass
         {
             name "Default"
+            Cull Off ZWrite Off ZTest Always
         CGPROGRAM
             #include "UnityCG.cginc"
 
             #pragma vertex vert
             #pragma fragment frag
 
-            sampler2D _ImgTex;
+            sampler2D _MainTex;
             sampler2D _MaskTex;
-            sampler2D _BoundaryTex;
 
-            half4 _SkyColor;
+            fixed4 _SkyColor;
 
             struct appdata_t
             {
@@ -47,19 +46,19 @@ Shader "Compute/EnvMap"
                 return OUT;
             }
 
-            half4 frag(v2f IN) : SV_Target
+            fixed4 frag(v2f IN) : SV_Target
             {
-                float alpha = tex2D(_MaskTex, IN.texcoord).r;
-                
-                if (alpha < 0.01)
+                fixed4 mask = tex2D(_MaskTex, IN.texcoord); // (r, g, b) = (mask, mask_blurred, mask_mirrored)
+                if (mask.r < 0.01)
                     return half4(0, 0, 0, 0);
                 
-                float boundary_y = tex2D(_BoundaryTex, IN.texcoord).r;
-                float reflected_y = 3 * boundary_y - 2 * IN.texcoord.y;
-                float mask_reflected = tex2D(_MaskTex, half2(IN.texcoord.x, reflected_y)).r;
-                float use_envmap = max(mask_reflected, smoothstep(0.9, 1.0, reflected_y));
+                float reflected_y    = 3 * mask.b - 2 * IN.texcoord.y;
 
-                half4 color = lerp(tex2D(_ImgTex, half2(IN.texcoord.x, reflected_y)), _SkyColor, use_envmap);
+                float mask_reflected = tex2D( _MaskTex, half2(IN.texcoord.x, reflected_y) ).r;
+                float use_envmap     = max( mask_reflected, smoothstep(0.9, 1.0, reflected_y) );
+
+                fixed4 color         = lerp( tex2D( _MainTex, half2(IN.texcoord.x, reflected_y) ), _SkyColor, use_envmap );
+                color.a = mask.g;
 
                 return color;
             }

@@ -26,7 +26,13 @@ public class OpenCVPCAClient : MonoBehaviour
         m_Data = new OpenCVPCAData();
         m_Data.levels = OCTAVE_LEVELS;
         m_Data.paletteArray = new float[PALETTE_SIZE];
-        OpenCVPCA.AsyncPCA(img.GetReadableTexture(), mask.GetReadableTexture(), label.GetLabelTexture(), OCTAVE_LEVELS, m_Data.paletteArray);
+        OpenCVPCA.AsyncPCA(
+            img.GetReadableTexture(), 
+            mask.GetReadableTexture(MaskTexture.MASK_COMPRESS_RATIO),
+            label.GetLabelTexture(), 
+            OCTAVE_LEVELS, 
+            m_Data.paletteArray
+        );
 
         m_Invoked = true;
         m_InvokedTime = Time.time;

@@ -15,9 +15,13 @@ Shader "Compute/MaskRenderer"
         Pass
         {
             name "Default"
+
+            Cull Off
+            ZWrite Off
+            Lighting Off
+
         CGPROGRAM
             #include "UnityCG.cginc"
-            #include "UnityUI.cginc"
 
             #pragma vertex vert
             #pragma fragment frag
@@ -53,18 +57,18 @@ Shader "Compute/MaskRenderer"
                 return OUT;
             }
 
-            half4 frag(v2f IN) : SV_Target
+            fixed4 frag(v2f IN) : SV_Target
             {
-                half4 color;
-                half prev, cur;
+                fixed4 color, prev_color;
+                float cur;
 
                 cur = _UseLabel ? all(tex2D(_LabelTex, IN.texcoord) == tex2D(_LabelTex, _InputCoords)) : tex2D(_MainTex, IN.texcoord).r;
                 cur = _UseEraser ? 1 - cur : cur;
 
-                prev = tex2D(_PrevTex, IN.texcoord).r;
+                prev_color = tex2D(_PrevTex, IN.texcoord);
 
-                half value = _UseEraser ? min(cur, prev) : max(cur, prev);
-                color = half4(value, value, value, value);
+                float value = _UseEraser ? min(cur, prev_color.r) : max(cur, prev_color.r);
+                color = fixed4(value, value, value, value);
 
                 return color;
             }

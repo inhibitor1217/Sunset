@@ -47,7 +47,6 @@ public class EditorSceneMaster : MonoBehaviour
 
     // Water
     private GameObject m_EnvMapTextureObject;
-    private MaskMirrorTexture m_MaskMirrorTexture;
     private EnvironmentTexture m_EnvMapTexture;
 
     // Brush
@@ -254,15 +253,10 @@ public class EditorSceneMaster : MonoBehaviour
 
         if (maskIndex == EFFECT_WATER)
         {
-            m_MaskMirrorTexture = m_MaskTextureObjects[maskIndex].AddComponent<MaskMirrorTexture>();
-            m_MaskMirrorTexture.sourceTexture = m_MaskTextures[maskIndex];
-            m_MaskMirrorTexture.Setup();
-
             m_EnvMapTexture = m_MaskTextureObjects[maskIndex].AddComponent<EnvironmentTexture>();
             m_EnvMapTexture.imageTexture = m_RootStaticTexture;
-            m_EnvMapTexture.maskTexture = m_MaskTextures[maskIndex];
-            m_EnvMapTexture.boundaryTexture = m_MaskMirrorTexture;
-            m_EnvMapTexture.Setup();
+            m_EnvMapTexture.maskTexture  = m_MaskTextures[maskIndex];
+            m_EnvMapTexture.Setup(width / 4, height / 4);
         }
 
         switch (maskIndex)
@@ -318,7 +312,6 @@ public class EditorSceneMaster : MonoBehaviour
 
         if (maskIndex == EFFECT_WATER)
         {
-            m_MaskMirrorTexture = null;
             m_EnvMapTexture = null;
         }
     }
@@ -358,6 +351,7 @@ public class EditorSceneMaster : MonoBehaviour
         if (!m_MaskLayer)
         {
             m_MaskLayer = m_MaskLayerObject.GetComponent<RawImageController>();
+            m_MaskLayer.globalScale = MaskTexture.MASK_COMPRESS_RATIO;
         }
 
         // Setup References
@@ -516,7 +510,7 @@ public class EditorSceneMaster : MonoBehaviour
 
                 m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
                 m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
-                m_EffectTextures[maskIndex].maskTexture = m_MaskTextures[maskIndex];
+                // m_EffectTextures[maskIndex].maskTexture = m_MaskTextures[maskIndex];
                 m_EffectTextures[maskIndex].environmentTexture = m_EnvMapTexture;
                 
                 m_EffectTextures[maskIndex].Setup(width, height);

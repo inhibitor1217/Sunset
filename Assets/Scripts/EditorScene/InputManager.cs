@@ -36,7 +36,7 @@ public class InputManager : MonoBehaviour
         m_DesiredPosition = Vector2.zero;
     }
 
-    void FixedUpdate()
+    void Update()
     {
 #if UNITY_ANDROID && !UNITY_EDITOR
         if (Input.touchCount == 1)

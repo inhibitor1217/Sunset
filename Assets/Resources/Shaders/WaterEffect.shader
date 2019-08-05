@@ -5,8 +5,7 @@ Shader "Compute/WaterEffect"
         _MainTex    ("Source",      2D) = "black" {}
         _ImgTex     ("Image",       2D) = "black" {}
         _PaletteTex ("Palette",     2D) = "black" {}
-        _MaskTex    ("Mask",        2D) = "black" {}
-        _EnvTex     ("Environment", 2D) = "black" {}
+        _EnvTex     ("Environment", 2D) = "white" {}
 
         _Horizon ("Horizon", Range(0, 1.5)) = .7
         _Fov_Y   ("Fov Y", Range(0, 1.57)) = .4
@@ -17,6 +16,7 @@ Shader "Compute/WaterEffect"
         Pass
         {
             name "Calm"
+            Cull Off ZWrite Off ZTest Always
         CGPROGRAM
             #include "UnityCG.cginc"
 
@@ -28,11 +28,7 @@ Shader "Compute/WaterEffect"
             sampler2D _MainTex;
             sampler2D _ImgTex;
             sampler2D _PaletteTex;
-            sampler2D _MaskTex;
             sampler2D _EnvTex;
-
-            float2 _MainTex_TexelSize;
-            float2 _MaskTex_TexelSize;
             
             float _Horizon;
             float _Fov_Y;
@@ -62,7 +58,7 @@ Shader "Compute/WaterEffect"
 
             half4 frag(v2f IN) : SV_Target
             {
-                float alpha = tex2D(_MaskTex, IN.texcoord).r;
+                float alpha = tex2D(_EnvTex, IN.texcoord).a;
 
                 if (alpha < 0.01)
                     return half4(0, 0, 0, 0);
@@ -70,21 +66,25 @@ Shader "Compute/WaterEffect"
                 float Alpha = 1.0 / tan(_Yaw + _Fov_Y); 
                 float Beta  = cos(_Fov_Y) / (sin(_Yaw + _Fov_Y) + cos(_Yaw));
 
-                float y_n = IN.texcoord.y / _Horizon;
-                float y_p = Alpha + Beta / abs(1/y_n - 1);
+                float y_n   = IN.texcoord.y / _Horizon;
+                float y_p   = Alpha + Beta / abs(1/y_n - 1);
 
-                float r = tex2D(_MainTex, half2(IN.texcoord.x, y_p)).r;
+                float r     = tex2D( _MainTex, half2(IN.texcoord.x, y_p) ).r;
 
-                half4 low  = tex2D(_PaletteTex, half2(IN.texcoord.x, .5 * IN.texcoord.y));
-                half4 high = tex2D(_PaletteTex, half2(IN.texcoord.x, .5 * IN.texcoord.y + .5));
-                half4 envMap = tex2D(_EnvTex, IN.texcoord + .1 * (1 - pow(y_n, 3)) * half2(r, r));
+                // DIFFUSE (PALETTE)
+                half4 low      = tex2D( _PaletteTex, half2(IN.texcoord.x, .5 * IN.texcoord.y) );
+                half4 high     = tex2D( _PaletteTex, half2(IN.texcoord.x, .5 * IN.texcoord.y + .5) );
+                half4 diffuse  = lerp( low, high, r );
                 
-                half4 diffuse = lerp(low, high, r);
-                half4 color   = lerp(diffuse, envMap, .3 * .7 + pow(y_n, 3));
+                // SPECULAR (ENVIRONMENT MAP)
+                half4 envMap   = tex2D( _EnvTex, IN.texcoord + .1 * (1 - pow(y_n, 3)) * half2(r, r) );
+                
+                // FRESNEL
+                half4 color    = lerp( diffuse, envMap, .3 * .7 + pow(y_n, 3) );
 
                 // FOG
-                half4 fogColor = tex2D(_ImgTex, half2(IN.texcoord.x, _Horizon));
-                color = lerp(color, fogColor, smoothstep(_Horizon - .1, _Horizon, IN.texcoord.y));
+                half4 fogColor = tex2D( _ImgTex, half2(IN.texcoord.x, _Horizon) );
+                color          = lerp( color, fogColor, smoothstep(_Horizon - .1, _Horizon, IN.texcoord.y) );
 
                 // MASK BOUNDARY MIX
                 color *= alpha;

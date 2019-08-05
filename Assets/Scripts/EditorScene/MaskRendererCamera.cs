@@ -52,7 +52,11 @@ public class MaskRendererCamera : MonoBehaviour
             m_Material.SetTexture("_PrevTex", m_LastFrame);
         Graphics.Blit(src, dst, m_Material);
         if (!m_LastFrame)
+        {
             m_LastFrame = RenderTexture.GetTemporary(src.width, src.height, 0, src.format);
+            m_LastFrame.filterMode = FilterMode.Point;
+            m_LastFrame.antiAliasing = 1;
+        }
         m_LastFrame.DiscardContents();
         Graphics.Blit(dst, m_LastFrame);
     }

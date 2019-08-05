@@ -2,7 +2,7 @@ Shader "UI/Mask"
 {
     Properties
     {
-        [PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
+        _MainTex ("Mask", 2D) = "black" {}
 
         _Color ("Color", Color) = (1, 0, 0, 1)
 
@@ -75,9 +75,9 @@ Shader "UI/Mask"
                 return OUT;
             }
 
-            half4 frag(v2f IN) : SV_Target
+            fixed4 frag(v2f IN) : SV_Target
             {
-                half4 color = _Color;
+                fixed4 color = _Color;
                 float v = tex2D(_MainTex, IN.texcoord).r;
 
                 clip(v - 0.01);
