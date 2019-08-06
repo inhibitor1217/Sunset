@@ -3,13 +3,8 @@
 public class FractalNoiseRuntimeTexture : TextureProvider
 {
 
-    enum NoiseType {
-        ValueBlock = 0, ValueLinear = 1, ValueSpline = 2,
-        PerlinBlock = 3, PerlinLinear = 4
-    };
-    enum FractalType {
-        Basic = 0, Turbulent = 1, Rocky = 2
-    };
+    private static string[] NOISE_TYPES = { "VALUE", "VALUE_LINEAR", "VALUE_SPLINE", "PERLIN", "PERLIN_LINEAR" };
+    private static string[] FRACTAL_TYPES = { "BASIC", "TURBULENT", "ROCKY" }; 
 
     [Header("Texture")]
     public int resolution = 256;
@@ -25,13 +20,13 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         }
     }
     [SerializeField]
-    private NoiseType _noiseType = NoiseType.PerlinLinear;
+    private int _noiseType = 4;
     public int noiseType {
-        get { return (int)_noiseType; }
+        get { return _noiseType; }
         set { updateNoiseType(value); }
     }
     [SerializeField]
-    private FractalType _fractalType = FractalType.Basic;
+    private int _fractalType = 0;
     public int fractalType {
         get { return (int)_fractalType; }
         set { updateFractalType(value); }
@@ -122,8 +117,22 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         get { return _evolutionSpeed; }
         set { updateEvolutionSpeed(value); }
     }
+    [SerializeField]
+    private Vector2 _globalVelocity = Vector2.zero;
+    public Vector2 globalVelocity {
+        get { return _globalVelocity; }
+        set { updateGlobalVelocity(value); }
+    }
+    [SerializeField]
+    private Vector2 _subVelocity = Vector2.zero;
+    public Vector2 subVelocity {
+        get { return _subVelocity; }
+        set { updateSubVelocity(value); }
+    }
+
 
     private Material m_FractalNoiseMaterial;
+    [SerializeField]
     private RenderTexture m_RenderTexture;
 
     new void Awake()
@@ -132,7 +141,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
 
         m_FractalNoiseMaterial = new Material(Shader.Find("Compute/FractalNoise"));
         m_RenderTexture = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.RHalf);
-        m_RenderTexture.wrapMode = TextureWrapMode.Mirror;
+        m_RenderTexture.wrapMode = TextureWrapMode.Repeat;
         m_RenderTexture.filterMode = FilterMode.Bilinear;
     }
 
@@ -154,6 +163,8 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         contrast = _contrast;
         enableEvolution = _enableEvolution;
         evolutionSpeed = _evolutionSpeed;
+        globalVelocity = _globalVelocity;
+        subVelocity = _subVelocity;
     }
 
     void Update()
@@ -196,8 +207,8 @@ public class FractalNoiseRuntimeTexture : TextureProvider
 #if UNITY_EDITOR
     void OnValidate()
     {
-        noiseType = (int)_noiseType;
-        fractalType = (int)_fractalType;
+        noiseType = _noiseType;
+        fractalType = _fractalType;
         seed = _seed;
         offset = _offset;
         scale = _scale;
@@ -206,29 +217,44 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         subInfluence = _subInfluence;
         subScale = _subScale;
         subOffset = _subOffset;
+        subRotation = _subRotation;
         brightness = _brightness;
         contrast = _contrast;
         enableEvolution = _enableEvolution;
         evolutionSpeed = _evolutionSpeed;
+        globalVelocity = _globalVelocity;
+        subVelocity = _subVelocity;
     }
 #endif
 
     void updateNoiseType(int value)
     {
-        _noiseType = (NoiseType)value;
+        _noiseType = value;
         if (m_FractalNoiseMaterial)
         {
-            m_FractalNoiseMaterial.SetInt("_NoiseType", value);
+            for (int i = 0; i < NOISE_TYPES.Length; i++)
+            {
+                if (i == value)
+                    m_FractalNoiseMaterial.EnableKeyword(NOISE_TYPES[i]);
+                else
+                    m_FractalNoiseMaterial.DisableKeyword(NOISE_TYPES[i]);
+            }
             textureShouldUpdate = true;
         }
     }
 
     void updateFractalType(int value)
     {
-        _fractalType = (FractalType)value;
+        _fractalType = value;
         if (m_FractalNoiseMaterial)
         {
-            m_FractalNoiseMaterial.SetInt("_FractalType", value);
+            for (int i = 0; i < FRACTAL_TYPES.Length; i++)
+            {
+                if (i == value)
+                    m_FractalNoiseMaterial.EnableKeyword(FRACTAL_TYPES[i]);
+                else
+                    m_FractalNoiseMaterial.DisableKeyword(FRACTAL_TYPES[i]);
+            }
             textureShouldUpdate = true;
         }
     }
@@ -356,6 +382,28 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         if (m_FractalNoiseMaterial)
         {
             m_FractalNoiseMaterial.SetFloat("_EvolutionSpeed", _evolutionSpeed);
+            textureShouldUpdate = true;
+        }
+    }
+
+    void updateGlobalVelocity(Vector2 value)
+    {
+        _globalVelocity = value;
+        if (m_FractalNoiseMaterial)
+        {
+            Vector4 oldValue = m_FractalNoiseMaterial.GetVector("_Velocity");
+            m_FractalNoiseMaterial.SetVector("_Velocity", new Vector4(value.x, value.y, oldValue.z, oldValue.w));
+            textureShouldUpdate = true;
+        }
+    }
+
+    void updateSubVelocity(Vector2 value)
+    {
+        _subVelocity = value;
+        if (m_FractalNoiseMaterial)
+        {
+            Vector4 oldValue = m_FractalNoiseMaterial.GetVector("_Velocity");
+            m_FractalNoiseMaterial.SetVector("_Velocity", new Vector4(oldValue.x, oldValue.y, value.x, value.y));
             textureShouldUpdate = true;
         }
     }

@@ -74,11 +74,13 @@ public class EffectTexture : TextureProvider
         }
     }
 
+    [SerializeField]
     private RenderTexture m_RenderTexture;
     [SerializeField]
     private Material m_WaterMaterial;
     private int m_CalmPass;
     private int m_RiverPass;
+    private Material m_GradientMaterial;
 
     new void Awake()
     {
@@ -87,6 +89,8 @@ public class EffectTexture : TextureProvider
         m_WaterMaterial = new Material(Shader.Find("Compute/WaterEffect"));
         m_CalmPass  = m_WaterMaterial.FindPass("Calm");
         m_RiverPass = m_WaterMaterial.FindPass("River");
+
+        m_GradientMaterial = new Material(Shader.Find("Compute/Gradient"));
     }
 
     public override bool Draw()
@@ -121,6 +125,21 @@ public class EffectTexture : TextureProvider
 
     void DrawRiver()
     {
+        // Texture noiseTex = m_NoiseTex.GetTexture();
+        // RenderTexture noiseGradient = RenderTexture.GetTemporary(noiseTex.width, noiseTex.height, 0, RenderTextureFormat.ARGBFloat);
+        // noiseGradient.filterMode = FilterMode.Bilinear;
+        // noiseGradient.wrapMode   = TextureWrapMode.Repeat;
+        // Graphics.Blit(noiseTex, noiseGradient, m_GradientMaterial);
+
+        // m_WaterMaterial.SetTexture("_ImgTex", EditorSceneMaster.Instance.GetRootTextureProvider().GetBlurredTexture());
+        // m_WaterMaterial.SetTexture("_PaletteTex", m_PaletteTex.GetTexture());
+        // m_WaterMaterial.SetTexture("_EnvTex", m_EnvTex.GetTexture());
+
+        // m_RenderTexture.DiscardContents();
+        // Graphics.Blit(noiseGradient, m_RenderTexture, m_WaterMaterial, m_RiverPass);
+
+        // RenderTexture.ReleaseTemporary(noiseGradient);
+
         m_RenderTexture.DiscardContents();
         Graphics.Blit(m_NoiseTex.GetTexture(), m_RenderTexture, m_WaterMaterial, m_RiverPass);
     }

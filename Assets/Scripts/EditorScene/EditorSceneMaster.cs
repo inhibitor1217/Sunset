@@ -109,11 +109,6 @@ public class EditorSceneMaster : MonoBehaviour
     }
 #endif
 
-    void Update()
-    {
-        
-    }
-
     public StaticTexture GetRootTextureProvider()
     {
         return m_RootStaticTexture;
@@ -540,9 +535,9 @@ public class EditorSceneMaster : MonoBehaviour
                 m_FractalNoiseRuntimeTexture.noiseType = 4;
                 m_FractalNoiseRuntimeTexture.fractalType = 0;
                 m_FractalNoiseRuntimeTexture.scale = new Vector2(8, 8);
-                m_FractalNoiseRuntimeTexture.complexity = 3;
+                m_FractalNoiseRuntimeTexture.complexity = 1;
                 m_FractalNoiseRuntimeTexture.brightness = 0f;
-                m_FractalNoiseRuntimeTexture.contrast = 3f;
+                m_FractalNoiseRuntimeTexture.contrast = 1f;
 
                 m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
                 m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
