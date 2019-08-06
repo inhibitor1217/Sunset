@@ -78,6 +78,7 @@ public class EffectTexture : TextureProvider
     private RenderTexture m_RenderTexture;
     [SerializeField]
     private Material m_WaterMaterial;
+    private int m_PerspectivePass;
     private int m_CalmPass;
     private int m_RiverPass;
     private Material m_GradientMaterial;
@@ -87,8 +88,9 @@ public class EffectTexture : TextureProvider
         base.Awake();
 
         m_WaterMaterial = new Material(Shader.Find("Compute/WaterEffect"));
-        m_CalmPass  = m_WaterMaterial.FindPass("Calm");
-        m_RiverPass = m_WaterMaterial.FindPass("River");
+        m_PerspectivePass = m_WaterMaterial.FindPass("Perspective");
+        m_CalmPass        = m_WaterMaterial.FindPass("Calm");
+        m_RiverPass       = m_WaterMaterial.FindPass("River");
 
         m_GradientMaterial = new Material(Shader.Find("Compute/Gradient"));
     }
@@ -119,26 +121,43 @@ public class EffectTexture : TextureProvider
         m_WaterMaterial.SetTexture("_PaletteTex", m_PaletteTex.GetTexture());
         m_WaterMaterial.SetTexture("_EnvTex", m_EnvTex.GetTexture());
 
+        Texture noiseTex = m_NoiseTex.GetTexture();
+
+        RenderTexture noisePerspective = RenderTexture.GetTemporary(m_RenderTexture.width, m_RenderTexture.height, 0, RenderTextureFormat.RFloat);
+        noisePerspective.filterMode = FilterMode.Bilinear;
+        noisePerspective.wrapMode   = TextureWrapMode.Repeat;
+        Graphics.Blit(noiseTex, noisePerspective, m_WaterMaterial, m_PerspectivePass);
+
         m_RenderTexture.DiscardContents();
-        Graphics.Blit(m_NoiseTex.GetTexture(), m_RenderTexture, m_WaterMaterial, m_CalmPass);
+        Graphics.Blit(noisePerspective, m_RenderTexture, m_WaterMaterial, m_CalmPass);
+
+        RenderTexture.ReleaseTemporary(noisePerspective);
     }
 
     void DrawRiver()
     {
-        Texture noiseTex = m_NoiseTex.GetTexture();
-        RenderTexture noiseGradient = RenderTexture.GetTemporary(noiseTex.width, noiseTex.height, 0, RenderTextureFormat.ARGBFloat);
-        noiseGradient.filterMode = FilterMode.Bilinear;
-        noiseGradient.wrapMode   = TextureWrapMode.Repeat;
-        Graphics.Blit(noiseTex, noiseGradient, m_GradientMaterial);
-
         m_WaterMaterial.SetTexture("_ImgTex", EditorSceneMaster.Instance.GetRootTextureProvider().GetBlurredTexture());
         m_WaterMaterial.SetTexture("_PaletteTex", m_PaletteTex.GetTexture());
         m_WaterMaterial.SetTexture("_EnvTex", m_EnvTex.GetTexture());
 
+        Texture noiseTex = m_NoiseTex.GetTexture();
+
+        RenderTexture noiseGradient = RenderTexture.GetTemporary(noiseTex.width, noiseTex.height, 0, RenderTextureFormat.ARGBFloat);
+        noiseGradient.filterMode = FilterMode.Bilinear;
+        noiseGradient.wrapMode   = TextureWrapMode.Repeat;
+        noiseGradient.useMipMap  = true;
+        Graphics.Blit(noiseTex, noiseGradient, m_GradientMaterial);
+
+        RenderTexture noisePerspective = RenderTexture.GetTemporary(m_RenderTexture.width, m_RenderTexture.height, 0, RenderTextureFormat.ARGBFloat);
+        noisePerspective.filterMode = FilterMode.Bilinear;
+        noisePerspective.wrapMode   = TextureWrapMode.Repeat;
+        Graphics.Blit(noiseGradient, noisePerspective, m_WaterMaterial, m_PerspectivePass);
+
         m_RenderTexture.DiscardContents();
-        Graphics.Blit(noiseGradient, m_RenderTexture, m_WaterMaterial, m_RiverPass);
+        Graphics.Blit(noisePerspective, m_RenderTexture, m_WaterMaterial, m_RiverPass);
 
         RenderTexture.ReleaseTemporary(noiseGradient);
+        RenderTexture.ReleaseTemporary(noisePerspective);
     }
 
     public override Texture GetTexture()
@@ -153,8 +172,8 @@ public class EffectTexture : TextureProvider
 
         m_RenderTexture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32);
         m_RenderTexture.useMipMap = false;
-        m_RenderTexture.wrapMode = TextureWrapMode.Repeat;
-        m_RenderTexture.filterMode = FilterMode.Bilinear;
+        m_RenderTexture.wrapMode = TextureWrapMode.Clamp;
+        m_RenderTexture.filterMode = FilterMode.Point;
     }
 
 }

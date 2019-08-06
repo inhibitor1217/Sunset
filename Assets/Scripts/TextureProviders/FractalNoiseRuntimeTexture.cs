@@ -141,8 +141,9 @@ public class FractalNoiseRuntimeTexture : TextureProvider
 
         m_FractalNoiseMaterial = new Material(Shader.Find("Compute/FractalNoise"));
         m_RenderTexture = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.RHalf);
-        m_RenderTexture.wrapMode = TextureWrapMode.Repeat;
+        m_RenderTexture.wrapMode   = TextureWrapMode.Repeat;
         m_RenderTexture.filterMode = FilterMode.Bilinear;
+        m_RenderTexture.useMipMap  = true;
     }
 
     new void Start()

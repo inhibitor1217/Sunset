@@ -510,6 +510,7 @@ public class EditorSceneMaster : MonoBehaviour
         if (!m_EffectLayers[maskIndex])
         {
             m_EffectLayers[maskIndex] = m_EffectLayerObjects[maskIndex].GetComponent<RawImageController>();
+            m_EffectLayers[maskIndex].globalScale = 2f;
         }
 
         if (maskIndex == EFFECT_WATER)
@@ -529,7 +530,7 @@ public class EditorSceneMaster : MonoBehaviour
                 m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
                 m_EffectTextures[maskIndex].environmentTexture = m_EnvMapTexture;
                 
-                m_EffectTextures[maskIndex].Setup(width, height);
+                m_EffectTextures[maskIndex].Setup(width / 2, height / 2);
                 m_EffectTextures[maskIndex].effectType = WATER_TYPE_CALM;
                 break;
             case WATER_TYPE_RIVER:
@@ -538,14 +539,14 @@ public class EditorSceneMaster : MonoBehaviour
                 m_FractalNoiseRuntimeTexture.scale = new Vector2(8, 32);
                 m_FractalNoiseRuntimeTexture.complexity = 1;
                 m_FractalNoiseRuntimeTexture.brightness = 0f;
-                m_FractalNoiseRuntimeTexture.contrast = 1f;
+                m_FractalNoiseRuntimeTexture.contrast = 2f;
                 m_FractalNoiseRuntimeTexture.globalVelocity = new Vector2(0f, .1f);
 
                 m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
                 m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
                 m_EffectTextures[maskIndex].environmentTexture = m_EnvMapTexture;
                 
-                m_EffectTextures[maskIndex].Setup(width, height);
+                m_EffectTextures[maskIndex].Setup(width / 2, height / 2);
                 m_EffectTextures[maskIndex].effectType = WATER_TYPE_RIVER;
                 break;
             default:

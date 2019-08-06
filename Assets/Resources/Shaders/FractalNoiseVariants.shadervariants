@@ -7,4 +7,11 @@ ShaderVariantCollection:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: FractalNoiseVariants
-  m_Shaders: {}
+  m_Shaders:
+  - first: {fileID: 4800000, guid: e859504bcbbab49bd85174c53d2bcaa8, type: 3}
+    second:
+      variants:
+      - keywords: BASIC PERLIN_LINEAR
+        passType: 0
+      - keywords: PERLIN_LINEAR TURBULENT
+        passType: 0
