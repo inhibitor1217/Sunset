@@ -125,23 +125,20 @@ public class EffectTexture : TextureProvider
 
     void DrawRiver()
     {
-        // Texture noiseTex = m_NoiseTex.GetTexture();
-        // RenderTexture noiseGradient = RenderTexture.GetTemporary(noiseTex.width, noiseTex.height, 0, RenderTextureFormat.ARGBFloat);
-        // noiseGradient.filterMode = FilterMode.Bilinear;
-        // noiseGradient.wrapMode   = TextureWrapMode.Repeat;
-        // Graphics.Blit(noiseTex, noiseGradient, m_GradientMaterial);
+        Texture noiseTex = m_NoiseTex.GetTexture();
+        RenderTexture noiseGradient = RenderTexture.GetTemporary(noiseTex.width, noiseTex.height, 0, RenderTextureFormat.ARGBFloat);
+        noiseGradient.filterMode = FilterMode.Bilinear;
+        noiseGradient.wrapMode   = TextureWrapMode.Repeat;
+        Graphics.Blit(noiseTex, noiseGradient, m_GradientMaterial);
 
-        // m_WaterMaterial.SetTexture("_ImgTex", EditorSceneMaster.Instance.GetRootTextureProvider().GetBlurredTexture());
-        // m_WaterMaterial.SetTexture("_PaletteTex", m_PaletteTex.GetTexture());
-        // m_WaterMaterial.SetTexture("_EnvTex", m_EnvTex.GetTexture());
-
-        // m_RenderTexture.DiscardContents();
-        // Graphics.Blit(noiseGradient, m_RenderTexture, m_WaterMaterial, m_RiverPass);
-
-        // RenderTexture.ReleaseTemporary(noiseGradient);
+        m_WaterMaterial.SetTexture("_ImgTex", EditorSceneMaster.Instance.GetRootTextureProvider().GetBlurredTexture());
+        m_WaterMaterial.SetTexture("_PaletteTex", m_PaletteTex.GetTexture());
+        m_WaterMaterial.SetTexture("_EnvTex", m_EnvTex.GetTexture());
 
         m_RenderTexture.DiscardContents();
-        Graphics.Blit(m_NoiseTex.GetTexture(), m_RenderTexture, m_WaterMaterial, m_RiverPass);
+        Graphics.Blit(noiseGradient, m_RenderTexture, m_WaterMaterial, m_RiverPass);
+
+        RenderTexture.ReleaseTemporary(noiseGradient);
     }
 
     public override Texture GetTexture()

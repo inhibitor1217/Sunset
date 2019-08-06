@@ -139,40 +139,42 @@ Shader "Compute/WaterEffect"
 
             fixed4 frag(v2f IN) : SV_Target
             {
-                // float alpha = tex2D(_EnvTex, IN.texcoord).a;
+                float alpha = tex2D(_EnvTex, IN.texcoord).a;
 
-                // if (alpha < 0.01)
-                //     return half4(0, 0, 0, 0);
+                if (alpha < 0.01)
+                    return half4(0, 0, 0, 0);
 
-                // float Alpha = 1.0 / tan(_Yaw + _Fov_Y); 
-                // float Beta  = cos(_Fov_Y) / (sin(_Yaw + _Fov_Y) + cos(_Yaw));
+                float Alpha = 1.0 / tan(_Yaw + _Fov_Y); 
+                float Beta  = cos(_Fov_Y) / (sin(_Yaw + _Fov_Y) + cos(_Yaw));
 
-                // float y_n   = IN.texcoord.y / _Horizon;
-                // float y_p   = Alpha + Beta / abs(1/y_n - 1);
+                float y_n   = IN.texcoord.y / _Horizon;
+                float y_p   = Alpha + Beta / abs(1/y_n - 1);
 
-                // float3 n = normalize(2 * tex2D(_MainTex, float2(y_p * (IN.texcoord.x - .5), y_p)).xyz - 1);
-                // float3 l = normalize(float3(1, 1, 1));
+                float3 n = normalize(2 * tex2D(_MainTex, float2(y_p * (IN.texcoord.x - .5), y_p)).xyz - 1);
+                float3 l = normalize(float3(0, 1, 1));
+                float3 v = normalize(float3( -y_p * (IN.texcoord.x - .5), -y_p, 1 ));
+                float3 h = normalize(.5 * (l + v));
 
-                // // DIFFUSE (PALETTE)
-                // fixed4 low      = tex2D( _PaletteTex, float2(IN.texcoord.x, .5 * IN.texcoord.y) );
-                // fixed4 high     = tex2D( _PaletteTex, float2(IN.texcoord.x, .5 * IN.texcoord.y + .5) );
+                // DIFFUSE (PALETTE)
+                fixed3 low      = tex2D( _PaletteTex, float2(IN.texcoord.x, .5 * IN.texcoord.y) ).rgb;
+                fixed3 high     = tex2D( _PaletteTex, float2(IN.texcoord.x, .5 * IN.texcoord.y + .5) ).rgb;
                 
-                // // // SPECULAR (ENVIRONMENT MAP)
-                // fixed4 envMap   = tex2D( _EnvTex, IN.texcoord );
+                // SPECULAR (ENVIRONMENT MAP)
+                fixed3 envMap   = tex2D( _EnvTex, IN.texcoord + .3 * n.xy ).rgb;
                 
-                // // // FRESNEL
-                // fixed4 color    = lerp( low, lerp(high, envMap, .3 * .7 + pow(y_n, 3)), max(dot(n, l), 0) );
+                // FRESNEL
+                fixed3 diffuse  = low;
+                fixed3 specular = (high * envMap) * max(dot(n, l), 0);
+                fixed4 color    = fixed4(diffuse + (.5 * .5 + pow(y_n, 3)) * specular, 1);
 
-                // // FOG
-                // fixed4 fogColor = tex2D( _ImgTex, float2(IN.texcoord.x, _Horizon) );
-                // color           = lerp( color, fogColor, smoothstep(_Horizon - .1, _Horizon, IN.texcoord.y) );
+                // FOG
+                fixed4 fogColor = tex2D( _ImgTex, float2(IN.texcoord.x, _Horizon) );
+                color           = lerp( color, fogColor, smoothstep(_Horizon - .1, _Horizon, IN.texcoord.y) );
 
-                // // MASK BOUNDARY MIX
-                // color *= alpha;
+                // MASK BOUNDARY MIX
+                color *= alpha;
 
-                // return color;
-
-                return tex2D(_MainTex, IN.texcoord);
+                return color;
             }
         ENDCG
         }

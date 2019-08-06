@@ -523,6 +523,7 @@ public class EditorSceneMaster : MonoBehaviour
                 m_FractalNoiseRuntimeTexture.complexity = 3;
                 m_FractalNoiseRuntimeTexture.brightness = -.5f;
                 m_FractalNoiseRuntimeTexture.contrast = 2f;
+                m_FractalNoiseRuntimeTexture.globalVelocity = Vector2.zero;
 
                 m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
                 m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
@@ -533,11 +534,12 @@ public class EditorSceneMaster : MonoBehaviour
                 break;
             case WATER_TYPE_RIVER:
                 m_FractalNoiseRuntimeTexture.noiseType = 4;
-                m_FractalNoiseRuntimeTexture.fractalType = 0;
-                m_FractalNoiseRuntimeTexture.scale = new Vector2(8, 8);
+                m_FractalNoiseRuntimeTexture.fractalType = 1;
+                m_FractalNoiseRuntimeTexture.scale = new Vector2(8, 32);
                 m_FractalNoiseRuntimeTexture.complexity = 1;
                 m_FractalNoiseRuntimeTexture.brightness = 0f;
                 m_FractalNoiseRuntimeTexture.contrast = 1f;
+                m_FractalNoiseRuntimeTexture.globalVelocity = new Vector2(0f, .1f);
 
                 m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
                 m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
