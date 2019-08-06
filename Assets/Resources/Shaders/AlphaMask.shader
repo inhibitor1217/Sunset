@@ -42,9 +42,9 @@ Shader "Compute/AlphaMask"
                 return OUT;
             }
 
-            half4 frag(v2f IN) : SV_Target
+            fixed4 frag(v2f IN) : SV_Target
             {
-                half4 color = lerp(half4(0, 0, 0, 0), tex2D(_MainTex , IN.texcoord), tex2D(_AlphaTex, IN.texcoord).r);
+                fixed4 color = lerp(half4(0, 0, 0, 0), tex2D(_MainTex , IN.texcoord), tex2D(_AlphaTex, IN.texcoord).r);
 
                 return color;
             }

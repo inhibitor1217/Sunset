@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class EffectTexture : TextureProvider
 {
+    public int effectType;
 
     private const int PALETTE_SRC_INDEX = 0;
     private const int NOISE_SRC_INDEX = 1;
@@ -77,13 +78,15 @@ public class EffectTexture : TextureProvider
     [SerializeField]
     private Material m_WaterMaterial;
     private int m_CalmPass;
+    private int m_RiverPass;
 
     new void Awake()
     {
         base.Awake();
 
         m_WaterMaterial = new Material(Shader.Find("Compute/WaterEffect"));
-        m_CalmPass = m_WaterMaterial.FindPass("Calm");
+        m_CalmPass  = m_WaterMaterial.FindPass("Calm");
+        m_RiverPass = m_WaterMaterial.FindPass("River");
     }
 
     public override bool Draw()
@@ -91,14 +94,35 @@ public class EffectTexture : TextureProvider
         if (!m_RenderTexture)
             return false;
 
+        switch(effectType)
+        {
+        case EditorSceneMaster.WATER_TYPE_CALM:
+            DrawCalm();
+            break;
+        case EditorSceneMaster.WATER_TYPE_RIVER:
+            DrawRiver();
+            break;
+        default:
+            break;
+        }
+
+        return true;
+    }
+
+    void DrawCalm()
+    {
         m_WaterMaterial.SetTexture("_ImgTex", EditorSceneMaster.Instance.GetRootTextureProvider().GetBlurredTexture());
         m_WaterMaterial.SetTexture("_PaletteTex", m_PaletteTex.GetTexture());
         m_WaterMaterial.SetTexture("_EnvTex", m_EnvTex.GetTexture());
 
         m_RenderTexture.DiscardContents();
         Graphics.Blit(m_NoiseTex.GetTexture(), m_RenderTexture, m_WaterMaterial, m_CalmPass);
+    }
 
-        return true;
+    void DrawRiver()
+    {
+        m_RenderTexture.DiscardContents();
+        Graphics.Blit(m_NoiseTex.GetTexture(), m_RenderTexture, m_WaterMaterial, m_RiverPass);
     }
 
     public override Texture GetTexture()

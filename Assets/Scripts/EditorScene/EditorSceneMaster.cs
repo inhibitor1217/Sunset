@@ -76,6 +76,7 @@ public class EditorSceneMaster : MonoBehaviour
     public const int EFFECT_WATER = 0;
     public const int EFFECT_SKY = 1;
     public const int WATER_TYPE_CALM = 0;
+    public const int WATER_TYPE_RIVER = 1;
     public const int LAYER_WATER = 8;
     public const int LAYER_SKY = 9;
     public const int MASK_WATER = 0x100;
@@ -482,6 +483,7 @@ public class EditorSceneMaster : MonoBehaviour
     }
 
     public void Calm() { CreateEffect(EFFECT_WATER, WATER_TYPE_CALM); }
+    public void River() { CreateEffect(EFFECT_WATER, WATER_TYPE_RIVER); }
 
     public void CreateEffect(int maskIndex, int effectType)
     {
@@ -532,6 +534,22 @@ public class EditorSceneMaster : MonoBehaviour
                 m_EffectTextures[maskIndex].environmentTexture = m_EnvMapTexture;
                 
                 m_EffectTextures[maskIndex].Setup(width, height);
+                m_EffectTextures[maskIndex].effectType = WATER_TYPE_CALM;
+                break;
+            case WATER_TYPE_RIVER:
+                m_FractalNoiseRuntimeTexture.noiseType = 4;
+                m_FractalNoiseRuntimeTexture.fractalType = 0;
+                m_FractalNoiseRuntimeTexture.scale = new Vector2(8, 8);
+                m_FractalNoiseRuntimeTexture.complexity = 3;
+                m_FractalNoiseRuntimeTexture.brightness = 0f;
+                m_FractalNoiseRuntimeTexture.contrast = 3f;
+
+                m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
+                m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
+                m_EffectTextures[maskIndex].environmentTexture = m_EnvMapTexture;
+                
+                m_EffectTextures[maskIndex].Setup(width, height);
+                m_EffectTextures[maskIndex].effectType = WATER_TYPE_RIVER;
                 break;
             default:
                 RemoveEffect(maskIndex);
