@@ -3,18 +3,18 @@ Shader "Compute/FractalNoise"
     Properties
     {
         _GlobalOffsetScale ("Global Offset, Scale", Vector) = (0, 0, 8, 8)
-        _GlobalRotation ("Global Rotation", Range(-360, 360)) = 0
+        // _GlobalRotation ("Global Rotation", Range(-360, 360)) = 0
         
         _Complexity ("Complexity", Int) = 3
         _SubOffsetScale("Sub Offset, Scale", Vector) = (0, 0, 2, 2)
-        _SubRotation("Sub Rotation", Range(-360, 360)) = 0
+        // _SubRotation("Sub Rotation", Range(-360, 360)) = 0
         _SubInfluence("Sub Influence", Range(0, 1)) = .5
 
         _Contrast ("Contrast", Range(0, 10)) = 1
         _Brightness ("Brightness", Range(-2, 2)) = 0
 
         _EvolutionSpeed ("Evolution Speed", Float) = 0
-        _Velocity ("Velocity (Global, Sub)", Vector) = (0, 0, 0, 0)
+        // _Velocity ("Velocity (Global, Sub)", Vector) = (0, 0, 0, 0)
     }
 
     SubShader
@@ -44,18 +44,18 @@ Shader "Compute/FractalNoise"
             float4 _Gradients[256];
 
             fixed4 _GlobalOffsetScale;
-            float _GlobalRotation;
+            // float _GlobalRotation;
 
             int _Complexity;
             fixed4 _SubOffsetScale;
-            float _SubRotation;
+            // float _SubRotation;
             float _SubInfluence;
 
             float _Contrast;
             float _Brightness;
             
             float _EvolutionSpeed;
-            float4 _Velocity;
+            // float4 _Velocity;
 
             static float HASH_MAX = 255;
             static float HASH_ARRAY_SIZE = 256.0;
@@ -127,6 +127,9 @@ Shader "Compute/FractalNoise"
                     floor(coords.z)
                 ); 
                 float3 offset = (float3(HASH_ARRAY_SIZE, HASH_ARRAY_SIZE, 1) * coords - float3(coordsFloored)) / mod;
+
+                // FOR DEBUGGING (CHECKBOARD)
+                // return .5 * (offset.x + offset.y);
 
         #if VALUE
                     return lerp(
@@ -211,15 +214,18 @@ Shader "Compute/FractalNoise"
 
             float octave(float3 texcoord, int level)
             {
-                float angle = radians(_GlobalRotation + _SubRotation * level);
+                // float angle = radians(_GlobalRotation + _SubRotation * level);
                 float3 coords;
-                coords.xy = mul(
-                    float2x2(
-                        cos(angle), -sin(angle), 
-                        sin(angle),  cos(angle)
-                    ),
-                    texcoord.xy
-                ) + _GlobalOffsetScale.xy + _SubOffsetScale.xy * level + _Time.y * (_Velocity.xy + _Velocity.zw * level);
+                // coords.xy = mul(
+                //     float2x2(
+                //         cos(angle), -sin(angle), 
+                //         sin(angle),  cos(angle)
+                //     ),
+                //     texcoord.xy
+                // ) + _GlobalOffsetScale.xy + _SubOffsetScale.xy * level + _Time.y * (_Velocity.xy + _Velocity.zw * level);
+                coords.xy = texcoord.xy
+                    + _GlobalOffsetScale.xy + _SubOffsetScale.xy * level;
+                    // + _Time.y * (_Velocity.xy + _Velocity.zw * level);
                 coords.z = texcoord.z;
 
                 float value = interp(coords, level);

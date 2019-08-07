@@ -524,11 +524,13 @@ public class EditorSceneMaster : MonoBehaviour
                 m_FractalNoiseRuntimeTexture.complexity = 3;
                 m_FractalNoiseRuntimeTexture.brightness = -.5f;
                 m_FractalNoiseRuntimeTexture.contrast = 2f;
-                m_FractalNoiseRuntimeTexture.globalVelocity = Vector2.zero;
+                m_FractalNoiseRuntimeTexture.evolutionSpeed = 1f;
 
                 m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
                 m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
                 m_EffectTextures[maskIndex].environmentTexture = m_EnvMapTexture;
+                m_EffectTextures[maskIndex].rotation = 0f;
+                m_EffectTextures[maskIndex].speed    = 0f;
                 
                 m_EffectTextures[maskIndex].Setup(width / 2, height / 2);
                 m_EffectTextures[maskIndex].effectType = WATER_TYPE_CALM;
@@ -537,14 +539,16 @@ public class EditorSceneMaster : MonoBehaviour
                 m_FractalNoiseRuntimeTexture.noiseType = 4;
                 m_FractalNoiseRuntimeTexture.fractalType = 1;
                 m_FractalNoiseRuntimeTexture.scale = new Vector2(8, 32);
-                m_FractalNoiseRuntimeTexture.complexity = 1;
+                m_FractalNoiseRuntimeTexture.complexity = 3;
                 m_FractalNoiseRuntimeTexture.brightness = 0f;
-                m_FractalNoiseRuntimeTexture.contrast = 2f;
-                m_FractalNoiseRuntimeTexture.globalVelocity = new Vector2(0f, .1f);
+                m_FractalNoiseRuntimeTexture.contrast = 3f;
+                m_FractalNoiseRuntimeTexture.evolutionSpeed = 1f;
 
                 m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
                 m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
                 m_EffectTextures[maskIndex].environmentTexture = m_EnvMapTexture;
+                m_EffectTextures[maskIndex].rotation = 0f;
+                m_EffectTextures[maskIndex].speed    = .1f;
                 
                 m_EffectTextures[maskIndex].Setup(width / 2, height / 2);
                 m_EffectTextures[maskIndex].effectType = WATER_TYPE_RIVER;

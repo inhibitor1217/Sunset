@@ -24,8 +24,11 @@ Shader "Compute/WaterEffect"
 
             sampler2D _MainTex;
 
-            float _Horizon;
-            float _Perspective;
+            float  _Horizon;
+            float  _Perspective;
+            
+            float  _Speed;
+            float4 _Rotation;
 
             struct appdata_t
             {
@@ -51,10 +54,15 @@ Shader "Compute/WaterEffect"
 
             fixed4 frag(v2f IN) : SV_Target
             {
-                float y_n   = IN.texcoord.y / _Horizon;
-                float y_p   = _Perspective / (1 - y_n);
+                float  y_n   = IN.texcoord.y / _Horizon;
+                float  y_p   = _Perspective / (1 - y_n);
 
-                return tex2D( _MainTex, float2(y_p * (IN.texcoord.x - .5), y_p) );
+                float2 uv    = float2(y_p * (IN.texcoord.x - .5), y_p );
+                float  lod   = .5 * log2( _Perspective / (1 - y_n) );
+
+                uv = mul( float2x2(_Rotation.x, _Rotation.y, _Rotation.z, _Rotation.w), uv ) + float2( 0, _Speed * _Time.y );
+
+                return tex2Dbias( _MainTex, float4(uv.x, uv.y, 0, lod) );
             }
         ENDCG
         }
@@ -104,7 +112,7 @@ Shader "Compute/WaterEffect"
                 float alpha = tex2D(_EnvTex, IN.texcoord).a;
 
                 if (alpha < 0.01)
-                    return half4(0, 0, 0, 0);
+                    return fixed4(0, 0, 0, 0);
 
                 float y_n   = IN.texcoord.y / _Horizon;
 
@@ -116,10 +124,10 @@ Shader "Compute/WaterEffect"
                 fixed4 diffuse  = lerp( low, high, r );
                 
                 // SPECULAR (ENVIRONMENT MAP)
-                fixed4 envMap   = tex2D( _EnvTex, IN.texcoord + .1 * (1 - pow(y_n, 3)) * float2(r, r) );
+                fixed4 envMap   = tex2D( _EnvTex, IN.texcoord + .2 * float2(r, 0) );
                 
                 // FRESNEL
-                float  fresnel  = .3 + .7 * pow(y_n, 3);
+                float  fresnel  = - y_n * (y_n - 1);
                 fixed4 color    = lerp( diffuse, envMap, fresnel );
 
                 // FOG
@@ -180,7 +188,7 @@ Shader "Compute/WaterEffect"
                 float alpha = tex2D(_EnvTex, IN.texcoord).a;
 
                 if (alpha < 0.01)
-                    return half4(0, 0, 0, 0);
+                    return fixed4(0, 0, 0, 0);
 
                 float y_n   = IN.texcoord.y / _Horizon;
 
@@ -192,11 +200,11 @@ Shader "Compute/WaterEffect"
                 fixed3 high     = tex2D( _PaletteTex, float2(IN.texcoord.x, .5 * IN.texcoord.y + .5) ).rgb;
 
                 // SPECULAR (ENVIRONMENT MAP)
-                fixed3 envMap   = high * tex2D( _EnvTex, IN.texcoord + .3 * n.xy ).rgb;
+                fixed3 envMap   = high * tex2D( _EnvTex, IN.texcoord + .4 * (1 - y_n) * n.xy ).rgb;
                 
                 // FRESNEL
-                float  fresnel  = .3 + .7 * pow(y_n, 3);
-                fixed4 color    = fixed4( low + envMap * fresnel * max( dot(n, l), 0 ) , 1 );
+                float  fresnel  = - (y_n + .5) * (y_n - 1);
+                fixed4 color    = fixed4( low + envMap * fresnel * clamp(2 * (dot(n, l) - .5), 0, 1) , 1 );
 
                 // FOG
                 fixed4 fogColor = tex2D( _ImgTex, float2(IN.texcoord.x, _Horizon) );

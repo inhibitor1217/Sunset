@@ -8,6 +8,46 @@ public class EffectTexture : TextureProvider
     private const int NOISE_SRC_INDEX = 1;
     private const int ENV_SRC_INDEX = 2;
 
+    [SerializeField, Range(-360, 360)]
+    private float _rotation = 0f;
+    public float rotation
+    {
+        get { return _rotation; }
+        set {
+            _rotation = value;
+            if (m_WaterMaterial)
+            {
+                float rotationRadians = Mathf.Deg2Rad * _rotation;
+                m_WaterMaterial.SetVector(
+                    "_Rotation", 
+                    new Vector4(Mathf.Cos(rotationRadians), -Mathf.Sin(rotationRadians), Mathf.Sin(rotationRadians), Mathf.Cos(rotationRadians))
+                );
+            }
+        }
+    }
+
+    [SerializeField, Range(0, 5)]
+    private float _speed = .1f;
+    public float speed
+    {
+        get { return _speed; }
+        set {
+            _speed = value;
+            if (m_WaterMaterial)
+            {
+                m_WaterMaterial.SetFloat("_Speed", _speed);
+            }
+        }
+    }
+
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        rotation = _rotation;
+        speed    = _speed;
+    }
+#endif
+
     private TextureProvider m_PaletteTex = null;
     public TextureProvider paletteTexture {
         get { return m_PaletteTex; }
@@ -91,6 +131,9 @@ public class EffectTexture : TextureProvider
         m_PerspectivePass = m_WaterMaterial.FindPass("Perspective");
         m_CalmPass        = m_WaterMaterial.FindPass("Calm");
         m_RiverPass       = m_WaterMaterial.FindPass("River");
+
+        speed    = _speed;
+        rotation = _rotation;
 
         m_GradientMaterial = new Material(Shader.Find("Compute/Gradient"));
     }
