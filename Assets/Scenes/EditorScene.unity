@@ -1324,7 +1324,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f9134aaecc9e488393b56ec92293495, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initTexture: {fileID: 2800000, guid: 1538e53c32c484fb89c5ba8cecc20df7, type: 3}
+  initTexture: {fileID: 2800000, guid: 46a07660acc50421cae5f39f87f7e4aa, type: 3}
 --- !u!1 &381636776
 GameObject:
   m_ObjectHideFlags: 0
@@ -3228,17 +3228,15 @@ MonoBehaviour:
     type: 3}
   MaskTexturePrefab: {fileID: 259361741327100119, guid: 6c93cf42d8f2d47048c48d5420d8dcd3,
     type: 3}
-  EffectTexturePrefab: {fileID: 1640018271530587170, guid: 46bd5c4b1327c460ead0d9145b7e6e81,
-    type: 3}
   SLICLabelTexturePrefab: {fileID: 8145355472273369409, guid: 7bf5133494b264a8082adb241d635891,
     type: 3}
   SLICContourTexturePrefab: {fileID: 2926417387484975901, guid: 7d288829ec1254516a9e91dd67d02d21,
     type: 3}
-  FractalNoiseRuntimeTexturePrefab: {fileID: 6860628337472562854, guid: 53d827506d2d341c39dcb1951ae076bd,
-    type: 3}
   BrushPrefab: {fileID: 1985476455385052664, guid: be30d766d7cd84b3283f31528cf96abb,
     type: 3}
   MaskCameraPrefab: {fileID: 5181211198835112297, guid: f41d96e5e705743b8954f4e33a850c02,
+    type: 3}
+  WaterEffectPrefab: {fileID: 1648317135140318404, guid: d5ded59199d3b436f8955508a5c3f620,
     type: 3}
   container: {fileID: 63342699}
 --- !u!4 &1846091526

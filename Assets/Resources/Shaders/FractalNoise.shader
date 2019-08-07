@@ -128,7 +128,7 @@ Shader "Compute/FractalNoise"
                 ); 
                 float3 offset = (float3(HASH_ARRAY_SIZE, HASH_ARRAY_SIZE, 1) * coords - float3(coordsFloored)) / mod;
 
-                // FOR DEBUGGING (CHECKBOARD)
+                // // FOR DEBUGGING (CHECKBOARD)
                 // return .5 * (offset.x + offset.y);
 
         #if VALUE
@@ -223,8 +223,8 @@ Shader "Compute/FractalNoise"
                 //     ),
                 //     texcoord.xy
                 // ) + _GlobalOffsetScale.xy + _SubOffsetScale.xy * level + _Time.y * (_Velocity.xy + _Velocity.zw * level);
-                coords.xy = texcoord.xy
-                    + _GlobalOffsetScale.xy + _SubOffsetScale.xy * level;
+                coords.xy = texcoord.xy;
+                    // + _GlobalOffsetScale.xy + _SubOffsetScale.xy * level;
                     // + _Time.y * (_Velocity.xy + _Velocity.zw * level);
                 coords.z = texcoord.z;
 
@@ -233,7 +233,7 @@ Shader "Compute/FractalNoise"
         #if PERLIN || PERLIN_LINEAR
                 value = value * .5 + .5;
         #endif
-
+        
         #if ROCKY
                 value = floor(8 * value) * .125;
         #endif

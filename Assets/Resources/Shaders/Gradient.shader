@@ -4,6 +4,7 @@ Shader "Compute/Gradient"
     Properties
     {
         _MainTex ("Texture", 2D) = "black" {}
+        _Amplitude ("Amplitude", Range(0, 5)) = 1
     }
 
     Subshader
@@ -24,6 +25,7 @@ Shader "Compute/Gradient"
             sampler2D _MainTex;
             
             float4 _MainTex_TexelSize;
+            float  _Amplitude;
 
             static float coeff_dx[9] = { -.25, 0, .25, -.50, 0, .50, -.25, 0, .25 };
             static float coeff_dy[9] = { -.25, -.50, -.25, 0, 0, 0, .25, .50, .25 };
@@ -64,7 +66,7 @@ Shader "Compute/Gradient"
                         sum_dy += coeff_dy[x + y * 3 + 4] * tex2D(_MainTex, IN.texcoord + offset * float2(x, y)).r;
                     }
 
-                float3 n = cross(normalize(float3(1, 0, sum_dx)), normalize(float3(0, 1, sum_dy)));
+                float3 n = cross(normalize(float3(1, 0, _Amplitude * sum_dx)), normalize(float3(0, 1, _Amplitude * sum_dy)));
                 fixed4 color = fixed4(.5 * n.x + .5, .5 * n.y + .5, .5 * n.z + .5, 1);
 
                 return color;

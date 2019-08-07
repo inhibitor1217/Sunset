@@ -6,8 +6,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     private static string[] NOISE_TYPES = { "VALUE", "VALUE_LINEAR", "VALUE_SPLINE", "PERLIN", "PERLIN_LINEAR" };
     private static string[] FRACTAL_TYPES = { "BASIC", "TURBULENT", "ROCKY" }; 
 
-    [Header("Texture")]
-    public int resolution = 256;
+    public const int resolution = 128;
 
     [Header("General")]
     [SerializeField]
@@ -33,12 +32,12 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     }
 
     [Header("Transform")]
-    [SerializeField]
-    private Vector2 _offset = Vector2.zero;
-    public Vector2 offset {
-        get { return _offset; }
-        set { updateGlobalOffset(value); }
-    }
+    // [SerializeField]
+    // private Vector2 _offset = Vector2.zero;
+    // public Vector2 offset {
+    //     get { return _offset; }
+    //     set { updateGlobalOffset(value); }
+    // }
     [SerializeField]
     private Vector2 _scale = 8f * Vector2.one;
     public Vector2 scale {
@@ -77,13 +76,12 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     //     get { return _subRotation; }
     //     set { updateSubRotation(value); }
     // }
-    [SerializeField]
-    private Vector2 _subOffset = Vector2.zero;
-    public Vector2 subOffset {
-        get { return _subOffset; }
-        set { updateSubOffset(value); }
-    }
-
+    // [SerializeField]
+    // private Vector2 _subOffset = Vector2.zero;
+    // public Vector2 subOffset {
+    //     get { return _subOffset; }
+    //     set { updateSubOffset(value); }
+    // }
     [Header("Output")]
     [SerializeField, Range(-2f, 2f)]
     private float _brightness = 0f;
@@ -153,13 +151,13 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         noiseType = _noiseType;
         fractalType = _fractalType;
         seed = _seed;
-        offset = _offset;
+        // offset = _offset;
         scale = _scale;
         // rotation = _rotation;
         complexity = _complexity;
         subInfluence = _subInfluence;
         subScale = _subScale;
-        subOffset = _subOffset;
+        // subOffset = _subOffset;
         brightness = _brightness;
         contrast = _contrast;
         enableEvolution = _enableEvolution;
@@ -211,13 +209,13 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         noiseType = _noiseType;
         fractalType = _fractalType;
         seed = _seed;
-        offset = _offset;
+        // offset = _offset;
         scale = _scale;
         // rotation = _rotation;
         complexity = _complexity;
         subInfluence = _subInfluence;
         subScale = _subScale;
-        subOffset = _subOffset;
+        // subOffset = _subOffset;
         // subRotation = _subRotation;
         brightness = _brightness;
         contrast = _contrast;
@@ -273,16 +271,16 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         }
     }
 
-    void updateGlobalOffset(Vector2 value)
-    {
-        _offset = value;
-        if (m_FractalNoiseMaterial)
-        {
-            Vector4 oldValue = m_FractalNoiseMaterial.GetVector("_GlobalOffsetScale");
-            m_FractalNoiseMaterial.SetVector("_GlobalOffsetScale", new Vector4(value.x, value.y, oldValue.z, oldValue.w));
-            textureShouldUpdate = true;
-        }
-    }
+    // void updateGlobalOffset(Vector2 value)
+    // {
+    //     _offset = value;
+    //     if (m_FractalNoiseMaterial)
+    //     {
+    //         Vector4 oldValue = m_FractalNoiseMaterial.GetVector("_GlobalOffsetScale");
+    //         m_FractalNoiseMaterial.SetVector("_GlobalOffsetScale", new Vector4(value.x, value.y, oldValue.z, oldValue.w));
+    //         textureShouldUpdate = true;
+    //     }
+    // }
 
     void updateGlobalScale(Vector2 value)
     {
@@ -346,16 +344,16 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     //     }
     // }
 
-    void updateSubOffset(Vector2 value)
-    {
-        _subOffset = value;
-        if (m_FractalNoiseMaterial)
-        {
-            Vector4 oldValue = m_FractalNoiseMaterial.GetVector("_SubOffsetScale");
-            m_FractalNoiseMaterial.SetVector("_SubOffsetScale", new Vector4(_subOffset.x, _subOffset.y, oldValue.z, oldValue.w));
-            textureShouldUpdate = true;
-        }
-    }
+    // void updateSubOffset(Vector2 value)
+    // {
+    //     _subOffset = value;
+    //     if (m_FractalNoiseMaterial)
+    //     {
+    //         Vector4 oldValue = m_FractalNoiseMaterial.GetVector("_SubOffsetScale");
+    //         m_FractalNoiseMaterial.SetVector("_SubOffsetScale", new Vector4(_subOffset.x, _subOffset.y, oldValue.z, oldValue.w));
+    //         textureShouldUpdate = true;
+    //     }
+    // }
 
     void updateBrightness(float value)
     {

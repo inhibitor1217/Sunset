@@ -13,12 +13,11 @@ public class EditorSceneMaster : MonoBehaviour
     public GameObject MaskLayerPrefab;
     public GameObject StaticTexturePrefab;
     public GameObject MaskTexturePrefab;
-    public GameObject EffectTexturePrefab;
     public GameObject SLICLabelTexturePrefab;
     public GameObject SLICContourTexturePrefab;
-    public GameObject FractalNoiseRuntimeTexturePrefab;
     public GameObject BrushPrefab;
     public GameObject MaskCameraPrefab;
+    public GameObject WaterEffectPrefab;
 
     [Header("References")]
     public RectTransform container;
@@ -46,8 +45,6 @@ public class EditorSceneMaster : MonoBehaviour
     private MaskTexture[] m_MaskTextures = new MaskTexture[MAX_EFFECTS];
     private GameObject[] m_MaskCameraObjects = new GameObject[MAX_EFFECTS];
     private MaskRendererCamera[] m_MaskCameras = new MaskRendererCamera[MAX_EFFECTS];
-
-    // Water
     private GameObject m_EnvMapTextureObject;
     private EnvironmentTexture m_EnvMapTexture;
 
@@ -66,17 +63,14 @@ public class EditorSceneMaster : MonoBehaviour
     private StaticTexture[] m_PaletteTextures = new StaticTexture[MAX_EFFECTS];
 
     // Effect
-    private GameObject m_FractalNoiseRuntimeTextureObject;
-    private FractalNoiseRuntimeTexture m_FractalNoiseRuntimeTexture;
-    private GameObject[] m_EffectTextureObjects = new GameObject[MAX_EFFECTS];
-    private EffectTexture[] m_EffectTextures = new EffectTexture[MAX_EFFECTS];
+    private GameObject m_WaterEffectObject;
+    private WaterEffect m_WaterEffect;
     private GameObject[] m_EffectLayerObjects = new GameObject[MAX_EFFECTS];
     private RawImageController[] m_EffectLayers = new RawImageController[MAX_EFFECTS];
 
+    // Constants
     public const int EFFECT_WATER = 0;
     public const int EFFECT_SKY = 1;
-    public const int WATER_TYPE_CALM = 0;
-    public const int WATER_TYPE_RIVER = 1;
     public const int LAYER_WATER = 8;
     public const int LAYER_SKY = 9;
     public const int MASK_WATER = 0x100;
@@ -477,29 +471,11 @@ public class EditorSceneMaster : MonoBehaviour
         m_PaletteTextures[maskIndex] = null;
     }
 
-    public void Calm() { CreateEffect(EFFECT_WATER, WATER_TYPE_CALM); }
-    public void River() { CreateEffect(EFFECT_WATER, WATER_TYPE_RIVER); }
+    public void Calm() { CreateEffect(EFFECT_WATER, WaterEffect.CALM); }
+    public void River() { CreateEffect(EFFECT_WATER, WaterEffect.RIVER); }
 
     public void CreateEffect(int maskIndex, int effectType)
     {
-        // Initialize Noise
-        if (!m_FractalNoiseRuntimeTextureObject)
-        {
-            m_FractalNoiseRuntimeTextureObject = GameObject.Instantiate(FractalNoiseRuntimeTexturePrefab);
-            m_FractalNoiseRuntimeTextureObject.name = "Fractal Noise Runtime Texture";
-        }
-        if (!m_FractalNoiseRuntimeTexture)
-        {
-            m_FractalNoiseRuntimeTexture = m_FractalNoiseRuntimeTextureObject.GetComponent<FractalNoiseRuntimeTexture>();
-        }
-
-        if (!m_EffectTextureObjects[maskIndex])
-        {
-            m_EffectTextureObjects[maskIndex] = GameObject.Instantiate(EffectTexturePrefab);
-            m_EffectTextureObjects[maskIndex].name = "Effect Texture: " + maskIndexToString(maskIndex);
-        }
-        if (!m_EffectTextures[maskIndex])
-            m_EffectTextures[maskIndex] = m_EffectTextureObjects[maskIndex].GetComponent<EffectTexture>();
         if (!m_EffectLayerObjects[maskIndex])
         {
             m_EffectLayerObjects[maskIndex] = GameObject.Instantiate(LayerPrefab);
@@ -515,64 +491,42 @@ public class EditorSceneMaster : MonoBehaviour
 
         if (maskIndex == EFFECT_WATER)
         {
-            switch (effectType)
+            if (!m_WaterEffectObject)
             {
-            case WATER_TYPE_CALM:
-                m_FractalNoiseRuntimeTexture.noiseType = 4;
-                m_FractalNoiseRuntimeTexture.fractalType = 0;
-                m_FractalNoiseRuntimeTexture.scale = new Vector2(16, 128);
-                m_FractalNoiseRuntimeTexture.complexity = 3;
-                m_FractalNoiseRuntimeTexture.brightness = -.5f;
-                m_FractalNoiseRuntimeTexture.contrast = 2f;
-                m_FractalNoiseRuntimeTexture.evolutionSpeed = 1f;
-
-                m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
-                m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
-                m_EffectTextures[maskIndex].environmentTexture = m_EnvMapTexture;
-                m_EffectTextures[maskIndex].rotation = 0f;
-                m_EffectTextures[maskIndex].speed    = 0f;
-                
-                m_EffectTextures[maskIndex].Setup(width / 2, height / 2);
-                m_EffectTextures[maskIndex].effectType = WATER_TYPE_CALM;
-                break;
-            case WATER_TYPE_RIVER:
-                m_FractalNoiseRuntimeTexture.noiseType = 4;
-                m_FractalNoiseRuntimeTexture.fractalType = 1;
-                m_FractalNoiseRuntimeTexture.scale = new Vector2(8, 32);
-                m_FractalNoiseRuntimeTexture.complexity = 3;
-                m_FractalNoiseRuntimeTexture.brightness = 0f;
-                m_FractalNoiseRuntimeTexture.contrast = 3f;
-                m_FractalNoiseRuntimeTexture.evolutionSpeed = 1f;
-
-                m_EffectTextures[maskIndex].noiseTexture = m_FractalNoiseRuntimeTexture;
-                m_EffectTextures[maskIndex].paletteTexture = m_PaletteTextures[maskIndex];
-                m_EffectTextures[maskIndex].environmentTexture = m_EnvMapTexture;
-                m_EffectTextures[maskIndex].rotation = 0f;
-                m_EffectTextures[maskIndex].speed    = .1f;
-                
-                m_EffectTextures[maskIndex].Setup(width / 2, height / 2);
-                m_EffectTextures[maskIndex].effectType = WATER_TYPE_RIVER;
-                break;
-            default:
-                RemoveEffect(maskIndex);
-                break;
+                m_WaterEffectObject = GameObject.Instantiate(WaterEffectPrefab);
+                m_WaterEffectObject.name = "Water Effect";
             }
-        }
+            if (!m_WaterEffect)
+                m_WaterEffect = m_WaterEffectObject.GetComponent<WaterEffect>();
 
-        m_EffectTextures[maskIndex].SetTarget(m_EffectLayers[maskIndex]);
+            if (effectType != WaterEffect.NONE)
+            {
+                m_WaterEffect.paletteProvider     = m_PaletteTextures[maskIndex];
+                m_WaterEffect.environmentProvider = m_EnvMapTexture;
+                m_WaterEffect.target              = m_EffectLayers[maskIndex];
+                m_WaterEffect.Setup(effectType, width / 2, height / 2);
+            }
+            else
+                RemoveEffect(maskIndex);
+        }
     }
 
     public void RemoveEffect(int maskIndex)
     {
-        if (m_EffectTextureObjects[maskIndex])
-            Destroy(m_EffectTextureObjects[maskIndex]);
         if (m_EffectLayerObjects[maskIndex])
             Destroy(m_EffectLayerObjects[maskIndex]);
 
-        m_EffectTextureObjects[maskIndex] = null;
-        m_EffectTextures[maskIndex] = null;
         m_EffectLayerObjects[maskIndex] = null;
         m_EffectLayers[maskIndex] = null;
+
+        if (maskIndex == EFFECT_WATER)
+        {
+            if (m_WaterEffectObject)
+                Destroy(m_WaterEffectObject);
+
+            m_WaterEffectObject = null;
+            m_WaterEffect = null;
+        }
     }
 
 }
