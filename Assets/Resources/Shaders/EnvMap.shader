@@ -48,17 +48,19 @@ Shader "Compute/EnvMap"
 
             fixed4 frag(v2f IN) : SV_Target
             {
-                fixed4 mask = tex2D(_MaskTex, IN.texcoord); // (r, g, b) = (mask, mask_blurred, mask_mirrored)
+                fixed4 mask = tex2D(_MaskTex, IN.texcoord);
                 if (mask.r < 0.01)
                     return half4(0, 0, 0, 0);
                 
-                float reflected_y    = 3 * mask.b - 2 * IN.texcoord.y;
+                float bound          = (mask.g + mask.b * 0.00390625);
+                float diff           = bound - IN.texcoord.y;
+                float reflected_y    = bound + 2 * diff;
 
                 float mask_reflected = tex2D( _MaskTex, half2(IN.texcoord.x, reflected_y) ).r;
                 float use_envmap     = max( mask_reflected, smoothstep(0.9, 1.0, reflected_y) );
 
                 fixed4 color         = lerp( tex2D( _MainTex, half2(IN.texcoord.x, reflected_y) ), _SkyColor, use_envmap );
-                color.a = mask.g;
+                color.a = mask.r;
 
                 return color;
             }

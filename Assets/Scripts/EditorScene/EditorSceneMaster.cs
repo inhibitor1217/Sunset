@@ -259,14 +259,14 @@ public class EditorSceneMaster : MonoBehaviour
         m_MaskTextureObjects[maskIndex] = GameObject.Instantiate(MaskTexturePrefab);
         m_MaskTextureObjects[maskIndex].name = "Mask Texture: " + maskIndexToString(maskIndex);
         m_MaskTextures[maskIndex] = m_MaskTextureObjects[maskIndex].GetComponent<MaskTexture>();
-        m_MaskTextures[maskIndex].Setup(width, height);
+        m_MaskTextures[maskIndex].Setup(width / 2, height / 2);
 
         if (maskIndex == EFFECT_WATER)
         {
             m_EnvMapTexture = m_MaskTextureObjects[maskIndex].AddComponent<EnvironmentTexture>();
             m_EnvMapTexture.imageTexture = m_RootStaticTexture;
             m_EnvMapTexture.maskTexture  = m_MaskTextures[maskIndex];
-            m_EnvMapTexture.Setup(width / 4, height / 4);
+            m_EnvMapTexture.Setup(width / 2, height / 2);
         }
 
         switch (maskIndex)
@@ -361,6 +361,7 @@ public class EditorSceneMaster : MonoBehaviour
         if (!m_MaskLayer)
         {
             m_MaskLayer = m_MaskLayerObject.GetComponent<RawImageController>();
+            m_MaskLayer.globalScale = 2f;
         }
 
         // Setup References

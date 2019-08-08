@@ -15,21 +15,6 @@ public class MaskTexture : TextureProvider
     [HideInInspector]
     public int mode;
 
-    private Material m_BlurMaterial;
-    private int m_HorizontalBlurPass;
-    private int m_VerticalBlurPass;
-
-    new void Awake()
-    {
-        base.Awake();
-
-        m_BlurMaterial = new Material(Shader.Find("Compute/Blur"));
-        m_BlurMaterial.SetFloat("_BlurSize", .03f);
-        m_BlurMaterial.EnableKeyword("R2G");
-        m_HorizontalBlurPass = m_BlurMaterial.FindPass("Horizontal");
-        m_VerticalBlurPass   = m_BlurMaterial.FindPass("Vertical");
-    }
-
     new void OnDestroy()
     {
         base.OnDestroy();
@@ -62,8 +47,8 @@ public class MaskTexture : TextureProvider
 
     public Texture2D GetReadableTexture()
     {
-        int width  = m_RenderTexture.width;
-        int height = m_RenderTexture.height;
+        int width  = m_RenderTexture.width  * 2;
+        int height = m_RenderTexture.height * 2;
         
         RenderTexture temp = RenderTexture.GetTemporary(width, height);
         RenderTexture prev = RenderTexture.active;
@@ -85,11 +70,8 @@ public class MaskTexture : TextureProvider
         if (!m_RenderTexture)
             return false;
 
-        // Horizontal Blur from R channel to G channel
-        Graphics.Blit(m_RenderTexture, m_RenderTexture, m_BlurMaterial, m_HorizontalBlurPass);
-
         Texture2D readableTex = GetReadableTexture();
-        Color[] colors = readableTex.GetPixels();
+        Color32[] colors = readableTex.GetPixels32();
 
         for (int x = 0; x < readableTex.width; x++)
         {
@@ -99,7 +81,7 @@ public class MaskTexture : TextureProvider
             for (int y = readableTex.height - 1; y >= 0; y--)
             {
                 float _y = (float)y / (float)readableTex.height;
-                bool cur_state = colors[x + y * readableTex.width].r > 0.5;
+                bool cur_state = colors[x + y * readableTex.width].r >= 1;
 
                 if (!state && cur_state) // MASK OFF -> MASK ON
                 {
@@ -117,18 +99,27 @@ public class MaskTexture : TextureProvider
                         stk.Pop();
                     
                     if (stk.Count > 0)
-                        colors[x + y * readableTex.width].b = stk.Peek().Item1;
+                    {
+                        colors[x + y * readableTex.width].g = (byte)(Mathf.FloorToInt(stk.Peek().Item1 * 65535f) / 256);
+                        colors[x + y * readableTex.width].b = (byte)(Mathf.FloorToInt(stk.Peek().Item1 * 65535f) % 256);
+                    }
                     else
-                        colors[x + y * readableTex.width].b = 1;
+                    {
+                        colors[x + y * readableTex.width].g = 255;
+                        colors[x + y * readableTex.width].b = 255;
+                    }
                 }
-                else           // MASK OFF
+                else // MASK OFF
+                {
+                    colors[x + y * readableTex.width].g = 0;
                     colors[x + y * readableTex.width].b = 0;
+                }
 
                 state = cur_state;
             }
         }
         
-        readableTex.SetPixels(colors);
+        readableTex.SetPixels32(colors);
         readableTex.Apply();
 
         m_RenderTexture.DiscardContents();

@@ -52,14 +52,19 @@ public class EnvironmentTexture : TextureProvider
 
     [SerializeField]
     private RenderTexture m_RenderTexture;
-    [SerializeField]
     private Material m_EnvMapMaterial;
+    private Material m_BlurMaterial;
+    private int m_HorizontalBlurPass;
 
     new void Awake()
     {
         base.Awake();
 
         m_EnvMapMaterial = new Material(Shader.Find("Compute/EnvMap"));
+
+        m_BlurMaterial = new Material(Shader.Find("Compute/Blur"));
+        m_BlurMaterial.SetFloat("_BlurSize", .02f);
+        m_HorizontalBlurPass = m_BlurMaterial.FindPass("Horizontal");
     }
 
     public override Texture GetTexture()
@@ -74,8 +79,15 @@ public class EnvironmentTexture : TextureProvider
 
         m_EnvMapMaterial.SetTexture("_MaskTex", m_MaskTexture.GetTexture());
 
+        Texture imgTex = m_ImgTexture.GetTexture();
+
+        FilterMode prev = imgTex.filterMode;
+        imgTex.filterMode = FilterMode.Bilinear;
         m_RenderTexture.DiscardContents();
-        Graphics.Blit(m_ImgTexture.GetTexture(), m_RenderTexture, m_EnvMapMaterial);
+        Graphics.Blit(imgTex, m_RenderTexture, m_EnvMapMaterial);
+        imgTex.filterMode = prev;
+
+        Graphics.Blit(m_RenderTexture, m_RenderTexture, m_BlurMaterial, m_HorizontalBlurPass);
 
         return true;
     }
