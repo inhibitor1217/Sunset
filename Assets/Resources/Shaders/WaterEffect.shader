@@ -10,6 +10,9 @@ Shader "Compute/WaterEffect"
         _Horizon ("Horizon", Range(0, 1.5)) = .5
         _Perspective ("Perspective", Float) = 1
 
+        _Speed ("Speed", Float) = 0
+        _Rotation ("Rotation", Vector) = (1, 0, 0, 1)
+
         _LightDirection ("Light Direction", Vector) = (0, 1, 0, 0)
     }
     SubShader
@@ -23,6 +26,7 @@ Shader "Compute/WaterEffect"
 
             #pragma vertex vert
             #pragma fragment frag
+            #pragma shader_feature USE_MIPMAP
 
             sampler2D _MainTex;
 
@@ -60,11 +64,17 @@ Shader "Compute/WaterEffect"
                 float  y_p   = _Perspective / (1 - y_n);
 
                 float2 uv    = float2( y_p * (IN.texcoord.x - .5), y_p );
-                float  lod   = log2(y_p);
+        #if USE_MIPMAP
+                float  lod   = .5 * log2(y_p);
+        #endif
 
                 uv = mul( float2x2(_Rotation.x, _Rotation.z, _Rotation.y, _Rotation.w), uv ) + float2( 0, _Speed * _Time.y );
 
+        #if USE_MIPMAP
                 return tex2Dbias( _MainTex, float4(uv.x, uv.y, 0, lod) );
+        #else
+                return tex2D( _MainTex, uv );
+        #endif
             }
         ENDCG
         }
@@ -133,7 +143,7 @@ Shader "Compute/WaterEffect"
                 fixed4 diffuse  = lerp( low, high, r );
                 
                 // SPECULAR (ENVIRONMENT MAP)
-                fixed4 envMap   = tex2D( _EnvTex, IN.texcoord + .4 * float2(r - .5, 0) );
+                fixed4 envMap   = tex2D( _EnvTex, IN.texcoord + .2 * (1 - y_n) * float2(r, r) );
                 
                 // FRESNEL
                 float reflectance = lerp(
@@ -177,7 +187,6 @@ Shader "Compute/WaterEffect"
 
             float4 _Rotation;
             float4 _LightDirection;
-            float4 _LightColor;
 
             struct appdata_t
             {

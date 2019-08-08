@@ -499,15 +499,10 @@ public class EditorSceneMaster : MonoBehaviour
             if (!m_WaterEffect)
                 m_WaterEffect = m_WaterEffectObject.GetComponent<WaterEffect>();
 
-            if (effectType != WaterEffect.NONE)
-            {
-                m_WaterEffect.paletteProvider     = m_PaletteTextures[maskIndex];
-                m_WaterEffect.environmentProvider = m_EnvMapTexture;
-                m_WaterEffect.target              = m_EffectLayers[maskIndex];
-                m_WaterEffect.Setup(effectType, width / 2, height / 2);
-            }
-            else
-                RemoveEffect(maskIndex);
+            m_WaterEffect.paletteProvider     = m_PaletteTextures[maskIndex];
+            m_WaterEffect.environmentProvider = m_EnvMapTexture;
+            m_WaterEffect.target              = m_EffectLayers[maskIndex];
+            m_WaterEffect.Setup(effectType, width / 2, height / 2);
         }
     }
 
@@ -521,11 +516,8 @@ public class EditorSceneMaster : MonoBehaviour
 
         if (maskIndex == EFFECT_WATER)
         {
-            if (m_WaterEffectObject)
-                Destroy(m_WaterEffectObject);
-
-            m_WaterEffectObject = null;
-            m_WaterEffect = null;
+            if (m_WaterEffect)
+                m_WaterEffect.Setup(WaterEffect.NONE, 0, 0);
         }
     }
 
