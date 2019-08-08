@@ -15,6 +15,7 @@ public class EditorSceneMaster : MonoBehaviour
     public GameObject SLICLabelTexturePrefab;
     public GameObject SLICContourTexturePrefab;
     public GameObject BrushPrefab;
+    public GameObject FlowPrefab;
     public GameObject MaskCameraPrefab;
 
     [Header("References")]
@@ -25,8 +26,8 @@ public class EditorSceneMaster : MonoBehaviour
     private InputManager m_InputManager;
 
     // Root Info
-    private int width;
-    private int height;
+    public int width { get; private set; }
+    public int height { get; private set; }
 
     // Layers
     private GameObject m_RootLayerObject;
@@ -50,6 +51,10 @@ public class EditorSceneMaster : MonoBehaviour
     private GameObject m_BrushObject;
     private BrushController m_Brush;
 
+    // Flow
+    private GameObject m_FlowObject;
+    private FlowController m_Flow;
+
     // SLIC
     private OpenCVSLICClient m_SLICClient;
     private GameObject m_SLICLabelTextureObject;
@@ -61,7 +66,7 @@ public class EditorSceneMaster : MonoBehaviour
     private StaticTexture[] m_PaletteTextures = new StaticTexture[MAX_EFFECTS];
 
     // Effect
-    public WaterEffect waterEffect;
+    public WaterEffectManager waterEffect;
     private GameObject[] m_EffectLayerObjects = new GameObject[MAX_EFFECTS];
     private RawImageController[] m_EffectLayers = new RawImageController[MAX_EFFECTS];
 
@@ -171,6 +176,8 @@ public class EditorSceneMaster : MonoBehaviour
             Destroy(m_TextureProviderManager);
         if (m_InputManager)
             Destroy(m_InputManager);
+        if (waterEffect)
+            waterEffect.Init();
 
         // Compute Clients
         if (m_SLICClient)
@@ -191,6 +198,11 @@ public class EditorSceneMaster : MonoBehaviour
         // Brush
         RemoveBrush(EFFECT_WATER);
         RemoveBrush(EFFECT_SKY);
+
+        // Flow
+        RemoveFlow();
+        if (m_FlowObject)
+            Destroy(m_FlowObject);
 
         // SLIC
         RemoveSLIC();
@@ -359,6 +371,7 @@ public class EditorSceneMaster : MonoBehaviour
         {
             m_MaskLayer = m_MaskLayerObject.GetComponent<RawImageController>();
             m_MaskLayer.globalScale = 2f;
+            m_MaskLayer.SetMaskColor(new Color(1f, 0f, 0f, .3f));
         }
 
         // Setup References
@@ -391,6 +404,57 @@ public class EditorSceneMaster : MonoBehaviour
         m_Brush = null;
         m_MaskLayerObject = null;
         m_MaskLayer = null;
+
+        // Enable All Effects
+        if (m_EffectLayerObjects[EFFECT_WATER])
+            m_EffectLayerObjects[EFFECT_WATER].SetActive(true);
+        if (m_EffectLayerObjects[EFFECT_SKY])
+            m_EffectLayerObjects[EFFECT_SKY].SetActive(true);
+    }
+
+    public void CreateFlow()
+    {
+        if (!m_FlowObject)
+        {
+            m_FlowObject = GameObject.Instantiate(FlowPrefab);
+            m_FlowObject.name = "Flow";
+            m_FlowObject.transform.SetParent(m_RootLayerObject.transform);
+        }
+        if (!m_Flow)
+        {
+            m_Flow = m_FlowObject.GetComponent<FlowController>();
+        }
+        // Create Mask Layer
+        if (!m_MaskLayerObject)
+        {
+            m_MaskLayerObject = GameObject.Instantiate(MaskLayerPrefab);
+            m_MaskLayerObject.name = "Layer: Mask";
+            m_MaskLayerObject.GetComponent<RectTransform>().SetParent(m_RootLayerObject.GetComponent<RectTransform>());
+            m_MaskLayerObject.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+        }
+        if (!m_MaskLayer)
+        {
+            m_MaskLayer = m_MaskLayerObject.GetComponent<RawImageController>();
+            m_MaskLayer.globalScale = 2f;
+            m_MaskLayer.SetMaskColor(new Color(54f/255f, 81f/255f, 91f/255f, .9f));
+        }
+
+        waterEffect.CreateFlow(m_Flow.GetMesh());
+
+        // Setup References
+        m_MaskTextures[EFFECT_WATER].SetTarget(m_MaskLayer);
+
+        // Disable All Effects
+        if (m_EffectLayerObjects[EFFECT_WATER])
+            m_EffectLayerObjects[EFFECT_WATER].SetActive(false);
+        if (m_EffectLayerObjects[EFFECT_SKY])
+            m_EffectLayerObjects[EFFECT_SKY].SetActive(false);
+    }
+
+    public void RemoveFlow()
+    {
+        if (m_MaskLayerObject)
+            Destroy(m_MaskLayerObject);
 
         // Enable All Effects
         if (m_EffectLayerObjects[EFFECT_WATER])
@@ -469,8 +533,8 @@ public class EditorSceneMaster : MonoBehaviour
         m_PaletteTextures[maskIndex] = null;
     }
 
-    public void Calm() { CreateEffect(EFFECT_WATER, WaterEffect.CALM); }
-    public void River() { CreateEffect(EFFECT_WATER, WaterEffect.RIVER); }
+    public void Calm() { CreateEffect(EFFECT_WATER, WaterEffectManager.CALM); }
+    public void River() { CreateEffect(EFFECT_WATER, WaterEffectManager.RIVER); }
 
     public void CreateEffect(int maskIndex, int effectType)
     {
@@ -507,7 +571,7 @@ public class EditorSceneMaster : MonoBehaviour
         if (maskIndex == EFFECT_WATER)
         {
             if (waterEffect)
-                waterEffect.Setup(WaterEffect.NONE, 0, 0);
+                waterEffect.Setup(WaterEffectManager.NONE, 0, 0);
         }
     }
 

@@ -92,4 +92,9 @@ public class RawImageController : MonoBehaviour
             m_MaskCameras[maskIndex] = camera;
     }
 
+    public void SetMaskColor(Color color)
+    {
+        m_RawImage.material.SetColor("_Color", color);
+    }
+
 }

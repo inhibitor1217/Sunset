@@ -6,7 +6,8 @@ public class InputModeToggle : MonoBehaviour
     private Toggle m_Toggle;
 
     public int modeToggle;
-    public int modeInteractable;
+    public int modeInteractable = -1;
+    public int modeInteractable2 = -1;
     public int modeNotInteractable;
     public int modeColorOn;
     public Color activeColor;
@@ -29,7 +30,8 @@ public class InputModeToggle : MonoBehaviour
 
     public void onInputModeChanged(int mode)
     {
-        if ((mode & modeInteractable) != modeInteractable)
+        if ((mode & modeInteractable) != modeInteractable 
+            && (mode & modeInteractable2) != modeInteractable2)
         {
             m_Toggle.interactable = false;
         }

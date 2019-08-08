@@ -110,6 +110,7 @@ public class RiverEffectTexture : TextureProvider
             if (m_WaterMaterial)
             {
                 m_WaterMaterial.SetFloat("_Horizon", _horizon);
+                textureShouldUpdate = true;
             }
         }
     }
@@ -123,6 +124,7 @@ public class RiverEffectTexture : TextureProvider
             if (m_WaterMaterial)
             {
                 m_WaterMaterial.SetFloat("_Perspective", _perspective);
+                textureShouldUpdate = true;
             }
         }
     }

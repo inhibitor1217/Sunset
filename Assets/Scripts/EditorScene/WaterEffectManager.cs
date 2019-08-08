@@ -1,10 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class WaterEffect : MonoBehaviour
+public class WaterEffectManager : MonoBehaviour
 {
 
     private FractalNoiseRuntimeTexture _noiseProvider;
+    private FlowTexture _flowProvider;
     private TextureProvider _effectProvider;
     [Header("UIs")]
     public GameObject riverOptionPanel;
@@ -20,7 +21,7 @@ public class WaterEffect : MonoBehaviour
     [Header("Properties")]
     [SerializeField, Range(0, 1.5f)]
     private float _horizon;
-    private const float DEFAULT_SHARED_HORIZON = .5f;
+    private const float DEFAULT_SHARED_HORIZON = .65f;
     public float shared_horizon {
         set {
             _horizon = value;
@@ -148,8 +149,15 @@ public class WaterEffect : MonoBehaviour
     }
 #endif
 
-    void Awake()
+    public void Init()
     {
+        shared_horizon      = DEFAULT_SHARED_HORIZON;
+        shared_perspective  = DEFAULT_SHARED_PERSPECTIVE;
+        shared_sunAltitude  = DEFAULT_SHARED_SUN_ALTITUDE;
+        shared_sunDirection = DEFAULT_SHARED_SUN_DIRECTION;
+        river_speed         = DEFAULT_RIVER_SPEED;
+        river_direction     = DEFAULT_RIVER_DIRECTION;
+
         if (riverOptionPanel)
             riverOptionPanel.SetActive(false);
         if (riverSpeedSlider)
@@ -159,16 +167,13 @@ public class WaterEffect : MonoBehaviour
                 river_speed = value;
             });
         }
+
+        RemoveFlow();
     }
 
     void Start()
     {
-        shared_horizon      = DEFAULT_SHARED_HORIZON;
-        shared_perspective  = DEFAULT_SHARED_PERSPECTIVE;
-        shared_sunAltitude  = DEFAULT_SHARED_SUN_ALTITUDE;
-        shared_sunDirection = DEFAULT_SHARED_SUN_DIRECTION;
-        river_speed         = DEFAULT_RIVER_SPEED;
-        river_direction     = DEFAULT_RIVER_DIRECTION;
+        Init();
     }
 
     private int _effectType;
@@ -266,6 +271,21 @@ public class WaterEffect : MonoBehaviour
         
         if (target)
             _effectProvider.SetTarget(target);
+    }
+
+    public void CreateFlow(Mesh flowVectorMesh)
+    {
+        if (!_flowProvider)
+        {
+            _flowProvider = gameObject.AddComponent<FlowTexture>();
+            _flowProvider.flowVectorMesh = flowVectorMesh;
+        }
+    }
+
+    public void RemoveFlow()
+    {
+        if (_flowProvider)
+            Destroy(_flowProvider);
     }
 
 }
