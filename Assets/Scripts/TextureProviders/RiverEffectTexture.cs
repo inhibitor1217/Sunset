@@ -4,7 +4,8 @@ public class RiverEffectTexture : TextureProvider
 {
     private const int PALETTE_SRC_INDEX = 0;
     private const int NOISE_SRC_INDEX = 1;
-    private const int ENV_SRC_INDEX = 2;
+    private const int FLOW_SRC_INDEX = 2;
+    private const int ENV_SRC_INDEX = 3;
 
     private TextureProvider m_PaletteTex = null;
     public TextureProvider paletteTexture {
@@ -15,7 +16,7 @@ public class RiverEffectTexture : TextureProvider
 
             if (value && value.SeekFreeIndex() == -1)
             {
-                Debug.Log("EffectTexture: Palette Texture Pipeline Output is Full.");
+                Debug.Log("RiverEffectTexture: Palette Texture Pipeline Output is Full.");
                 return;
             }
 
@@ -37,7 +38,7 @@ public class RiverEffectTexture : TextureProvider
             
             if (value && value.SeekFreeIndex() == -1)
             {
-                Debug.Log("EffectTexture: Noise Texture Pipeline Output is Full.");
+                Debug.Log("RiverEffectTexture: Noise Texture Pipeline Output is Full.");
                 return;
             }
 
@@ -50,6 +51,28 @@ public class RiverEffectTexture : TextureProvider
         }
     }
 
+    private TextureProvider m_FlowTex = null;
+    public TextureProvider flowTexture {
+        get { return m_FlowTex; }
+        set {
+            if (m_FlowTex == value)
+                return;
+
+            if (value && value.SeekFreeIndex() == -1)
+            {
+                Debug.Log("RiverEffectTexture: Flow Texture Pipeline Output is Full.");
+                return;
+            }
+
+            if (m_FlowTex)
+                TextureProvider.Unlink(m_FlowTex, this);
+            if (value)
+                TextureProvider.Link(value, value.SeekFreeIndex(), this, FLOW_SRC_INDEX);
+
+            m_FlowTex = value;
+        }
+    }
+
     private TextureProvider m_EnvTex = null;
     public TextureProvider environmentTexture {
         get { return m_EnvTex; }
@@ -59,7 +82,7 @@ public class RiverEffectTexture : TextureProvider
             
             if (value && value.SeekFreeIndex() == -1)
             {
-                Debug.Log("EffectTexture: Environment Texture Pipeline Output is Full.");
+                Debug.Log("RiverEffectTexture: Environment Texture Pipeline Output is Full.");
                 return;
             }
 
@@ -205,9 +228,10 @@ public class RiverEffectTexture : TextureProvider
         if (!m_RenderTexture)
             return false;
 
-        m_WaterMaterial.SetTexture("_ImgTex", EditorSceneMaster.Instance.GetRootTextureProvider().GetBlurredTexture());
+        m_WaterMaterial.SetTexture("_ImgTex",     EditorSceneMaster.Instance.GetRootTextureProvider().GetBlurredTexture());
         m_WaterMaterial.SetTexture("_PaletteTex", m_PaletteTex.GetTexture());
-        m_WaterMaterial.SetTexture("_EnvTex", m_EnvTex.GetTexture());
+        m_WaterMaterial.SetTexture("_EnvTex",     m_EnvTex.GetTexture());
+        // m_WaterMaterial.SetTexture("_FlowTex",    m_FlowTex.GetTexture());
 
         Texture noiseTex = m_NoiseTex.GetTexture();
 

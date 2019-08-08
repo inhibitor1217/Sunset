@@ -6,6 +6,7 @@ Shader "Compute/WaterEffect"
         _ImgTex     ("Image",       2D) = "black" {}
         _PaletteTex ("Palette",     2D) = "black" {}
         _EnvTex     ("Environment", 2D) = "white" {}
+        _FlowTex    ("Flow",        2D) = "black" {}
 
         _Horizon ("Horizon", Range(0, 1.5)) = .5
         _Perspective ("Perspective", Float) = 1
@@ -29,6 +30,7 @@ Shader "Compute/WaterEffect"
             #pragma shader_feature USE_MIPMAP
 
             sampler2D _MainTex;
+            sampler2D _FlowTex;
 
             float  _Horizon;
             float  _Perspective;

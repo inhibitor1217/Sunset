@@ -1,10 +1,14 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class WaterEffect : MonoBehaviour
 {
 
     private FractalNoiseRuntimeTexture _noiseProvider;
     private TextureProvider _effectProvider;
+    [Header("UIs")]
+    public GameObject riverOptionPanel;
+    public Slider riverSpeedSlider;
 
     [Header("Shared Textures")]
     public TextureProvider paletteProvider;
@@ -144,6 +148,19 @@ public class WaterEffect : MonoBehaviour
     }
 #endif
 
+    void Awake()
+    {
+        if (riverOptionPanel)
+            riverOptionPanel.SetActive(false);
+        if (riverSpeedSlider)
+        {
+            riverSpeedSlider.value = DEFAULT_RIVER_SPEED;
+            riverSpeedSlider.onValueChanged.AddListener((value) => {
+                river_speed = value;
+            });
+        }
+    }
+
     void Start()
     {
         shared_horizon      = DEFAULT_SHARED_HORIZON;
@@ -172,6 +189,8 @@ public class WaterEffect : MonoBehaviour
                 Destroy(_noiseProvider);
             if (_effectProvider)
                 Destroy(_effectProvider);
+            if (riverOptionPanel)
+                riverOptionPanel.SetActive(false);
             break;
         case CALM:
             /* SETUP NOISE */
@@ -201,6 +220,10 @@ public class WaterEffect : MonoBehaviour
             shared_sunAltitude      = _sunAltitude;
             shared_sunDirection     = _sunDirection;
             calm.Setup(width, height);
+
+            /* SETUP UI */
+            if (riverOptionPanel)
+                riverOptionPanel.SetActive(false);
             break;
         case RIVER:
             /* SETUP NOISE */
@@ -232,6 +255,10 @@ public class WaterEffect : MonoBehaviour
             river_direction          = _rotation;
             river_speed              = _relativeSpeed;
             river.Setup(width, height);
+
+            /* SETUP UI */
+            if (riverOptionPanel)
+                riverOptionPanel.SetActive(true);
             break;
         default:
             break;

@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 
 public class EditorSceneMaster : MonoBehaviour
 {
@@ -17,7 +16,6 @@ public class EditorSceneMaster : MonoBehaviour
     public GameObject SLICContourTexturePrefab;
     public GameObject BrushPrefab;
     public GameObject MaskCameraPrefab;
-    public GameObject WaterEffectPrefab;
 
     [Header("References")]
     public RectTransform container;
@@ -63,8 +61,7 @@ public class EditorSceneMaster : MonoBehaviour
     private StaticTexture[] m_PaletteTextures = new StaticTexture[MAX_EFFECTS];
 
     // Effect
-    private GameObject m_WaterEffectObject;
-    private WaterEffect m_WaterEffect;
+    public WaterEffect waterEffect;
     private GameObject[] m_EffectLayerObjects = new GameObject[MAX_EFFECTS];
     private RawImageController[] m_EffectLayers = new RawImageController[MAX_EFFECTS];
 
@@ -492,18 +489,10 @@ public class EditorSceneMaster : MonoBehaviour
 
         if (maskIndex == EFFECT_WATER)
         {
-            if (!m_WaterEffectObject)
-            {
-                m_WaterEffectObject = GameObject.Instantiate(WaterEffectPrefab);
-                m_WaterEffectObject.name = "Water Effect";
-            }
-            if (!m_WaterEffect)
-                m_WaterEffect = m_WaterEffectObject.GetComponent<WaterEffect>();
-
-            m_WaterEffect.paletteProvider     = m_PaletteTextures[maskIndex];
-            m_WaterEffect.environmentProvider = m_EnvMapTexture;
-            m_WaterEffect.target              = m_EffectLayers[maskIndex];
-            m_WaterEffect.Setup(effectType, width / 2, height / 2);
+            waterEffect.paletteProvider     = m_PaletteTextures[maskIndex];
+            waterEffect.environmentProvider = m_EnvMapTexture;
+            waterEffect.target              = m_EffectLayers[maskIndex];
+            waterEffect.Setup(effectType, width / 2, height / 2);
         }
     }
 
@@ -517,8 +506,8 @@ public class EditorSceneMaster : MonoBehaviour
 
         if (maskIndex == EFFECT_WATER)
         {
-            if (m_WaterEffect)
-                m_WaterEffect.Setup(WaterEffect.NONE, 0, 0);
+            if (waterEffect)
+                waterEffect.Setup(WaterEffect.NONE, 0, 0);
         }
     }
 

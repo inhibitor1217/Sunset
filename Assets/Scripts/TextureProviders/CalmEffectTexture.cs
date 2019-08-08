@@ -15,7 +15,7 @@ public class CalmEffectTexture : TextureProvider
 
             if (value && value.SeekFreeIndex() == -1)
             {
-                Debug.Log("EffectTexture: Palette Texture Pipeline Output is Full.");
+                Debug.Log("CalmEffectTexture: Palette Texture Pipeline Output is Full.");
                 return;
             }
 
@@ -37,7 +37,7 @@ public class CalmEffectTexture : TextureProvider
             
             if (value && value.SeekFreeIndex() == -1)
             {
-                Debug.Log("EffectTexture: Noise Texture Pipeline Output is Full.");
+                Debug.Log("CalmEffectTexture: Noise Texture Pipeline Output is Full.");
                 return;
             }
 
@@ -59,7 +59,7 @@ public class CalmEffectTexture : TextureProvider
             
             if (value && value.SeekFreeIndex() == -1)
             {
-                Debug.Log("EffectTexture: Environment Texture Pipeline Output is Full.");
+                Debug.Log("CalmEffectTexture: Environment Texture Pipeline Output is Full.");
                 return;
             }
 
