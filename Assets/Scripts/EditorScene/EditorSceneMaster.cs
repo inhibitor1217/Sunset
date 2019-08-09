@@ -17,9 +17,11 @@ public class EditorSceneMaster : MonoBehaviour
     public GameObject BrushPrefab;
     public GameObject FlowPrefab;
     public GameObject MaskCameraPrefab;
+    public GameObject FlowCameraPrefab;
 
     [Header("References")]
     public RectTransform container;
+    public RectTransform optionMenu;
 
     // Managers
     private TextureProviderManager m_TextureProviderManager;
@@ -52,8 +54,11 @@ public class EditorSceneMaster : MonoBehaviour
     private BrushController m_Brush;
 
     // Flow
-    private GameObject m_FlowObject;
-    private FlowController m_Flow;
+    private FlowController m_FlowController;
+    private GameObject m_FlowCameraObject;
+    private Camera m_FlowCamera;
+    private GameObject m_FlowLayerObject;
+    private RawImageController m_FlowLayer;
 
     // SLIC
     private OpenCVSLICClient m_SLICClient;
@@ -118,6 +123,11 @@ public class EditorSceneMaster : MonoBehaviour
     public Vector2 RelativeCoordsToRootRect(Vector2 pos)
     {
         return m_RootLayer.RelativeCoords(pos);
+    }
+
+    public Transform GetRootLayerTransform()
+    {
+        return m_RootLayerObject.transform;
     }
 
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -201,8 +211,8 @@ public class EditorSceneMaster : MonoBehaviour
 
         // Flow
         RemoveFlow();
-        if (m_FlowObject)
-            Destroy(m_FlowObject);
+        if (m_FlowController)
+            Destroy(m_FlowController);
 
         // SLIC
         RemoveSLIC();
@@ -224,7 +234,7 @@ public class EditorSceneMaster : MonoBehaviour
         // Initialize Global Managers
         m_TextureProviderManager = gameObject.AddComponent(typeof(TextureProviderManager)) as TextureProviderManager;
         m_InputManager = gameObject.AddComponent(typeof(InputManager)) as InputManager;
-        m_InputManager.container = container;
+        m_InputManager.optionMenu = optionMenu;
 
         // Initialize Compute Clients
         m_SLICClient = gameObject.AddComponent(typeof(OpenCVSLICClient)) as OpenCVSLICClient;
@@ -236,7 +246,9 @@ public class EditorSceneMaster : MonoBehaviour
         m_RootLayerObject.GetComponent<RectTransform>().SetParent(container);
         m_RootLayerObject.GetComponent<RectTransform>().SetAsFirstSibling();
         m_RootLayer = m_RootLayerObject.GetComponent<RawImageController>();
-        m_RootLayer.isRoot = true;
+        m_RootLayer.movePosition = true;
+        m_RootLayer.moveScale    = true;
+        m_InputManager.container = m_RootLayerObject.GetComponent<RectTransform>();
 
         // Setup Root Texture Provider and Reference to Root Layer
         m_RootStaticTextureObject = GameObject.Instantiate(StaticTexturePrefab);
@@ -372,6 +384,8 @@ public class EditorSceneMaster : MonoBehaviour
             m_MaskLayer = m_MaskLayerObject.GetComponent<RawImageController>();
             m_MaskLayer.globalScale = 2f;
             m_MaskLayer.SetMaskColor(new Color(1f, 0f, 0f, .3f));
+            m_MaskLayer.movePosition = false;
+            m_MaskLayer.moveScale    = true;
         }
 
         // Setup References
@@ -414,17 +428,11 @@ public class EditorSceneMaster : MonoBehaviour
 
     public void CreateFlow()
     {
-        if (!m_FlowObject)
+        if (!m_FlowController)
         {
-            m_FlowObject = GameObject.Instantiate(FlowPrefab);
-            m_FlowObject.name = "Flow";
-            m_FlowObject.transform.SetParent(m_RootLayerObject.transform);
+            m_FlowController = gameObject.AddComponent<FlowController>();
+            m_FlowController.FlowPrefab = FlowPrefab;
         }
-        if (!m_Flow)
-        {
-            m_Flow = m_FlowObject.GetComponent<FlowController>();
-        }
-        // Create Mask Layer
         if (!m_MaskLayerObject)
         {
             m_MaskLayerObject = GameObject.Instantiate(MaskLayerPrefab);
@@ -437,12 +445,46 @@ public class EditorSceneMaster : MonoBehaviour
             m_MaskLayer = m_MaskLayerObject.GetComponent<RawImageController>();
             m_MaskLayer.globalScale = 2f;
             m_MaskLayer.SetMaskColor(new Color(54f/255f, 81f/255f, 91f/255f, .9f));
+            m_MaskLayer.movePosition = false;
+            m_MaskLayer.moveScale    = true;
+        }
+        if (!m_FlowCameraObject)
+        {
+            m_FlowCameraObject = GameObject.Instantiate(FlowCameraPrefab);
+            m_FlowCameraObject.name = "Flow Camera";
+            m_FlowCameraObject.transform.SetParent(container);
+            m_FlowCameraObject.transform.localPosition = Vector3.back;
+        }
+        if (!m_FlowCamera)
+        {
+            m_FlowCamera = m_FlowCameraObject.GetComponent<Camera>();
+            m_FlowCamera.aspect = container.rect.width / container.rect.height;
+            m_FlowCamera.orthographicSize = .5f * container.rect.height;
+        }
+        if (!m_FlowLayerObject)
+        {
+            m_FlowLayerObject = GameObject.Instantiate(LayerPrefab);
+            m_FlowLayerObject.name = "Layer: Flow";
+
+            RectTransform rt = m_FlowLayerObject.GetComponent<RectTransform>();
+            rt.SetParent(container);
+            rt.anchoredPosition = Vector3.zero;
+        }
+        if (!m_FlowLayer)
+        {
+            m_FlowLayer = m_FlowLayerObject.GetComponent<RawImageController>();
+            m_FlowLayer.movePosition = false;
+            m_FlowLayer.moveScale    = false;
         }
 
-        waterEffect.CreateFlow(m_Flow.GetMesh());
+        waterEffect.CreateFlow(m_FlowController.GetMesh());
+
+        RenderTexture flowTex = new RenderTexture((int)container.rect.width, (int)container.rect.height, 0, RenderTextureFormat.ARGB32);
 
         // Setup References
         m_MaskTextures[EFFECT_WATER].SetTarget(m_MaskLayer);
+        m_FlowCamera.targetTexture = flowTex;
+        m_FlowLayer.SetTexture(flowTex);
 
         // Disable All Effects
         if (m_EffectLayerObjects[EFFECT_WATER])
@@ -453,8 +495,22 @@ public class EditorSceneMaster : MonoBehaviour
 
     public void RemoveFlow()
     {
+        if (m_FlowCamera)
+            m_FlowCamera.targetTexture.Release();
+
         if (m_MaskLayerObject)
             Destroy(m_MaskLayerObject);
+        if (m_FlowCameraObject)
+            Destroy(m_FlowCameraObject);
+        if (m_FlowLayerObject)
+            Destroy(m_FlowLayerObject);
+
+        m_MaskLayerObject  = null;
+        m_MaskLayer        = null;
+        m_FlowCameraObject = null;
+        m_FlowCamera       = null;
+        m_FlowLayerObject  = null;
+        m_FlowLayer        = null;
 
         // Enable All Effects
         if (m_EffectLayerObjects[EFFECT_WATER])
@@ -549,6 +605,8 @@ public class EditorSceneMaster : MonoBehaviour
         {
             m_EffectLayers[maskIndex] = m_EffectLayerObjects[maskIndex].GetComponent<RawImageController>();
             m_EffectLayers[maskIndex].globalScale = 2f;
+            m_EffectLayers[maskIndex].movePosition = false;
+            m_EffectLayers[maskIndex].moveScale    = true;
         }
 
         if (maskIndex == EFFECT_WATER)

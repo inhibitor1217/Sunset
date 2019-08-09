@@ -4,7 +4,8 @@ using UnityEngine.UI;
 public class RawImageController : MonoBehaviour
 {
 
-    public bool isRoot = false;
+    public bool movePosition = false;
+    public bool moveScale = true;
     public float globalScale = 1f;
 
     private RawImage m_RawImage;
@@ -41,7 +42,7 @@ public class RawImageController : MonoBehaviour
             Mathf.Clamp(.5f + .1f * (InputManager.Instance.MultiplicativeScale - GRID_OPACITY_CURVE_CENTER), 0f, 1f)
         );
 
-        if (isRoot)
+        if (movePosition)
         {
             m_RectTransform.anchoredPosition = InputManager.Instance.Position * InputManager.Instance.MultiplicativeScale;
             foreach (var maskCamera in m_MaskCameras)
@@ -50,7 +51,8 @@ public class RawImageController : MonoBehaviour
                     maskCamera.orthographicSize = .5f * globalScale * m_ImageBaseScale.y * InputManager.Instance.MultiplicativeScale;
             }
         }
-        m_RectTransform.sizeDelta = globalScale * m_ImageBaseScale * InputManager.Instance.MultiplicativeScale;
+        if (moveScale)
+            m_RectTransform.sizeDelta = globalScale * m_ImageBaseScale * InputManager.Instance.MultiplicativeScale;
     }
 
     public Rect GetRect()
@@ -75,11 +77,15 @@ public class RawImageController : MonoBehaviour
         
         m_ImageBaseScale = new Vector2(texture.width, texture.height);
 
-        if (isRoot)
+        if (movePosition)
             m_RectTransform.anchoredPosition = InputManager.Instance.Position * InputManager.Instance.MultiplicativeScale;
-        m_RectTransform.sizeDelta = globalScale * m_ImageBaseScale * InputManager.Instance.MultiplicativeScale;
+        
+        if (moveScale)
+            m_RectTransform.sizeDelta = globalScale * m_ImageBaseScale * InputManager.Instance.MultiplicativeScale;
+        else
+            m_RectTransform.sizeDelta = globalScale * m_ImageBaseScale;
 
-        if (isRoot)
+        if (movePosition)
         {
             InputManager.Instance.xBound = globalScale * m_ImageBaseScale.x;
             InputManager.Instance.yBound = globalScale * m_ImageBaseScale.y;
@@ -88,7 +94,7 @@ public class RawImageController : MonoBehaviour
 
     public void SetMaskCamera(Camera camera, int maskIndex)
     {
-        if (isRoot)
+        if (movePosition)
             m_MaskCameras[maskIndex] = camera;
     }
 

@@ -3207,7 +3207,7 @@ Canvas:
   m_Enabled: 1
   serializedVersion: 3
   m_RenderMode: 0
-  m_Camera: {fileID: 0}
+  m_Camera: {fileID: 1035055712}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
@@ -4390,11 +4390,14 @@ MonoBehaviour:
     type: 3}
   BrushPrefab: {fileID: 1985476455385052664, guid: be30d766d7cd84b3283f31528cf96abb,
     type: 3}
-  FlowPrefab: {fileID: 8459692763842555432, guid: 0f26d6e3cb5df4b9382025df9cc27c9b,
+  FlowPrefab: {fileID: 1530557415259062596, guid: c478aab2650084d3b982998706689d3b,
     type: 3}
   MaskCameraPrefab: {fileID: 5181211198835112297, guid: f41d96e5e705743b8954f4e33a850c02,
     type: 3}
+  FlowCameraPrefab: {fileID: 7543940906030479524, guid: 8a52abe9ceab3477aa5ae20baf5ac942,
+    type: 3}
   container: {fileID: 63342699}
+  optionMenu: {fileID: 691208893}
   waterEffect: {fileID: 1916399988}
 --- !u!4 &1846091526
 Transform:

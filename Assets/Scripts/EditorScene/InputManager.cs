@@ -4,6 +4,7 @@ public class InputManager : MonoBehaviour
 {
 
     public RectTransform container;
+    public RectTransform optionMenu;
     
     public static InputManager Instance { get; private set; }
 
@@ -45,6 +46,8 @@ public class InputManager : MonoBehaviour
 
             inputPosition = touch.position;
             withinContainer = RectTransformUtility.RectangleContainsScreenPoint(container, inputPosition);
+            if (InputMode.Instance.isFlow())
+                withinContainer &= !RectTransformUtility.RectangleContainsScreenPoint(optionMenu, inputPosition);
             held = true;
             pressed = (touch.phase == TouchPhase.Began);
             released = (touch.phase == TouchPhase.Ended);
@@ -93,6 +96,8 @@ public class InputManager : MonoBehaviour
         held = Input.GetMouseButton(0);
         inputPosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
         withinContainer = RectTransformUtility.RectangleContainsScreenPoint(container, inputPosition);
+        if (InputMode.Instance.isFlow())
+            withinContainer &= !RectTransformUtility.RectangleContainsScreenPoint(optionMenu, inputPosition);
         pressed = Input.GetMouseButtonDown(0);
         released = Input.GetMouseButtonUp(0);
 
