@@ -98,9 +98,9 @@ public class WaterEffectManager : MonoBehaviour
     [SerializeField, Range(.1f, 1)]
     private float _relativeSpeed;
     private const float DEFAULT_RIVER_SPEED = .3f;
-    private const float MAX_SPEED           = 0.8f;
-    private const float MAX_AMPLITUDE       = 2.5f;
-    private const float MAX_EVOLUTION_SPEED = 3f;
+    private const float MAX_SPEED           = 0.4f;
+    private const float MAX_AMPLITUDE       = 1.6f;
+    private const float MAX_EVOLUTION_SPEED = 2.4f;
     public float river_speed {
         set {
             _relativeSpeed = value;
@@ -203,8 +203,7 @@ public class WaterEffectManager : MonoBehaviour
                 _noiseProvider = gameObject.AddComponent<FractalNoiseRuntimeTexture>();
             _noiseProvider.noiseType       = 4; // PERLIN_LINEAR
             _noiseProvider.fractalType     = 0; // BASIC
-            _noiseProvider.scale           = new Vector2(16, 128);
-            _noiseProvider.complexity      = 3;
+            _noiseProvider.scale           = new Vector2(8, 32);
             _noiseProvider.subInfluence    = .5f;
             _noiseProvider.subScale        = 2f * Vector2.one;
             _noiseProvider.brightness      = -.5f;
@@ -236,8 +235,7 @@ public class WaterEffectManager : MonoBehaviour
                 _noiseProvider = gameObject.AddComponent<FractalNoiseRuntimeTexture>();
             _noiseProvider.noiseType       = 4; // PERLIN LINEAR
             _noiseProvider.fractalType     = 1; // TURBULENT
-            _noiseProvider.scale           = new Vector2(8, 32);
-            _noiseProvider.complexity      = 3;
+            _noiseProvider.scale           = new Vector2(4, 16);
             _noiseProvider.subInfluence    = .7f;
             _noiseProvider.subScale        = 2f * Vector2.one;
             _noiseProvider.brightness      = 0f;

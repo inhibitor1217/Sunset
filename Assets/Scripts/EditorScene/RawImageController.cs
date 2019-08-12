@@ -90,6 +90,12 @@ public class RawImageController : MonoBehaviour
             InputManager.Instance.xBound = globalScale * m_ImageBaseScale.x;
             InputManager.Instance.yBound = globalScale * m_ImageBaseScale.y;
         }
+
+        if (movePosition)
+        {
+            m_RawImage.material.SetVector("_RootImageSize",
+                new Vector4(1f / (float)texture.width, 1f / (float)texture.height, (float)texture.width, (float)texture.height));
+        }
     }
 
     public void SetMaskCamera(Camera camera, int maskIndex)

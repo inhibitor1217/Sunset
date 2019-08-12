@@ -106,7 +106,7 @@ public class EditorSceneMaster : MonoBehaviour
     {
         InputMode.Instance.mode = InputMode.BUSY;
         MessagePanel.Instance.ShowMessage("이미지 불러오는 중..", "");
-        StartCoroutine(InitScene(PlayerPrefs.GetString("image_path")));
+        InitScene(PlayerPrefs.GetString("image_path"));
     }
 #endif
 
@@ -131,10 +131,8 @@ public class EditorSceneMaster : MonoBehaviour
     }
 
 #if UNITY_ANDROID && !UNITY_EDITOR
-    public IEnumerator InitScene(string path)
+    public void InitScene(string path)
     {
-        yield return new WaitForEndOfFrame();
-
         Texture2D tex = NativeGallery.LoadImageAtPath(path);
 
         int width = 1;
@@ -234,6 +232,7 @@ public class EditorSceneMaster : MonoBehaviour
         // Initialize Global Managers
         m_TextureProviderManager = gameObject.AddComponent(typeof(TextureProviderManager)) as TextureProviderManager;
         m_InputManager = gameObject.AddComponent(typeof(InputManager)) as InputManager;
+        m_InputManager.container  = container;
         m_InputManager.optionMenu = optionMenu;
 
         // Initialize Compute Clients
@@ -248,7 +247,7 @@ public class EditorSceneMaster : MonoBehaviour
         m_RootLayer = m_RootLayerObject.GetComponent<RawImageController>();
         m_RootLayer.movePosition = true;
         m_RootLayer.moveScale    = true;
-        m_InputManager.container = m_RootLayerObject.GetComponent<RectTransform>();
+        m_InputManager.image = m_RootLayerObject.GetComponent<RectTransform>();
 
         // Setup Root Texture Provider and Reference to Root Layer
         m_RootStaticTextureObject = GameObject.Instantiate(StaticTexturePrefab);
@@ -604,9 +603,9 @@ public class EditorSceneMaster : MonoBehaviour
         if (!m_EffectLayers[maskIndex])
         {
             m_EffectLayers[maskIndex] = m_EffectLayerObjects[maskIndex].GetComponent<RawImageController>();
-            m_EffectLayers[maskIndex].globalScale = 2f;
             m_EffectLayers[maskIndex].movePosition = false;
             m_EffectLayers[maskIndex].moveScale    = true;
+            m_EffectLayers[maskIndex].globalScale  = 2f;
         }
 
         if (maskIndex == EFFECT_WATER)

@@ -97,9 +97,7 @@ public class RiverEffectTexture : TextureProvider
 
     private RenderTexture m_RenderTexture;
     private Material m_WaterMaterial;
-    private int m_PerspectivePass;
     private int m_RiverPass;
-    private Material m_GradientMaterial;
 
     private float _horizon;
     public float horizon
@@ -191,9 +189,9 @@ public class RiverEffectTexture : TextureProvider
         get { return _amplitude; }
         set {
             _amplitude = value;
-            if (m_GradientMaterial)
+            if (m_WaterMaterial)
             {
-                m_GradientMaterial.SetFloat("_Amplitude", _amplitude);
+                m_WaterMaterial.SetFloat("_Amplitude", _amplitude);
                 textureShouldUpdate = true;
             }
         }
@@ -218,11 +216,8 @@ public class RiverEffectTexture : TextureProvider
         base.Awake();
 
         m_WaterMaterial = new Material(Shader.Find("Compute/WaterEffect"));
-        m_WaterMaterial.EnableKeyword("USE_MIPMAP");
-        m_PerspectivePass = m_WaterMaterial.FindPass("Perspective");
+        // m_WaterMaterial.EnableKeyword("USE_MIPMAP");
         m_RiverPass       = m_WaterMaterial.FindPass("River");
-
-        m_GradientMaterial = new Material(Shader.Find("Compute/Gradient"));
     }
 
     public override bool Draw()
@@ -237,22 +232,8 @@ public class RiverEffectTexture : TextureProvider
 
         Texture noiseTex = m_NoiseTex.GetTexture();
 
-        RenderTexture noiseGradient = RenderTexture.GetTemporary(noiseTex.width, noiseTex.height, 0, RenderTextureFormat.ARGBFloat);
-        noiseGradient.filterMode = FilterMode.Trilinear;
-        noiseGradient.wrapMode   = TextureWrapMode.Repeat;
-        noiseGradient.useMipMap  = true;
-        Graphics.Blit(noiseTex, noiseGradient, m_GradientMaterial);
-
-        RenderTexture noisePerspective = RenderTexture.GetTemporary(m_RenderTexture.width, m_RenderTexture.height, 0, RenderTextureFormat.ARGBFloat);
-        noisePerspective.filterMode = FilterMode.Bilinear;
-        noisePerspective.wrapMode   = TextureWrapMode.Repeat;
-        Graphics.Blit(noiseGradient, noisePerspective, m_WaterMaterial, m_PerspectivePass);
-
         m_RenderTexture.DiscardContents();
-        Graphics.Blit(noisePerspective, m_RenderTexture, m_WaterMaterial, m_RiverPass);
-
-        RenderTexture.ReleaseTemporary(noiseGradient);
-        RenderTexture.ReleaseTemporary(noisePerspective);
+        Graphics.Blit(noiseTex, m_RenderTexture, m_WaterMaterial, m_RiverPass);
 
         return true;
     }

@@ -74,7 +74,6 @@ public class CalmEffectTexture : TextureProvider
 
     private RenderTexture m_RenderTexture;
     private Material m_WaterMaterial;
-    private int m_PerspectivePass;
     private int m_CalmPass;
 
     private float _horizon;
@@ -148,7 +147,7 @@ public class CalmEffectTexture : TextureProvider
         base.Awake();
 
         m_WaterMaterial = new Material(Shader.Find("Compute/WaterEffect"));
-        m_PerspectivePass = m_WaterMaterial.FindPass("Perspective");
+        m_WaterMaterial.EnableKeyword("USE_MIPMAP");
         m_CalmPass        = m_WaterMaterial.FindPass("Calm");
     }
 
@@ -163,15 +162,8 @@ public class CalmEffectTexture : TextureProvider
 
         Texture noiseTex = m_NoiseTex.GetTexture();
 
-        RenderTexture noisePerspective = RenderTexture.GetTemporary(m_RenderTexture.width, m_RenderTexture.height, 0, RenderTextureFormat.RFloat);
-        noisePerspective.filterMode = FilterMode.Bilinear;
-        noisePerspective.wrapMode   = TextureWrapMode.Repeat;
-        Graphics.Blit(noiseTex, noisePerspective, m_WaterMaterial, m_PerspectivePass);
-
         m_RenderTexture.DiscardContents();
-        Graphics.Blit(noisePerspective, m_RenderTexture, m_WaterMaterial, m_CalmPass);
-
-        RenderTexture.ReleaseTemporary(noisePerspective);
+        Graphics.Blit(noiseTex, m_RenderTexture, m_WaterMaterial, m_CalmPass);
 
         return true;
     }

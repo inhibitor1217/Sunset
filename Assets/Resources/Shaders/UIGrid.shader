@@ -14,6 +14,7 @@
         _ColorMask ("Color Mask", Float) = 15
 
         _Grid_Opacity ("Grid Opacity", Range(0, 1)) = 0
+        _RootImageSize ("Root Image Size", Vector) = (1, 1, 1, 1)
 
         [Toggle(UNITY_UI_ALPHACLIP)] _UseUIAlphaClip ("Use Alpha Clip", Float) = 0
     }
@@ -63,7 +64,6 @@
                 float4 vertex   : POSITION;
                 float4 color    : COLOR;
                 float2 texcoord : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct v2f
@@ -72,27 +72,23 @@
                 fixed4 color    : COLOR;
                 float2 texcoord  : TEXCOORD0;
                 float4 worldPosition : TEXCOORD1;
-                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             sampler2D _MainTex;
             fixed4 _Color;
             fixed4 _TextureSampleAdd;
             float4 _ClipRect;
-            float4 _MainTex_ST;
-            float4 _MainTex_TexelSize;
+            float4 _RootImageSize;
 
             float _Grid_Opacity;
 
             v2f vert(appdata_t v)
             {
                 v2f OUT;
-                UNITY_SETUP_INSTANCE_ID(v);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
                 OUT.worldPosition = v.vertex;
                 OUT.vertex = UnityObjectToClipPos(OUT.worldPosition);
 
-                OUT.texcoord = TRANSFORM_TEX(v.texcoord, _MainTex);
+                OUT.texcoord = v.texcoord;
 
                 OUT.color = v.color * _Color;
                 return OUT;
@@ -104,14 +100,14 @@
 
                 #ifdef UNITY_UI_CLIP_RECT
                 color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
-                #endif
+                #endif 
 
                 #ifdef UNITY_UI_ALPHACLIP
                 clip (color.a - 0.001);
                 #endif
 
                 // Add Grid Feature
-                float2 texelcoord = _MainTex_TexelSize.zw * IN.texcoord;
+                float2 texelcoord = _RootImageSize.zw * IN.texcoord;
                 float2 texeloffset = abs(texelcoord - floor(texelcoord + 0.5));
                 float coeff = _Grid_Opacity * clamp(
                     (0.05 - min(texeloffset.x, texeloffset.y)) * 200, 0, 1

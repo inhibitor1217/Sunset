@@ -2,11 +2,11 @@ Shader "Compute/WaterEffect"
 {
     Properties
     {
-        _MainTex    ("Source",      2D) = "black" {}
-        _ImgTex     ("Image",       2D) = "black" {}
-        _PaletteTex ("Palette",     2D) = "black" {}
+        _MainTex    ("Source",      2D) = "white" {}
+        _ImgTex     ("Image",       2D) = "white" {}
+        _PaletteTex ("Palette",     2D) = "white" {}
         _EnvTex     ("Environment", 2D) = "white" {}
-        _FlowTex    ("Flow",        2D) = "black" {}
+        _FlowTex    ("Flow",        2D) = "white" {}
 
         _Horizon ("Horizon", Range(0, 1.5)) = .5
         _Perspective ("Perspective", Float) = 1
@@ -15,71 +15,11 @@ Shader "Compute/WaterEffect"
         _Rotation ("Rotation", Vector) = (1, 0, 0, 1)
 
         _LightDirection ("Light Direction", Vector) = (0, 1, 0, 0)
+
+        _Amplitude ("Amplitude", Range(0, 5)) = 1
     }
     SubShader
     {
-        Pass
-        {
-            name "Perspective"
-            Cull Off ZWrite Off ZTest Always
-        CGPROGRAM
-            #include "UnityCG.cginc"
-
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma shader_feature USE_MIPMAP
-
-            sampler2D _MainTex;
-            sampler2D _FlowTex;
-
-            float  _Horizon;
-            float  _Perspective;
-            
-            float  _Speed;
-            float4 _Rotation;
-
-            struct appdata_t
-            {
-                float4 vertex   : POSITION;
-                float2 texcoord : TEXCOORD0;
-            };
-
-            struct v2f
-            {
-                float4 vertex   : SV_POSITION;
-                float2 texcoord : TEXCOORD0;
-            };
-
-            v2f vert(appdata_t v)
-            {
-                v2f OUT;
-
-                OUT.vertex = UnityObjectToClipPos(v.vertex);
-                OUT.texcoord = v.texcoord;
-
-                return OUT;
-            }
-
-            fixed4 frag(v2f IN) : SV_Target
-            {
-                float  y_n   = IN.texcoord.y / _Horizon;
-                float  y_p   = _Perspective / (1 - y_n);
-
-                float2 uv    = float2( y_p * (IN.texcoord.x - .5), y_p );
-        #if USE_MIPMAP
-                float  lod   = .5 * log2(y_p);
-        #endif
-
-                uv = mul( float2x2(_Rotation.x, _Rotation.z, _Rotation.y, _Rotation.w), uv ) + float2( 0, _Speed * _Time.y );
-
-        #if USE_MIPMAP
-                return tex2Dbias( _MainTex, float4(uv.x, uv.y, 0, lod) );
-        #else
-                return tex2D( _MainTex, uv );
-        #endif
-            }
-        ENDCG
-        }
         Pass
         {
             name "Calm"
@@ -97,8 +37,11 @@ Shader "Compute/WaterEffect"
             sampler2D _PaletteTex;
             sampler2D _EnvTex;
 
-            float _Horizon;
-            float _Perspective;
+            float  _Horizon;
+            float  _Perspective;
+
+            float  _Speed;
+            float4 _Rotation;
 
             float4 _LightDirection;
 
@@ -124,20 +67,49 @@ Shader "Compute/WaterEffect"
                 return OUT;
             }
 
+            float normalizedY(float2 tex)
+            {
+                return tex.y / _Horizon;
+            }
+
+            float2 tex2uv(float2 tex)
+            {
+                float y_p = _Perspective / (1 - normalizedY(tex));
+                return float2( y_p * (tex.x - .5), y_p );
+            }
+
+            half get_noise_value(float2 uv)
+            {
+            #if USE_MIPMAP
+                float lod = log2(length(uv));
+                half4  _r = tex2D(_MainTex, uv);
+                half  r   = _r.x * clamp( 1 - lod         , 0, 1 ) // COMPLEXITY LEVEL 0 
+                          + _r.y * clamp( 1 - abs(lod - 1), 0, 1 ) // COMPLEXITY LEVEL 1
+                          + _r.z * clamp( 1 - abs(lod - 2), 0, 1 ) // COMPLEXITY LEVEL 2 
+                          + _r.w * clamp( 1 - abs(lod - 3), 0, 1 ) // COMPLEXITY LEVEL 3
+                          + .5    * clamp( lod - 3, 0, 1 );
+                return r;
+            #else
+                return tex2D(_MainTex, uv).w;
+            #endif
+            }
+
             fixed4 frag(v2f IN) : SV_Target
             {
-                float alpha = tex2D(_EnvTex, IN.texcoord).a;
+                fixed alpha = tex2D(_EnvTex, IN.texcoord).a;
 
                 if (alpha < 0.01)
                     return fixed4(0, 0, 0, 0);
 
-                float y_n   = IN.texcoord.y / _Horizon;
-                float y_p   = _Perspective / (1 - y_n);
+                // COORDINATES
+                float2 uv   = tex2uv(IN.texcoord);
+                uv = mul( half2x2(_Rotation.x, _Rotation.z, _Rotation.y, _Rotation.w), uv ) + half2( 0, _Speed * _Time.y );
 
-                float  r    = tex2D( _MainTex, IN.texcoord ).r;
+                half  r     = get_noise_value(uv);
 
-                float2 v    = normalize(float2( y_p * (IN.texcoord.x - .5), y_p));
-                float2 l    = normalize(_LightDirection.xy);
+                // LIGHT DIRECTIONS
+                half2 v     = normalize(uv);
+                half2 l     = normalize(_LightDirection.xy);
 
                 // DIFFUSE (PALETTE)
                 fixed4 low      = tex2D( _PaletteTex, float2(IN.texcoord.x, .5 * IN.texcoord.y) );
@@ -145,17 +117,17 @@ Shader "Compute/WaterEffect"
                 fixed4 diffuse  = lerp( low, high, r );
                 
                 // SPECULAR (ENVIRONMENT MAP)
-                fixed4 envMap   = tex2D( _EnvTex, IN.texcoord + .2 * (1 - y_n) * float2(r, r) );
+                fixed4 envMap   = tex2D( _EnvTex, IN.texcoord + .2 * (1 - normalizedY(IN.texcoord)) * float2(r, r) );
                 
                 // FRESNEL
-                float reflectance = lerp(
+                half reflectance = lerp(
                     .2, .5,
                     pow(max(dot(v, l), 0), 100)
                 );
                 fixed4 color    = lerp( diffuse, envMap, reflectance );
 
                 // FOG
-                fixed4 fogColor = tex2D( _ImgTex, float2(IN.texcoord.x, _Horizon) );
+                fixed4 fogColor = tex2D( _ImgTex, half2(IN.texcoord.x, _Horizon) );
                 color           = lerp( color, fogColor, smoothstep(_Horizon - .1, _Horizon, IN.texcoord.y) );
 
                 // MASK BOUNDARY MIX
@@ -187,8 +159,13 @@ Shader "Compute/WaterEffect"
             float _Horizon;
             float _Perspective;
 
+            float  _Speed;
             float4 _Rotation;
+
             float4 _LightDirection;
+
+            float4 _MainTex_TexelSize;
+            float  _Amplitude;
 
             struct appdata_t
             {
@@ -212,28 +189,79 @@ Shader "Compute/WaterEffect"
                 return OUT;
             }
 
+            float normalizedY(float2 tex)
+            {
+                return tex.y / _Horizon;
+            }
+
+            float2 tex2uv(float2 tex)
+            {
+                float y_p = _Perspective / (1 - normalizedY(tex));
+                return float2( y_p * (tex.x - .5), y_p );
+            }
+
+            half get_noise_value(float2 uv)
+            {
+            #if USE_MIPMAP
+                float lod = log2(length(uv));
+                half4  _r = tex2D(_MainTex, uv);
+                half  r   = _r.x * clamp( 1 - lod         , 0, 1 ) // COMPLEXITY LEVEL 0 
+                          + _r.y * clamp( 1 - abs(lod - 1), 0, 1 ) // COMPLEXITY LEVEL 1
+                          + _r.z * clamp( 1 - abs(lod - 2), 0, 1 ) // COMPLEXITY LEVEL 2 
+                          + _r.w * clamp( 1 - abs(lod - 3), 0, 1 ) // COMPLEXITY LEVEL 3
+                          + .5    * clamp( lod - 3, 0, 1 );
+                return r;
+            #else
+                return tex2D(_MainTex, uv).w;
+            #endif
+            }
+
+            static float coeff_dx[9] = { -.25, 0, .25, -.50, 0, .50, -.25, 0, .25 };
+            static float coeff_dy[9] = { -.25, -.50, -.25, 0, 0, 0, .25, .50, .25 };
+            
+            half3 get_normal(float2 uv)
+            {
+                float2 offset = _MainTex_TexelSize.xy;
+
+                half sum_dx = 0;
+                half sum_dy = 0;
+
+                for (int x = -1; x <= 1; x++)
+                    for (int y = -1; y <= 1; y++)
+                    {
+                        sum_dx += coeff_dx[x + y * 3 + 4] * get_noise_value(uv + offset * float2(x, y));
+                        sum_dy += coeff_dy[x + y * 3 + 4] * get_noise_value(uv + offset * float2(x, y));
+                    }
+
+                return cross(normalize(half3(1, 0, _Amplitude * sum_dx)), normalize(half3(0, 1, _Amplitude * sum_dy)));
+            }
+
             fixed4 frag(v2f IN) : SV_Target
             {
-                float alpha = tex2D(_EnvTex, IN.texcoord).a;
+                half alpha = tex2D(_EnvTex, IN.texcoord).a;
 
                 if (alpha < 0.01)
                     return fixed4(0, 0, 0, 0);
 
-                float y_n   = IN.texcoord.y / _Horizon;
-                float y_p   = _Perspective / (1 - y_n);
+                // COORDINATES
+                float2 uv   = tex2uv(IN.texcoord);
+                uv = mul( half2x2(_Rotation.x, _Rotation.z, _Rotation.y, _Rotation.w), uv ) + half2( 0, _Speed * _Time.y );
 
-                float3 n = normalize(2 * tex2D(_MainTex, IN.texcoord).xyz - 1);
-                float3 l = _LightDirection.xyz;
+                // CALCULATE NORMAL
+                half3 n = get_normal(uv);
+
+                // LIGHT DIRECTIONS
+                half3 l = _LightDirection.xyz;
 
                 // ROTATE NORMAL
-                n.xy = mul( float2x2(_Rotation.x, _Rotation.y, _Rotation.z, _Rotation.w), n.xy );
+                n.xy = mul( half2x2(_Rotation.x, _Rotation.y, _Rotation.z, _Rotation.w), n.xy );
 
                 // DIFFUSE (PALETTE)
                 fixed3 low      = tex2D( _PaletteTex, float2(IN.texcoord.x, .5 * IN.texcoord.y) ).rgb;
                 fixed3 high     = tex2D( _PaletteTex, float2(IN.texcoord.x, .5 * IN.texcoord.y + .5) ).rgb;
 
                 // SPECULAR (ENVIRONMENT MAP)
-                fixed3 envMap   = high * tex2D( _EnvTex, IN.texcoord + .4 * (1 - y_n) * n.xy ).rgb;
+                fixed3 envMap   = high * tex2D( _EnvTex, IN.texcoord + .4 * (1 - normalizedY(IN.texcoord)) * n.xy ).rgb;
                 
                 // FRESNEL
                 fixed4 color    = fixed4( low + envMap * max(dot(n, l), 0), 1 );

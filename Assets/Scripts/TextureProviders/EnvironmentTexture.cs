@@ -81,13 +81,20 @@ public class EnvironmentTexture : TextureProvider
 
         Texture imgTex = m_ImgTexture.GetTexture();
 
+        RenderTexture envMapRaw = RenderTexture.GetTemporary(m_RenderTexture.width, m_RenderTexture.height, 0, m_RenderTexture.format);
+        m_RenderTexture.wrapMode = TextureWrapMode.Clamp;
+        m_RenderTexture.filterMode = FilterMode.Bilinear;
+
         FilterMode prev = imgTex.filterMode;
         imgTex.filterMode = FilterMode.Bilinear;
-        m_RenderTexture.DiscardContents();
-        Graphics.Blit(imgTex, m_RenderTexture, m_EnvMapMaterial);
+        envMapRaw.DiscardContents();
+        Graphics.Blit(imgTex, envMapRaw, m_EnvMapMaterial);
         imgTex.filterMode = prev;
 
-        Graphics.Blit(m_RenderTexture, m_RenderTexture, m_BlurMaterial, m_HorizontalBlurPass);
+        m_RenderTexture.DiscardContents();
+        Graphics.Blit(envMapRaw, m_RenderTexture, m_BlurMaterial, m_HorizontalBlurPass);
+
+        RenderTexture.ReleaseTemporary(envMapRaw);
 
         return true;
     }

@@ -34,7 +34,7 @@ public class FlowController : MonoBehaviour
         {
             if (!InputMode.Instance.isErase())
             {
-                if (!_editing && InputManager.Instance.held && InputManager.Instance.withinContainer)
+                if (!_editing && InputManager.Instance.held && InputManager.Instance.withinImage)
                 {
                     _editing = true;
 
@@ -50,7 +50,7 @@ public class FlowController : MonoBehaviour
                     _currentLineRenderer.SetPositions(_currentPivots.ToArray());
                     _uiFlowObjects.Add(_currentFlowObject);
                 }
-                if (!InputManager.Instance.held || !InputManager.Instance.withinContainer)
+                if (!InputManager.Instance.held || !InputManager.Instance.withinImage)
                 {
                     _editing = false;
                 }

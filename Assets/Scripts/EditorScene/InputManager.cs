@@ -4,6 +4,7 @@ public class InputManager : MonoBehaviour
 {
 
     public RectTransform container;
+    public RectTransform image;
     public RectTransform optionMenu;
     
     public static InputManager Instance { get; private set; }
@@ -21,6 +22,7 @@ public class InputManager : MonoBehaviour
     public bool released { get; private set; } = false;
     public bool held { get; private set; } = false;
     public bool withinContainer { get; private set; } = false;
+    public bool withinImage { get; private set; } = false;
 
     public const float MIN_SCALE = 0.5f;
     public const float MAX_SCALE = 32.0f;
@@ -48,6 +50,9 @@ public class InputManager : MonoBehaviour
             withinContainer = RectTransformUtility.RectangleContainsScreenPoint(container, inputPosition);
             if (InputMode.Instance.isFlow())
                 withinContainer &= !RectTransformUtility.RectangleContainsScreenPoint(optionMenu, inputPosition);
+            withinImage = RectTransformUtility.RectangleContainsScreenPoint(image, inputPosition);
+            if (InputMode.Instance.isFlow())
+                withinImage &= !RectTransformUtility.RectangleContainsScreenPoint(optionMenu, inputPosition);
             held = true;
             pressed = (touch.phase == TouchPhase.Began);
             released = (touch.phase == TouchPhase.Ended);
@@ -62,11 +67,12 @@ public class InputManager : MonoBehaviour
             Touch touch0 = Input.GetTouch(0);
             Touch touch1 = Input.GetTouch(1);
 
-            inputPosition = Vector2.zero;
+            inputPosition   = Vector2.zero;
             withinContainer = false;
-            held = false;
-            pressed = false;
-            released = false;
+            withinImage     = false;
+            held            = false;
+            pressed         = false;
+            released        = false;
 
             if (container
                 && RectTransformUtility.RectangleContainsScreenPoint(
@@ -89,6 +95,15 @@ public class InputManager : MonoBehaviour
                 }
             }
         }
+        else
+        {
+            inputPosition   = Vector2.zero;
+            withinContainer = false;
+            withinImage     = false;
+            held            = false;
+            pressed         = false;
+            released        = false;
+        }
 #else
         float inputX = Input.GetAxis("Horizontal");
         float inputY = Input.GetAxis("Vertical");
@@ -98,6 +113,9 @@ public class InputManager : MonoBehaviour
         withinContainer = RectTransformUtility.RectangleContainsScreenPoint(container, inputPosition);
         if (InputMode.Instance.isFlow())
             withinContainer &= !RectTransformUtility.RectangleContainsScreenPoint(optionMenu, inputPosition);
+        withinImage = RectTransformUtility.RectangleContainsScreenPoint(image, inputPosition);
+        if (InputMode.Instance.isFlow())
+            withinImage &= !RectTransformUtility.RectangleContainsScreenPoint(optionMenu, inputPosition);
         pressed = Input.GetMouseButtonDown(0);
         released = Input.GetMouseButtonUp(0);
 

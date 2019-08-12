@@ -23,7 +23,7 @@ public class EditorGalleryButton : MonoBehaviour
             
         NativeGallery.Permission permission = NativeGallery.GetImageFromGallery(
             (path) => {
-                StartCoroutine(EditorSceneMaster.Instance.InitScene(path));
+                EditorSceneMaster.Instance.InitScene(path);
             }
         );
     }
