@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 using System.Collections.Generic;
 
 public class FlowController : MonoBehaviour
@@ -67,7 +66,8 @@ public class FlowController : MonoBehaviour
                             _uiFlowObjects.Add(_currentFlowObject);
                         }
 
-                        _currentPivots.Add(EditorSceneMaster.Instance.RelativeCoordsToRootRect(InputManager.Instance.inputPosition));
+                        _lastPivot = EditorSceneMaster.Instance.RelativeCoordsToRootRect(InputManager.Instance.inputPosition);
+                        _currentPivots.Add(_lastPivot);
                         
                         _currentLineRenderer.positionCount = _currentPivots.Count;
                         _currentLineRenderer.SetPositions(_currentPivots.ToArray());
@@ -79,9 +79,12 @@ public class FlowController : MonoBehaviour
                 if (InputManager.Instance.pressed && InputManager.Instance.withinImage)
                 {
                     int curveIdx = selectCurve(EditorSceneMaster.Instance.RelativeCoordsToRootRect(InputManager.Instance.inputPosition));
+                    Debug.Log(curveIdx);
                     if (curveIdx != -1)
                     {
                         _pivots.RemoveAt(curveIdx);
+                        Destroy(_uiFlowObjects[curveIdx]);
+                        _uiFlowObjects.RemoveAt(curveIdx);
                     }
                 }
             }
@@ -116,19 +119,27 @@ public class FlowController : MonoBehaviour
     int selectCurve(Vector2 pos)
     {
         int closestCurve = -1;
-        float closestDist = 0, curDist;
+        float closestDist = 0;
 
         if (_pivots.Count == 0)
             return closestCurve;
 
         for (int i = 0; i < _pivots.Count; i++)
-            for (int j = 0; j < _pivots[i].Count; j++)
-                if ((curDist = Vector2.Distance(_pivots[i][j], pos)) < ERASE_THRESHOLD)
+            for (int j = 0; j < _pivots[i].Count - 1; j++)
+            {
+                Vector2 curveDir = (_pivots[i][j + 1] - _pivots[i][j]).normalized;
+                Vector2 posDir   = pos - new Vector2(_pivots[i][j].x, _pivots[i][j].y);
+
+                float p = Vector2.Dot(curveDir, posDir);
+                float curDist = (posDir - p * curveDir).magnitude;
+
+                if (0 < p && p < (_pivots[i][j + 1] - _pivots[i][j]).magnitude && curDist < ERASE_THRESHOLD)
                     if (closestCurve == -1 || closestDist > curDist)
                     {
                         closestCurve = i;
                         closestDist = curDist;
                     }
+            }
 
         return closestCurve;
     }
