@@ -195,7 +195,10 @@ public class WaterEffectManager : MonoBehaviour
             if (_effectProvider)
                 Destroy(_effectProvider);
             if (riverOptionPanel)
+            {
                 riverOptionPanel.SetActive(false);
+                InputManager.Instance.optionMenu = null;
+            }
             break;
         case CALM:
             /* SETUP NOISE */
@@ -261,7 +264,10 @@ public class WaterEffectManager : MonoBehaviour
 
             /* SETUP UI */
             if (riverOptionPanel)
+            {
                 riverOptionPanel.SetActive(true);
+                InputManager.Instance.optionMenu = riverOptionPanel.GetComponent<RectTransform>();
+            }
             break;
         default:
             break;

@@ -48,10 +48,10 @@ public class InputManager : MonoBehaviour
 
             inputPosition = touch.position;
             withinContainer = RectTransformUtility.RectangleContainsScreenPoint(container, inputPosition);
-            if (InputMode.Instance.isFlow())
+            if (optionMenu)
                 withinContainer &= !RectTransformUtility.RectangleContainsScreenPoint(optionMenu, inputPosition);
             withinImage = RectTransformUtility.RectangleContainsScreenPoint(image, inputPosition);
-            if (InputMode.Instance.isFlow())
+            if (optionMenu)
                 withinImage &= !RectTransformUtility.RectangleContainsScreenPoint(optionMenu, inputPosition);
             held = true;
             pressed = (touch.phase == TouchPhase.Began);
@@ -111,10 +111,10 @@ public class InputManager : MonoBehaviour
         held = Input.GetMouseButton(0);
         inputPosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
         withinContainer = RectTransformUtility.RectangleContainsScreenPoint(container, inputPosition);
-        if (InputMode.Instance.isFlow())
+        if (optionMenu)
             withinContainer &= !RectTransformUtility.RectangleContainsScreenPoint(optionMenu, inputPosition);
         withinImage = RectTransformUtility.RectangleContainsScreenPoint(image, inputPosition);
-        if (InputMode.Instance.isFlow())
+        if (optionMenu)
             withinImage &= !RectTransformUtility.RectangleContainsScreenPoint(optionMenu, inputPosition);
         pressed = Input.GetMouseButtonDown(0);
         released = Input.GetMouseButtonUp(0);

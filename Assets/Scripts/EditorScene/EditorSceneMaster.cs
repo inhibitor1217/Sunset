@@ -21,7 +21,6 @@ public class EditorSceneMaster : MonoBehaviour
 
     [Header("References")]
     public RectTransform container;
-    public RectTransform optionMenu;
 
     // Managers
     private TextureProviderManager m_TextureProviderManager;
@@ -233,7 +232,6 @@ public class EditorSceneMaster : MonoBehaviour
         m_TextureProviderManager = gameObject.AddComponent(typeof(TextureProviderManager)) as TextureProviderManager;
         m_InputManager = gameObject.AddComponent(typeof(InputManager)) as InputManager;
         m_InputManager.container  = container;
-        m_InputManager.optionMenu = optionMenu;
 
         // Initialize Compute Clients
         m_SLICClient = gameObject.AddComponent(typeof(OpenCVSLICClient)) as OpenCVSLICClient;
