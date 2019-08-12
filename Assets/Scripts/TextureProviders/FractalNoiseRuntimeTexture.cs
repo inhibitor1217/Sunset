@@ -128,8 +128,16 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     //     set { updateSubVelocity(value); }
     // }
 
+    [Header("Gradient")]
+    [SerializeField, Range(0, 5)]
+    private float _amplitude = 1f;
+    public float amplitude {
+        get { return _amplitude; }
+        set { updateAmplitude(value); } 
+    }
 
     private Material m_FractalNoiseMaterial;
+    private Material m_GradientMaterial;
     [SerializeField]
     private RenderTexture m_RenderTexture;
 
@@ -157,9 +165,12 @@ public class FractalNoiseRuntimeTexture : TextureProvider
         base.Awake();
 
         m_FractalNoiseMaterial = new Material(Shader.Find("Compute/FractalNoise"));
-        m_RenderTexture = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf);
+        m_GradientMaterial     = new Material(Shader.Find("Compute/Gradient"));
+
+        m_RenderTexture = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGB32);
         m_RenderTexture.wrapMode   = TextureWrapMode.Repeat;
-        m_RenderTexture.filterMode = FilterMode.Bilinear;
+        m_RenderTexture.filterMode = FilterMode.Trilinear;
+        m_RenderTexture.useMipMap  = true;
 
         /* SUBMIT HASH ARRAY */
         Texture2D hashTex = new Texture2D(256, 1, TextureFormat.RFloat, false);
@@ -222,10 +233,15 @@ public class FractalNoiseRuntimeTexture : TextureProvider
 
     public override bool Draw()
     {
-        if (m_FractalNoiseMaterial && m_RenderTexture)
+        if (m_RenderTexture)
         {
+            RenderTexture noiseRaw = RenderTexture.GetTemporary(m_RenderTexture.width, m_RenderTexture.height, 0, RenderTextureFormat.RFloat);
+            Graphics.Blit(null, noiseRaw, m_FractalNoiseMaterial);
+
             m_RenderTexture.DiscardContents();
-            Graphics.Blit(null, m_RenderTexture, m_FractalNoiseMaterial);
+            Graphics.Blit(noiseRaw, m_RenderTexture, m_GradientMaterial);
+
+            RenderTexture.ReleaseTemporary(noiseRaw);
 
             return true;
         }
@@ -445,5 +461,15 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     //         textureShouldUpdate = true;
     //     }
     // }
+
+    void updateAmplitude(float value)
+    {
+        _amplitude = value;
+        if (m_GradientMaterial)
+        {
+            m_GradientMaterial.SetFloat("_Amplitude", value);
+            textureShouldUpdate = true;
+        }
+    }
 
 }

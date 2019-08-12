@@ -244,7 +244,7 @@ Shader "Compute/FractalNoise"
                 return OUT;
             }
 
-            half4 frag(v2f IN) : SV_Target
+            float frag(v2f IN) : SV_Target
             {
                 float3 coords;
                 coords.xy = IN.texcoord;
@@ -255,12 +255,7 @@ Shader "Compute/FractalNoise"
                 float v2 = octave(coords, 2);
                 float v3 = octave(coords, 3);
 
-                float4 value = float4(
-                    v0, 
-                    lerp( v0, v1, _SubInfluence ), 
-                    lerp( v0, lerp( v1, v2, _SubInfluence ), _SubInfluence ), 
-                    lerp( v0, lerp( v1, lerp( v2, v3, _SubInfluence ), _SubInfluence ), _SubInfluence )
-                );
+                float value = lerp( v0, lerp( v1, lerp( v2, v3, _SubInfluence ), _SubInfluence ), _SubInfluence );
 
                 value = clamp(_Contrast * (value - .5) + (.5 + _Brightness), 0, 1);
 

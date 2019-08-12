@@ -183,20 +183,6 @@ public class RiverEffectTexture : TextureProvider
         }
     }
 
-    private float _amplitude;
-    public float amplitude
-    {
-        get { return _amplitude; }
-        set {
-            _amplitude = value;
-            if (m_WaterMaterial)
-            {
-                m_WaterMaterial.SetFloat("_Amplitude", _amplitude);
-                textureShouldUpdate = true;
-            }
-        }
-    }
-
     private float _speed;
     public float speed
     {
@@ -216,7 +202,7 @@ public class RiverEffectTexture : TextureProvider
         base.Awake();
 
         m_WaterMaterial = new Material(Shader.Find("Compute/WaterEffect"));
-        // m_WaterMaterial.EnableKeyword("USE_MIPMAP");
+        m_WaterMaterial.EnableKeyword("USE_MIPMAP");
         m_RiverPass       = m_WaterMaterial.FindPass("River");
     }
 

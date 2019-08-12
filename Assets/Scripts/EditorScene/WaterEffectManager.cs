@@ -111,9 +111,9 @@ public class WaterEffectManager : MonoBehaviour
             case CALM:
                 break;
             case RIVER:
-                (_effectProvider as RiverEffectTexture).speed     = MAX_SPEED * _relativeSpeed;
-                (_effectProvider as RiverEffectTexture).amplitude = MAX_AMPLITUDE * _relativeSpeed;
-                _noiseProvider.evolutionSpeed                     = MAX_EVOLUTION_SPEED * _relativeSpeed;
+                (_effectProvider as RiverEffectTexture).speed = MAX_SPEED * _relativeSpeed;
+                _noiseProvider.amplitude                      = MAX_AMPLITUDE * _relativeSpeed;
+                _noiseProvider.evolutionSpeed                 = MAX_EVOLUTION_SPEED * _relativeSpeed;
                 break;
             }
         }
@@ -203,11 +203,11 @@ public class WaterEffectManager : MonoBehaviour
                 _noiseProvider = gameObject.AddComponent<FractalNoiseRuntimeTexture>();
             _noiseProvider.noiseType       = 4; // PERLIN_LINEAR
             _noiseProvider.fractalType     = 0; // BASIC
-            _noiseProvider.scale           = new Vector2(8, 32);
+            _noiseProvider.scale           = new Vector2(16, 64);
             _noiseProvider.subInfluence    = .5f;
             _noiseProvider.subScale        = 2f * Vector2.one;
             _noiseProvider.brightness      = -.5f;
-            _noiseProvider.contrast        = 2f;
+            _noiseProvider.contrast        = .7f;
             _noiseProvider.enableEvolution = true;
             _noiseProvider.evolutionSpeed  = 1f;
 
