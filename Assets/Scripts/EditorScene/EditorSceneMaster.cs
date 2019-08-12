@@ -9,7 +9,6 @@ public class EditorSceneMaster : MonoBehaviour
 
     [Header("Prefabs")]
     public GameObject LayerPrefab;
-    public GameObject MaskLayerPrefab;
     public GameObject StaticTexturePrefab;
     public GameObject MaskTexturePrefab;
     public GameObject SLICLabelTexturePrefab;
@@ -245,6 +244,9 @@ public class EditorSceneMaster : MonoBehaviour
         m_RootLayer = m_RootLayerObject.GetComponent<RawImageController>();
         m_RootLayer.movePosition = true;
         m_RootLayer.moveScale    = true;
+        m_RootLayer.useGrid      = true;
+        m_RootLayer.material     = new Material(Shader.Find("UI/Grid"));
+        m_RootLayer.material.SetVector("_RootImageSize", new Vector4(1f / (float)width, 1f / (float)height, (float)width, (float)height));
         m_InputManager.image = m_RootLayerObject.GetComponent<RectTransform>();
 
         // Setup Root Texture Provider and Reference to Root Layer
@@ -371,7 +373,7 @@ public class EditorSceneMaster : MonoBehaviour
         // Create Mask Layer
         if (!m_MaskLayerObject)
         {
-            m_MaskLayerObject = GameObject.Instantiate(MaskLayerPrefab);
+            m_MaskLayerObject = GameObject.Instantiate(LayerPrefab);
             m_MaskLayerObject.name = "Layer: Mask";
             m_MaskLayerObject.GetComponent<RectTransform>().SetParent(m_RootLayerObject.GetComponent<RectTransform>());
             m_MaskLayerObject.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
@@ -380,9 +382,10 @@ public class EditorSceneMaster : MonoBehaviour
         {
             m_MaskLayer = m_MaskLayerObject.GetComponent<RawImageController>();
             m_MaskLayer.globalScale = 2f;
-            m_MaskLayer.SetMaskColor(new Color(1f, 0f, 0f, .3f));
             m_MaskLayer.movePosition = false;
             m_MaskLayer.moveScale    = true;
+            m_MaskLayer.material     = new Material(Shader.Find("UI/Mask"));
+            m_MaskLayer.material.SetColor("_Color", new Color(1, 0, 0, .3f));
         }
 
         // Setup References
@@ -432,7 +435,7 @@ public class EditorSceneMaster : MonoBehaviour
         }
         if (!m_MaskLayerObject)
         {
-            m_MaskLayerObject = GameObject.Instantiate(MaskLayerPrefab);
+            m_MaskLayerObject = GameObject.Instantiate(LayerPrefab);
             m_MaskLayerObject.name = "Layer: Mask";
             m_MaskLayerObject.GetComponent<RectTransform>().SetParent(m_RootLayerObject.GetComponent<RectTransform>());
             m_MaskLayerObject.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
@@ -441,9 +444,10 @@ public class EditorSceneMaster : MonoBehaviour
         {
             m_MaskLayer = m_MaskLayerObject.GetComponent<RawImageController>();
             m_MaskLayer.globalScale = 2f;
-            m_MaskLayer.SetMaskColor(new Color(54f/255f, 81f/255f, 91f/255f, .9f));
             m_MaskLayer.movePosition = false;
             m_MaskLayer.moveScale    = true;
+            m_MaskLayer.material     = new Material(Shader.Find("UI/Mask"));
+            m_MaskLayer.material.SetColor("_Color", new Color(54f/255f, 81f/255f, 91f/255f, .9f));
         }
         if (!m_FlowCameraObject)
         {
@@ -472,9 +476,9 @@ public class EditorSceneMaster : MonoBehaviour
             m_FlowLayer = m_FlowLayerObject.GetComponent<RawImageController>();
             m_FlowLayer.movePosition = false;
             m_FlowLayer.moveScale    = false;
+            m_FlowLayer.useGrid      = false;
+            m_FlowLayer.material     = new Material(Shader.Find("UI/Grid"));
         }
-
-        waterEffect.CreateFlow(m_FlowController.GetMesh());
 
         RenderTexture flowTex = new RenderTexture((int)container.rect.width, (int)container.rect.height, 0, RenderTextureFormat.ARGB32);
 
@@ -508,6 +512,10 @@ public class EditorSceneMaster : MonoBehaviour
         m_FlowCamera       = null;
         m_FlowLayerObject  = null;
         m_FlowLayer        = null;
+
+        // Invoke Flow Texture Draw
+        if (m_FlowController)
+            waterEffect.CreateFlow(m_FlowController.GetMesh());
 
         // Enable All Effects
         if (m_EffectLayerObjects[EFFECT_WATER])
@@ -603,7 +611,10 @@ public class EditorSceneMaster : MonoBehaviour
             m_EffectLayers[maskIndex] = m_EffectLayerObjects[maskIndex].GetComponent<RawImageController>();
             m_EffectLayers[maskIndex].movePosition = false;
             m_EffectLayers[maskIndex].moveScale    = true;
+            m_EffectLayers[maskIndex].useGrid      = true;
             m_EffectLayers[maskIndex].globalScale  = 2f;
+            m_EffectLayers[maskIndex].material     = new Material(Shader.Find("UI/Grid"));
+            m_EffectLayers[maskIndex].material.SetVector("_RootImageSize", new Vector4(1f / (float)width, 1f / (float)height, (float)width, (float)height));
         }
 
         if (maskIndex == EFFECT_WATER)

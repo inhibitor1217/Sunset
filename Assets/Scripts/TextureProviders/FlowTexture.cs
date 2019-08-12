@@ -5,6 +5,7 @@ public class FlowTexture : TextureProvider
 
     private RenderTexture m_RenderTexture = null;
 
+    [SerializeField]
     private Mesh _flowVectorMesh;
     public Mesh flowVectorMesh {
         get { return _flowVectorMesh; }

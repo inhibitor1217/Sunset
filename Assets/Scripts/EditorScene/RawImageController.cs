@@ -6,6 +6,7 @@ public class RawImageController : MonoBehaviour
 
     public bool movePosition = false;
     public bool moveScale = true;
+    public bool useGrid = true;
     public float globalScale = 1f;
 
     private RawImage m_RawImage;
@@ -19,6 +20,11 @@ public class RawImageController : MonoBehaviour
 #else
     private const float GRID_OPACITY_CURVE_CENTER = 15f;
 #endif
+
+    public Material material {
+        get { return m_RawImage.materialForRendering; }
+        set { m_RawImage.material = value; }
+    }
 
     void Awake()
     {
@@ -37,10 +43,16 @@ public class RawImageController : MonoBehaviour
 
     void Update()
     {
-
-        m_RawImage.materialForRendering.SetFloat("_Grid_Opacity",
-            Mathf.Clamp(.5f + .1f * (InputManager.Instance.MultiplicativeScale - GRID_OPACITY_CURVE_CENTER), 0f, 1f)
-        );
+        if (useGrid)
+        {
+            m_RawImage.materialForRendering.SetFloat("_Grid_Opacity",
+                Mathf.Clamp(.5f + .1f * (InputManager.Instance.MultiplicativeScale - GRID_OPACITY_CURVE_CENTER), 0f, 1f)
+            );
+        }
+        else
+        {
+            m_RawImage.materialForRendering.SetFloat("_Grid_Opacity", 0);
+        }
 
         if (movePosition)
         {
@@ -90,23 +102,12 @@ public class RawImageController : MonoBehaviour
             InputManager.Instance.xBound = globalScale * m_ImageBaseScale.x;
             InputManager.Instance.yBound = globalScale * m_ImageBaseScale.y;
         }
-
-        if (movePosition)
-        {
-            m_RawImage.material.SetVector("_RootImageSize",
-                new Vector4(1f / (float)texture.width, 1f / (float)texture.height, (float)texture.width, (float)texture.height));
-        }
     }
 
     public void SetMaskCamera(Camera camera, int maskIndex)
     {
         if (movePosition)
             m_MaskCameras[maskIndex] = camera;
-    }
-
-    public void SetMaskColor(Color color)
-    {
-        m_RawImage.material.SetColor("_Color", color);
     }
 
 }

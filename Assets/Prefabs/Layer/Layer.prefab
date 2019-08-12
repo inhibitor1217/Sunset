@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2570545346817782454}
   - component: {fileID: 2570545346817782452}
   m_Layer: 5
-  m_Name: GridLayer
+  m_Name: Layer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -58,7 +58,7 @@ MonoBehaviour:
   m_Script: {fileID: -98529514, guid: f70555f144d8491a825f0804e09c671c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 2100000, guid: 53564581b0afc492d963a019afab3b2b, type: 2}
+  m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
@@ -85,6 +85,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35ee2caa5e7d94fabaad6a9118afa45c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  container: {fileID: 0}
-  provider: {fileID: 0}
-  isRoot: 0
+  movePosition: 0
+  moveScale: 1
+  useGrid: 1
+  globalScale: 1
