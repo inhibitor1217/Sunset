@@ -109,7 +109,7 @@ Shader "Compute/WaterEffect"
                 float4 diffuse  = lerp( low, high, r );
                 
                 // SPECULAR (ENVIRONMENT MAP)
-                float4 envMap   = tex2D( _EnvTex, IN.texcoord + .2 * (1 - normalizedY(IN.texcoord)) * float2(r, r) );
+                float4 envMap   = tex2D( _EnvTex, IN.texcoord + .4 * (1 - normalizedY(IN.texcoord)) * float2(r - .5, r - .5) );
                 
                 // FRESNEL
                 float reflectance = lerp(

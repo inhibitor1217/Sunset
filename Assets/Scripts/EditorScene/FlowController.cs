@@ -79,7 +79,6 @@ public class FlowController : MonoBehaviour
                 if (InputManager.Instance.pressed && InputManager.Instance.withinImage)
                 {
                     int curveIdx = selectCurve(EditorSceneMaster.Instance.RelativeCoordsToRootRect(InputManager.Instance.inputPosition));
-                    Debug.Log(curveIdx);
                     if (curveIdx != -1)
                     {
                         _pivots.RemoveAt(curveIdx);

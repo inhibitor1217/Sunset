@@ -594,8 +594,9 @@ public class EditorSceneMaster : MonoBehaviour
         m_PaletteTextures[maskIndex] = null;
     }
 
-    public void Calm() { CreateEffect(EFFECT_WATER, WaterEffectManager.CALM); }
-    public void River() { CreateEffect(EFFECT_WATER, WaterEffectManager.RIVER); }
+    public void Effect_CL01() { CreateEffect(EFFECT_WATER, WaterEffectManager.CL01); }
+    public void Effect_CL02() { CreateEffect(EFFECT_WATER, WaterEffectManager.CL02); }
+    public void Effect_RV01() { CreateEffect(EFFECT_WATER, WaterEffectManager.RV01); }
 
     public void CreateEffect(int maskIndex, int effectType)
     {

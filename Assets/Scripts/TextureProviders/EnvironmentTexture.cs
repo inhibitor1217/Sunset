@@ -63,7 +63,7 @@ public class EnvironmentTexture : TextureProvider
         m_EnvMapMaterial = new Material(Shader.Find("Compute/EnvMap"));
 
         m_BlurMaterial = new Material(Shader.Find("Compute/Blur"));
-        m_BlurMaterial.SetFloat("_BlurSize", .02f);
+        m_BlurMaterial.SetFloat("_BlurSize", .005f);
         m_HorizontalBlurPass = m_BlurMaterial.FindPass("Horizontal");
     }
 
