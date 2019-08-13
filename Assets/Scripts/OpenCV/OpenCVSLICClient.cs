@@ -9,7 +9,6 @@ public class OpenCVSLICClient : MonoBehaviour
     private OpenCVSLICData m_Data;
     private bool m_Invoked = false;
     private float m_InvokedTime;
-    private int m_prevProgress;
 
     private int _nextMode;
 
@@ -35,23 +34,21 @@ public class OpenCVSLICClient : MonoBehaviour
         __cached_inTex = inTex;
 
         m_Data = new OpenCVSLICData();
-        m_Data.levels = OpenCVSLIC.AsyncSLIC(inTex, ref m_Data.outLabel, ref m_Data.outContour);
+        OpenCVSLIC.AsyncSLIC(inTex, ref m_Data.outLabel, ref m_Data.outContour);
         m_Data.width = inTex.width;
         m_Data.height = inTex.height;
 
         m_Invoked = true;
         m_InvokedTime = Time.time;
-        m_prevProgress = -1;
 
         return true;
     }
 
     void Update()
     {
-        if (m_Invoked && m_prevProgress != OpenCVSLIC.asyncProgress)
+        if (m_Invoked)
         {
-            MessagePanel.Instance.ShowMessage("이미지 전처리 중...", "OpenCV - SLIC Procedure (" + OpenCVSLIC.asyncProgress + "/" + m_Data.levels + ")");
-            m_prevProgress = OpenCVSLIC.asyncProgress;
+            MessagePanel.Instance.ShowMessage("이미지 전처리 중...", "OpenCV - SLIC Procedure");
         }
 
         // Busy wait
@@ -59,7 +56,6 @@ public class OpenCVSLICClient : MonoBehaviour
         {
             // Job finished
             m_Invoked = false;
-            m_prevProgress = -1;
 
             InputMode.Instance.SetModeWithoutSideEffect(_nextMode);
 
