@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 public abstract class TextureProvider : MonoBehaviour
 {
@@ -12,6 +13,10 @@ public abstract class TextureProvider : MonoBehaviour
     [SerializeField]
     private TextureProvider[] m_PipeOutputs = { null, null, null, null };
 
+    [Header("Properties")]
+    [SerializeField]
+    private Dictionary<string, TextureProviderProperty> _properties;
+
     protected RawImageController m_Target = null;
 
     [HideInInspector]
@@ -22,6 +27,8 @@ public abstract class TextureProvider : MonoBehaviour
         TextureProviderManager.AddTextureProvider(this);
 
         textureShouldUpdate = true;
+
+        _properties = new Dictionary<string, TextureProviderProperty>();
     }
 
     protected void Start()
@@ -34,7 +41,6 @@ public abstract class TextureProvider : MonoBehaviour
 
     protected void OnDestroy()
     {
-        // Debug.Log("Destroy: " + this);
         TextureProviderManager.RemoveTextureProvider(this);
         for (int i = 0; i < 4; i++)
         {
@@ -47,6 +53,125 @@ public abstract class TextureProvider : MonoBehaviour
 
     public abstract bool Draw();
     public abstract Texture GetTexture();
+    public abstract string GetProviderName();
+
+    protected void AddProperty(string propertyName, string type)
+    {
+        switch (type)
+        {
+        case "INT":
+            _properties[propertyName] = new TextureProviderIntProperty(propertyName);
+            break;
+        case "FLOAT":
+            _properties[propertyName] = new TextureProviderFloatProperty(propertyName);
+            break;
+        case "VECTOR":
+            _properties[propertyName] = new TextureProviderVectorProperty(propertyName);
+            break;
+        case "PROVIDER":
+            _properties[propertyName] = new TextureProviderTextureProperty(propertyName);
+            break;
+        default:
+#if UNITY_EDITOR
+            Debug.Log("AddProperty: Property type " + type + " is not supported");
+#endif
+            break;
+        }
+    }
+    protected void SubscribeProperty(string propertyName, Material material, string uniformName, TextureProviderProperty.CustomSetter mapper=null)
+    {
+        _properties[propertyName].Subscribe(material, uniformName, mapper);
+    }
+
+    protected void UnsubscribeProperty(string propertyName, Material material, string uniformName)
+    {
+        _properties[propertyName].Unsubscribe(material, uniformName);
+    }
+
+    public int GetPropertyInt(string propertyName) 
+    {
+        if (_properties.ContainsKey(propertyName))
+        {
+            return _properties[propertyName].GetInt();
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    public void SetPropertyInt(string propertyName, int value)
+    {
+        if (_properties.ContainsKey(propertyName))
+        {
+            _properties[propertyName].SetInt(value);
+            textureShouldUpdate = true;
+        }
+    }
+
+    public float GetPropertyFloat(string propertyName) 
+    {
+        if (_properties.ContainsKey(propertyName))
+        {
+            return _properties[propertyName].GetFloat();
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    public void SetPropertyFloat(string propertyName, float value)
+    {
+        if (_properties.ContainsKey(propertyName))
+        {
+            _properties[propertyName].SetFloat(value);
+            textureShouldUpdate = true;
+        }
+    }
+
+    public Vector4 GetPropertyVector(string propertyName)
+    {
+        if (_properties.ContainsKey(propertyName))
+        {
+            return _properties[propertyName].GetVector();
+        }
+        else
+        {
+            return Vector4.zero;
+        }
+    }
+    public void SetPropertyVector(string propertyName, Vector4 value)
+    {
+        if (_properties.ContainsKey(propertyName))
+        {
+            _properties[propertyName].SetVector(value);
+            textureShouldUpdate = true;
+        }
+    }
+
+    public TextureProvider GetPropertyProvider(string propertyName)
+    {
+        if (_properties.ContainsKey(propertyName))
+        {
+            return _properties[propertyName].GetTextureProvider();
+        }
+        else
+        {
+            return null;
+        }
+    }
+    public void SetPropertyProvider(string propertyName, TextureProvider value)
+    {
+        if (_properties.ContainsKey(propertyName))
+        {
+            updatePipeline(_properties[propertyName].GetTextureProvider(), value);
+            _properties[propertyName].SetTextureProvider(value);
+            textureShouldUpdate = true;
+        }
+        else
+        {
+            Debug.Log(GetProviderName() + " does not contain property " + propertyName);
+        }
+    }
 
     public void SetTarget()
     {
@@ -62,6 +187,20 @@ public abstract class TextureProvider : MonoBehaviour
 
     public static void Link(TextureProvider src, int srcIndex, TextureProvider dst, int dstIndex)
     {
+        if (srcIndex < 0 || srcIndex >= 4)
+        {
+#if UNITY_EDITOR
+            Debug.Log("Link: invalid source index " + srcIndex);
+#endif
+            return;
+        }
+        if (dstIndex < 0 || dstIndex >= 4)
+        {
+#if UNITY_EDITOR
+            Debug.Log("Link: invalid destination index " + dstIndex);
+#endif
+            return;
+        }
         src.m_PipeOutputs[srcIndex] = dst;
         dst.m_PipeInputs [dstIndex] = src;
     }
@@ -77,15 +216,17 @@ public abstract class TextureProvider : MonoBehaviour
         }
     }
 
-    public bool HasOutput()
+    int seekFreeInputIndex()
     {
-        bool ret = false;
         for (int i = 0; i < 4; i++)
-            ret |= (m_PipeOutputs[i] != null);
-        return ret;
+        {
+            if (m_PipeInputs[i] == null)
+                return i;
+        }
+        return -1;
     }
 
-    public int SeekFreeIndex()
+    int seekFreeOutputIndex()
     {
         for (int i = 0; i < 4; i++)
         {
@@ -93,6 +234,35 @@ public abstract class TextureProvider : MonoBehaviour
                 return i;
         }
         return -1;
+    }
+
+    void updatePipeline(TextureProvider old, TextureProvider value)
+    {
+        if (old == value)
+            return;
+
+        int inIndex = -1, outIndex = -1;
+
+        if (value && (outIndex = value.seekFreeOutputIndex()) == -1)
+        {
+#if UNITY_EDITOR
+            Debug.Log(value.GetProviderName() + ": Pipeline Output is Full.");
+#endif
+            return;
+        }
+
+        if ((inIndex = seekFreeInputIndex()) == -1)
+        {
+#if UNITY_EDITOR
+            Debug.Log(GetProviderName() + ": Pipeline Input is Full.");
+#endif
+            return;
+        }
+
+        if (old)
+            Unlink(old, this);
+        if (value)
+            Link(value, outIndex, this, inIndex);
     }
 
     public void Propagate()

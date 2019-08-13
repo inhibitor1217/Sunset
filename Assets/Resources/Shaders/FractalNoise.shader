@@ -16,8 +16,8 @@ Shader "Compute/FractalNoise"
         _EvolutionSpeed ("Evolution Speed", Float) = 0
         // _Velocity ("Velocity (Global, Sub)", Vector) = (0, 0, 0, 0)
 
-        _Hash     ("Hash Array",     2D) = "black" {}
-        _Gradient ("Gradient Array", 2D) = "black" {}
+        _HashTex     ("Hash Array",     2D) = "black" {}
+        _GradientTex ("Gradient Array", 2D) = "black" {}
     }
 
     SubShader
@@ -40,8 +40,8 @@ Shader "Compute/FractalNoise"
             #pragma multi_compile VALUE VALUE_LINEAR VALUE_SPLINE PERLIN PERLIN_LINEAR
             #pragma multi_compile BASIC TURBULENT ROCKY
 
-            sampler2D _Hash;
-            sampler2D _Gradient;
+            sampler2D _HashTex;
+            sampler2D _GradientTex;
 
             float4 _GlobalScale;
             // float _GlobalRotation;
@@ -65,13 +65,13 @@ Shader "Compute/FractalNoise"
 
             float hash3(float x, float y, float z)
             {
-                return tex2D( _Hash, float2(tex2D( _Hash, float2(tex2D( _Hash, float2(x, 0) ).r + y, 0) ).r + z, 0) ).r;
+                return tex2D( _HashTex, float2(tex2D( _HashTex, float2(tex2D( _HashTex, float2(x, 0) ).r + y, 0) ).r + z, 0) ).r;
             }
 
         #if PERLIN || PERLIN_LINEAR
             float perlin(float x, float y, float z, float3 offset)
             {
-                return dot( 2 * tex2D( _Gradient, float2(hash3(x, y, z), 0) ).rgb - float3(1, 1, 1), offset );
+                return dot( 2 * tex2D( _GradientTex, float2(hash3(x, y, z), 0) ).rgb - float3(1, 1, 1), offset );
             }
         #endif
             float interp(float3 coords, float level)

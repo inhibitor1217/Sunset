@@ -3,53 +3,6 @@ using UnityEngine;
 public class EnvironmentTexture : TextureProvider
 {
 
-    private const int SRC_IMG_INDEX = 0;
-    private const int SRC_MASK_INDEX = 1;
-
-    private TextureProvider m_ImgTexture = null;
-    public TextureProvider imageTexture {
-        get { return m_ImgTexture; }
-        set {
-            if (m_ImgTexture == value)
-                return;
-            
-            if (value && value.SeekFreeIndex() == -1)
-            {
-                Debug.Log("EnvironmentTexture: Image Texture Pipeline Output is Full.");
-                return;
-            }
-
-            if (m_ImgTexture)
-                TextureProvider.Unlink(m_ImgTexture, this);
-            if (value)
-                TextureProvider.Link(value, value.SeekFreeIndex(), this, SRC_IMG_INDEX);
-            
-            m_ImgTexture = value;
-        }
-    }
-
-    private TextureProvider m_MaskTexture = null;
-    public TextureProvider maskTexture {
-        get { return m_MaskTexture; }
-        set {
-            if (m_MaskTexture == value)
-                return;
-            
-            if (value && value.SeekFreeIndex() == -1)
-            {
-                Debug.Log("EnvironmentTexture: Mask Texture Pipeline Output is Full.");
-                return;
-            }
-
-            if (m_MaskTexture)
-                TextureProvider.Unlink(m_MaskTexture, this);
-            if (value)
-                TextureProvider.Link(value, value.SeekFreeIndex(), this, SRC_MASK_INDEX);
-            
-            m_MaskTexture = value;
-        }
-    }
-
     [SerializeField]
     private RenderTexture m_RenderTexture;
     private Material m_EnvMapMaterial;
@@ -60,11 +13,17 @@ public class EnvironmentTexture : TextureProvider
     {
         base.Awake();
 
+        /* SETUP MATERIALS */
         m_EnvMapMaterial = new Material(Shader.Find("Compute/EnvMap"));
-
         m_BlurMaterial = new Material(Shader.Find("Compute/Blur"));
         m_BlurMaterial.SetFloat("_BlurSize", .005f);
         m_HorizontalBlurPass = m_BlurMaterial.FindPass("Horizontal");
+
+        /* SETUP PROPERTIES */
+        m_EnvMapMaterial.SetTexture("_ImgTex", EditorSceneMaster.Instance.GetRootTextureProvider().GetTexture());
+
+        AddProperty("MaskTexture",        "PROVIDER");
+        SubscribeProperty("MaskTexture", m_EnvMapMaterial, "_MaskTex");
     }
 
     public override Texture GetTexture()
@@ -76,20 +35,16 @@ public class EnvironmentTexture : TextureProvider
     {
         if (!m_RenderTexture)
             return false;
-
-        m_EnvMapMaterial.SetTexture("_MaskTex", m_MaskTexture.GetTexture());
-
-        Texture imgTex = m_ImgTexture.GetTexture();
-
+            
         RenderTexture envMapRaw = RenderTexture.GetTemporary(m_RenderTexture.width, m_RenderTexture.height, 0, m_RenderTexture.format);
         m_RenderTexture.wrapMode = TextureWrapMode.Clamp;
         m_RenderTexture.filterMode = FilterMode.Bilinear;
 
-        FilterMode prev = imgTex.filterMode;
-        imgTex.filterMode = FilterMode.Bilinear;
+        // FilterMode prev = imgTex.filterMode;
+        // imgTex.filterMode = FilterMode.Bilinear;
         envMapRaw.DiscardContents();
-        Graphics.Blit(imgTex, envMapRaw, m_EnvMapMaterial);
-        imgTex.filterMode = prev;
+        Graphics.Blit(null, envMapRaw, m_EnvMapMaterial);
+        // imgTex.filterMode = prev;
 
         m_RenderTexture.DiscardContents();
         Graphics.Blit(envMapRaw, m_RenderTexture, m_BlurMaterial, m_HorizontalBlurPass);
@@ -97,6 +52,19 @@ public class EnvironmentTexture : TextureProvider
         RenderTexture.ReleaseTemporary(envMapRaw);
 
         return true;
+    }
+
+    public override string GetProviderName()
+    {
+        return "EnvironmentTexture";
+    }
+
+    new void OnDestroy()
+    {
+        base.OnDestroy();
+
+        if (m_RenderTexture)
+            m_RenderTexture.Release();
     }
 
     public void Setup(int width, int height)

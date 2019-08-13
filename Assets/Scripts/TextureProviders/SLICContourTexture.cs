@@ -15,6 +15,11 @@ public class SLICContourTexture : TextureProvider
         return m_Texture;
     }
 
+    public override string GetProviderName()
+    {
+        return "SLICContourTexture";
+    }
+
     public void GenerateTextures(OpenCVSLICData data)
     {
         // m_contourTextures = new Texture2D[data.levels];

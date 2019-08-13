@@ -34,7 +34,7 @@ public class TextureProviderManager : MonoBehaviour
             if (v.enabled && v.textureShouldUpdate)
             {
                 #if UNITY_EDITOR
-                Debug.Log("Update: " + v);
+                Debug.Log("Update: " + v.GetProviderName());
                 #endif
                 if (v.Draw())
                 {
@@ -52,7 +52,7 @@ public class TextureProviderManager : MonoBehaviour
             if (v.enabled)
             {
                 #if UNITY_EDITOR
-                Debug.Log("UpdateEager: " + v);
+                Debug.Log("UpdateEager: " + v.GetProviderName());
                 #endif
                 if (v.Draw())
                 {
@@ -61,6 +61,24 @@ public class TextureProviderManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    public static void SetPropertyInt(string propertyName, int value)
+    {
+        foreach (var v in textureProviders)
+            v.SetPropertyFloat(propertyName, value);
+    }
+
+    public static void SetPropertyFloat(string propertyName, float value)
+    {
+        foreach (var v in textureProviders)
+            v.SetPropertyFloat(propertyName, value);
+    }
+
+    public static void SetPropertyVector(string propertyName, Vector4 value)
+    {
+        foreach (var v in textureProviders)
+            v.SetPropertyVector(propertyName, value);
     }
 
 }

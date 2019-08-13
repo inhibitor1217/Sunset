@@ -25,18 +25,8 @@ public class WaterEffectManager : MonoBehaviour
     public float shared_horizon {
         set {
             _horizon = value;
-            switch(_effectType)
-            {
-            case NONE:
-                break;
-            case CL01:
-            case CL02:
-                (_effectProvider as CalmEffectTexture).horizon = _horizon;
-                break;
-            case RV01:
-                (_effectProvider as RiverEffectTexture).horizon = _horizon;
-                break;
-            }
+            if (_effectProvider)
+                _effectProvider.SetPropertyFloat("Horizon", _horizon);
         }
     }
     [SerializeField, Range(.25f, 4)]
@@ -45,18 +35,8 @@ public class WaterEffectManager : MonoBehaviour
     public float shared_perspective {
         set {
             _perspective = value;
-            switch(_effectType)
-            {
-            case NONE:
-                break;
-            case CL01:
-            case CL02:
-                (_effectProvider as CalmEffectTexture).perspective = _perspective;
-                break;
-            case RV01:
-                (_effectProvider as RiverEffectTexture).perspective = _perspective;
-                break;
-            }
+            if (_effectProvider)
+                _effectProvider.SetPropertyFloat("Perspective", _perspective);
         }
     }
     [SerializeField, Range(-30f, 45f)]
@@ -65,18 +45,8 @@ public class WaterEffectManager : MonoBehaviour
     public float shared_sunAltitude {
         set {
             _sunAltitude = value;
-            switch(_effectType)
-            {
-            case NONE:
-                break;
-            case CL01:
-            case CL02:
-                (_effectProvider as CalmEffectTexture).sunAltitude = _sunAltitude;
-                break;
-            case RV01:
-                (_effectProvider as RiverEffectTexture).sunAltitude = _sunAltitude;
-                break;
-            }
+            if (_effectProvider)
+                _effectProvider.SetPropertyFloat("SunAltitude", _sunAltitude);
         }
     }
     [SerializeField, Range(-45f, 45f)]
@@ -85,18 +55,8 @@ public class WaterEffectManager : MonoBehaviour
     public float shared_sunDirection {
         set {
             _sunDirection = value;
-            switch(_effectType)
-            {
-            case NONE:
-                break;
-            case CL01:
-            case CL02:
-                (_effectProvider as CalmEffectTexture).sunDirection = _sunDirection;
-                break;
-            case RV01:
-                (_effectProvider as RiverEffectTexture).sunDirection = _sunDirection;
-                break;
-            }
+            if (_effectProvider)
+                _effectProvider.SetPropertyFloat("SunDirection", _sunDirection);
         }
     }
     [SerializeField, Range(.1f, 1)]
@@ -111,14 +71,16 @@ public class WaterEffectManager : MonoBehaviour
             switch(_effectType)
             {
             case NONE:
-                break;
             case CL01:
             case CL02:
                 break;
             case RV01:
-                (_effectProvider as RiverEffectTexture).speed = MAX_SPEED * _relativeSpeed;
-                _noiseProvider.amplitude                      = MAX_AMPLITUDE * _relativeSpeed;
-                _noiseProvider.evolutionSpeed                 = MAX_EVOLUTION_SPEED * _relativeSpeed;
+                if (_effectProvider)
+                    _effectProvider.SetPropertyFloat("Speed"         , MAX_SPEED * _relativeSpeed);
+                if (_noiseProvider)
+                    _noiseProvider .SetPropertyFloat("Amplitude"     , MAX_AMPLITUDE * _relativeSpeed);
+                if (_noiseProvider)
+                    _noiseProvider .SetPropertyFloat("EvolutionSpeed", MAX_EVOLUTION_SPEED * _relativeSpeed);
                 break;
             }
         }
@@ -132,12 +94,12 @@ public class WaterEffectManager : MonoBehaviour
             switch(_effectType)
             {
             case NONE:
-                break;
             case CL01:
             case CL02:
                 break;
             case RV01:
-                (_effectProvider as RiverEffectTexture).rotation = _rotation;
+                if (_effectProvider)
+                    _effectProvider.SetPropertyFloat("Rotation", _rotation);
                 break;
             }
         }
@@ -215,27 +177,27 @@ public class WaterEffectManager : MonoBehaviour
 
             if (_effectType == CL01)
             {
-                _noiseProvider.noiseType       = 4; // PERLIN_LINEAR
-                _noiseProvider.fractalType     = 0; // BASIC
-                _noiseProvider.scale           = new Vector2(16, 64);
-                _noiseProvider.subInfluence    = .5f;
-                _noiseProvider.subScale        = 2f * Vector2.one;
-                _noiseProvider.brightness      = 0f;
-                _noiseProvider.contrast        = 1.2f;
-                _noiseProvider.enableEvolution = true;
-                _noiseProvider.evolutionSpeed  = 1f;
+                _noiseProvider.SetPropertyInt   ("NoiseType"     , 4); // PERLIN_LINEAR
+                _noiseProvider.SetPropertyInt   ("FractalType"   , 0); // BASIC
+                _noiseProvider.SetPropertyInt   ("Seed"          , 0);
+                _noiseProvider.SetPropertyVector("GlobalScale"   , new Vector4(1f/16f, 1f/64f, 16f, 64f));
+                _noiseProvider.SetPropertyFloat ("SubInfluence"  , .5f);
+                _noiseProvider.SetPropertyVector("SubScale"      , new Vector4(.5f, .5f, 2f, 2f));
+                _noiseProvider.SetPropertyFloat ("Brightness"    , 0f);
+                _noiseProvider.SetPropertyFloat ("Contrast"      , 1.2f);
+                _noiseProvider.SetPropertyFloat ("EvolutionSpeed", 1f);
             }
             else if (_effectType == CL02)
             {
-                _noiseProvider.noiseType       = 4; // PERLIN_LINEAR
-                _noiseProvider.fractalType     = 0; // BASIC
-                _noiseProvider.scale           = new Vector2(64, 64);
-                _noiseProvider.subInfluence    = .5f;
-                _noiseProvider.subScale        = 2f * Vector2.one;
-                _noiseProvider.brightness      = 0f;
-                _noiseProvider.contrast        = .5f;
-                _noiseProvider.enableEvolution = true;
-                _noiseProvider.evolutionSpeed  = 1f;
+                _noiseProvider.SetPropertyInt   ("NoiseType"     , 4); // PERLIN_LINEAR
+                _noiseProvider.SetPropertyInt   ("FractalType"   , 0); // BASIC
+                _noiseProvider.SetPropertyInt   ("Seed"          , 0);
+                _noiseProvider.SetPropertyVector("GlobalScale"   , new Vector4(1f/64f, 1f/64f, 64f, 64f));
+                _noiseProvider.SetPropertyFloat ("SubInfluence"  , .5f);
+                _noiseProvider.SetPropertyVector("SubScale"      , new Vector4(.5f, .5f, 2f, 2f));
+                _noiseProvider.SetPropertyFloat ("Brightness"    , 0f);
+                _noiseProvider.SetPropertyFloat ("Contrast"      , .5f);
+                _noiseProvider.SetPropertyFloat ("EvolutionSpeed", 1f);
             }
 
             /* SETUP EFFECT */
@@ -243,9 +205,9 @@ public class WaterEffectManager : MonoBehaviour
                 Destroy(_effectProvider);
             _effectProvider = gameObject.AddComponent<CalmEffectTexture>();
             CalmEffectTexture calm  = _effectProvider as CalmEffectTexture;
-            calm.noiseTexture       = _noiseProvider;
-            calm.paletteTexture     = paletteProvider;
-            calm.environmentTexture = environmentProvider;
+            calm.SetPropertyProvider("NoiseTexture"      , _noiseProvider);
+            calm.SetPropertyProvider("PaletteTexture"    , paletteProvider);
+            calm.SetPropertyProvider("EnvironmentTexture", environmentProvider);
             shared_horizon          = _horizon;
             shared_perspective      = _perspective;
             shared_sunAltitude      = _sunAltitude;
@@ -260,24 +222,24 @@ public class WaterEffectManager : MonoBehaviour
             /* SETUP NOISE */
             if (!_noiseProvider)
                 _noiseProvider = gameObject.AddComponent<FractalNoiseRuntimeTexture>();
-            _noiseProvider.noiseType       = 4; // PERLIN LINEAR
-            _noiseProvider.fractalType     = 1; // TURBULENT
-            _noiseProvider.scale           = new Vector2(4, 16);
-            _noiseProvider.subInfluence    = .7f;
-            _noiseProvider.subScale        = 2f * Vector2.one;
-            _noiseProvider.brightness      = 0f;
-            _noiseProvider.contrast        = 3f;
-            _noiseProvider.enableEvolution = true;
-            _noiseProvider.evolutionSpeed  = 1f;
+            _noiseProvider.SetPropertyInt   ("NoiseType"     , 4); // PERLIN_LINEAR
+            _noiseProvider.SetPropertyInt   ("FractalType"   , 1); // TURBULENT
+            _noiseProvider.SetPropertyInt   ("Seed"          , 0);
+            _noiseProvider.SetPropertyVector("GlobalScale"   , new Vector4(1f/4f, 1f/16f, 4f, 16f));
+            _noiseProvider.SetPropertyFloat ("SubInfluence"  , .7f);
+            _noiseProvider.SetPropertyVector("SubScale"      , new Vector4(.5f, .5f, 2f, 2f));
+            _noiseProvider.SetPropertyFloat ("Brightness"    , 0f);
+            _noiseProvider.SetPropertyFloat ("Contrast"      , 3f);
+            _noiseProvider.SetPropertyFloat ("EvolutionSpeed", 1f);
 
             /* SETUP EFFECT */
             if (_effectProvider)
                 Destroy(_effectProvider);
             _effectProvider = gameObject.AddComponent<RiverEffectTexture>();
             RiverEffectTexture river = _effectProvider as RiverEffectTexture;
-            river.noiseTexture       = _noiseProvider;
-            river.paletteTexture     = paletteProvider;
-            river.environmentTexture = environmentProvider;
+            river.SetPropertyProvider("NoiseTexture"      , _noiseProvider);
+            river.SetPropertyProvider("PaletteTexture"    , paletteProvider);
+            river.SetPropertyProvider("EnvironmentTexture", environmentProvider);
             shared_horizon           = _horizon;
             shared_perspective       = _perspective;
             shared_sunAltitude       = _sunAltitude;

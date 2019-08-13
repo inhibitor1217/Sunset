@@ -15,6 +15,11 @@ public class SLICLabelTexture : TextureProvider
         return m_Texture;
     }
 
+    public override string GetProviderName()
+    {
+        return "SLICLabelTexture";
+    }
+
     public Texture2D GetLabelTexture()
     {
         return m_Texture;

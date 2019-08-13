@@ -2,168 +2,84 @@ using UnityEngine;
 
 public class CalmEffectTexture : TextureProvider
 {
-    private const int PALETTE_SRC_INDEX = 0;
-    private const int NOISE_SRC_INDEX = 1;
-    private const int ENV_SRC_INDEX = 2;
-
-    private TextureProvider m_PaletteTex = null;
-    public TextureProvider paletteTexture {
-        get { return m_PaletteTex; }
-        set {
-            if (m_PaletteTex == value)
-                return;
-
-            if (value && value.SeekFreeIndex() == -1)
-            {
-                Debug.Log("CalmEffectTexture: Palette Texture Pipeline Output is Full.");
-                return;
-            }
-
-            if (m_PaletteTex)
-                TextureProvider.Unlink(m_PaletteTex, this);
-            if (value)
-                TextureProvider.Link(value, value.SeekFreeIndex(), this, PALETTE_SRC_INDEX);
-            
-            m_PaletteTex = value;
-        }
-    }
-
-    private TextureProvider m_NoiseTex = null;
-    public TextureProvider noiseTexture {
-        get { return m_NoiseTex; }
-        set {
-            if (m_NoiseTex == value)
-                return;
-            
-            if (value && value.SeekFreeIndex() == -1)
-            {
-                Debug.Log("CalmEffectTexture: Noise Texture Pipeline Output is Full.");
-                return;
-            }
-
-            if (m_NoiseTex)
-                TextureProvider.Unlink(m_NoiseTex, this);
-            if (value)
-                TextureProvider.Link(value, value.SeekFreeIndex(), this, NOISE_SRC_INDEX);
-
-            m_NoiseTex = value;
-        }
-    }
-
-    private TextureProvider m_EnvTex = null;
-    public TextureProvider environmentTexture {
-        get { return m_EnvTex; }
-        set {
-            if (m_EnvTex == value)
-                return;
-            
-            if (value && value.SeekFreeIndex() == -1)
-            {
-                Debug.Log("CalmEffectTexture: Environment Texture Pipeline Output is Full.");
-                return;
-            }
-
-            if (m_EnvTex)
-                TextureProvider.Unlink(m_EnvTex, this);
-            if (value)
-                TextureProvider.Link(value, value.SeekFreeIndex(), this, ENV_SRC_INDEX);
-
-            m_EnvTex = value;
-        }
-    }
 
     private RenderTexture m_RenderTexture;
     private Material m_WaterMaterial;
     private int m_CalmPass;
 
-    private float _horizon;
-    public float horizon
-    {
-        get { return _horizon; }
-        set {
-            _horizon = value;
-            if (m_WaterMaterial)
-            {
-                m_WaterMaterial.SetFloat("_Horizon", _horizon);
-                textureShouldUpdate = true;
-            }
-        }
-    }
-
-    private float _perspective;
-    public float perspective
-    {
-        get { return _perspective; }
-        set {
-            _perspective = value;
-            if (m_WaterMaterial)
-            {
-                m_WaterMaterial.SetFloat("_Perspective", _perspective);
-                textureShouldUpdate = true;
-            }
-        }
-    }
-
-    private float _sunAltitude;
-    public float sunAltitude
-    {
-        get { return _sunAltitude; }
-        set {
-            _sunAltitude = value;
-            if (m_WaterMaterial)
-            {
-                m_WaterMaterial.SetVector("_LightDirection", new Vector4(
-                    Mathf.Cos(Mathf.Deg2Rad * _sunAltitude) * Mathf.Sin(Mathf.Deg2Rad * _sunDirection),
-                    Mathf.Cos(Mathf.Deg2Rad * _sunAltitude) * Mathf.Cos(Mathf.Deg2Rad * _sunDirection),
-                    Mathf.Sin(Mathf.Deg2Rad * _sunAltitude),
-                    0
-                ));
-                textureShouldUpdate = true;
-            }
-        }
-    }
-
-    private float _sunDirection;
-    public float sunDirection
-    {
-        get { return _sunDirection; }
-        set {
-            _sunDirection = value;
-            if (m_WaterMaterial)
-            {
-                m_WaterMaterial.SetVector("_LightDirection", new Vector4(
-                    Mathf.Cos(Mathf.Deg2Rad * _sunAltitude) * Mathf.Sin(Mathf.Deg2Rad * _sunDirection),
-                    Mathf.Cos(Mathf.Deg2Rad * _sunAltitude) * Mathf.Cos(Mathf.Deg2Rad * _sunDirection),
-                    Mathf.Sin(Mathf.Deg2Rad * _sunAltitude),
-                    0
-                ));
-                textureShouldUpdate = true;
-            }
-        }
-    }
-
     new void Awake()
     {
         base.Awake();
 
+        /* SETUP MATERIALS */
         m_WaterMaterial = new Material(Shader.Find("Compute/WaterEffect"));
         m_WaterMaterial.EnableKeyword("USE_MIPMAP");
         m_CalmPass        = m_WaterMaterial.FindPass("Calm");
+
+        /* SETUP PROPERTIES */
+        m_WaterMaterial.SetTexture("_ImgTex", EditorSceneMaster.Instance.GetRootTextureProvider().GetBlurredTexture());
+
+        AddProperty("PaletteTexture",     "PROVIDER");
+        SubscribeProperty("PaletteTexture", m_WaterMaterial, "_PaletteTex");
+        
+        AddProperty("NoiseTexture",       "PROVIDER");
+        SubscribeProperty("NoiseTexture", m_WaterMaterial, "_NoiseTex");
+
+        AddProperty("EnvironmentTexture", "PROVIDER");
+        SubscribeProperty("EnvironmentTexture", m_WaterMaterial, "_EnvTex");
+
+        AddProperty("Horizon",            "FLOAT");
+        SubscribeProperty("Horizon", m_WaterMaterial, "_Horizon");
+
+        AddProperty("Perspective",        "FLOAT");
+        SubscribeProperty("Perspective", m_WaterMaterial, "_Perspective");
+
+        AddProperty("SunAltitude",        "FLOAT");
+        SubscribeProperty("SunAltitude", m_WaterMaterial, "_LightDirection", 
+            (Material material, string uniformName, object value) => {
+                float valueFloat   = (float)value;
+                float sunDirection = GetPropertyFloat("SunDirection");
+                material.SetVector(uniformName, new Vector4(
+                    Mathf.Cos(Mathf.Deg2Rad * valueFloat) * Mathf.Sin(Mathf.Deg2Rad * sunDirection),
+                    Mathf.Cos(Mathf.Deg2Rad * valueFloat) * Mathf.Cos(Mathf.Deg2Rad * sunDirection),
+                    Mathf.Sin(Mathf.Deg2Rad * valueFloat),
+                    0
+                ));
+            });
+
+        AddProperty("SunDirection",       "FLOAT");
+        SubscribeProperty("SunDirection", m_WaterMaterial, "_LightDirection",
+            (Material material, string uniformName, object value) => {
+                float valueFloat   = (float)value;
+                float sunAltitude = GetPropertyFloat("SunAltitude");
+                material.SetVector(uniformName, new Vector4(
+                    Mathf.Cos(Mathf.Deg2Rad * sunAltitude) * Mathf.Sin(Mathf.Deg2Rad * valueFloat),
+                    Mathf.Cos(Mathf.Deg2Rad * sunAltitude) * Mathf.Cos(Mathf.Deg2Rad * valueFloat),
+                    Mathf.Sin(Mathf.Deg2Rad * sunAltitude),
+                    0
+                ));
+            });
+
+        AddProperty("Rotation",           "FLOAT");
+        SubscribeProperty("Rotation", m_WaterMaterial, "_Rotation",
+            (Material material, string uniformName, object value) => {
+                float valueFloat   = (float)value;
+                material.SetVector(uniformName, new Vector4(
+                     Mathf.Cos(valueFloat), 
+                    -Mathf.Sin(valueFloat), 
+                     Mathf.Sin(valueFloat), 
+                     Mathf.Cos(valueFloat))
+                );
+            });
     }
 
     public override bool Draw()
     {
         if (!m_RenderTexture)
             return false;
-
-        m_WaterMaterial.SetTexture("_ImgTex", EditorSceneMaster.Instance.GetRootTextureProvider().GetBlurredTexture());
-        m_WaterMaterial.SetTexture("_PaletteTex", m_PaletteTex.GetTexture());
-        m_WaterMaterial.SetTexture("_EnvTex", m_EnvTex.GetTexture());
-
-        Texture noiseTex = m_NoiseTex.GetTexture();
-
+        
         m_RenderTexture.DiscardContents();
-        Graphics.Blit(noiseTex, m_RenderTexture, m_WaterMaterial, m_CalmPass);
+        Graphics.Blit(GetPropertyProvider("NoiseTexture").GetTexture(), m_RenderTexture, m_WaterMaterial, m_CalmPass);
 
         return true;
     }
@@ -171,6 +87,19 @@ public class CalmEffectTexture : TextureProvider
     public override Texture GetTexture()
     {
         return m_RenderTexture;
+    }
+
+    public override string GetProviderName()
+    {
+        return "CalmEffectTexture";
+    }
+
+    new void OnDestroy()
+    {
+        base.OnDestroy();
+        
+        if (m_RenderTexture)
+            m_RenderTexture.Release();
     }
 
     public void Setup(int width, int height)

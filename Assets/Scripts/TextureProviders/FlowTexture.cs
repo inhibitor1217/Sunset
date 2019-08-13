@@ -15,26 +15,19 @@ public class FlowTexture : TextureProvider
         }
     }
 
-    private float _horizon;
-    public float horizon
+    new void Awake()
     {
-        get { return _horizon; }
-        set {
-            _horizon = value;
-            // update material
-            textureShouldUpdate = true;
-        }
-    }
+        base.Awake();
 
-    private float _perspective;
-    public float perspective
-    {
-        get { return _perspective; }
-        set {
-            _perspective = value;
-            // update material
-            textureShouldUpdate = true;
-        }
+        /* SETUP MATERIALS  */
+
+
+        /* SETUP PROPERTIES */
+        AddProperty("Horizon",            "FLOAT");
+        // SubscribeProperty("Horizon", <MATERIAL>, "_Horizon");
+
+        AddProperty("Perspective",        "FLOAT");
+        // SubscribeProperty("Perspective", MATERIAL>, "_Perspective");
     }
 
     public override bool Draw()
@@ -45,6 +38,11 @@ public class FlowTexture : TextureProvider
     public override Texture GetTexture()
     {
         return m_RenderTexture;
+    }
+
+    public override string GetProviderName()
+    {
+        return "FlowTexture";
     }
 
     new void OnDestroy()

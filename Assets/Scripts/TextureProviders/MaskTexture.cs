@@ -15,6 +15,8 @@ public class MaskTexture : TextureProvider
     [HideInInspector]
     public int mode;
 
+    public float estimatedHorizon { get; private set; } = .5f;
+
     new void OnDestroy()
     {
         base.OnDestroy();
@@ -45,6 +47,11 @@ public class MaskTexture : TextureProvider
         return m_RenderTexture;
     }
 
+    public override string GetProviderName()
+    {
+        return "MaskTexture";
+    }
+
     public Texture2D GetReadableTexture()
     {
         int width  = m_RenderTexture.width  * 2;
@@ -73,16 +80,24 @@ public class MaskTexture : TextureProvider
         Texture2D readableTex = GetReadableTexture();
         Color32[] colors = readableTex.GetPixels32();
 
+        List<float> horizons = new List<float>();
+
         for (int x = 0; x < readableTex.width; x++)
         {
+            /* Mirror Y Coordinate */
             Stack<Tuple<float, float>> stk = new Stack<Tuple<float, float>>();
             bool state = false;
             float lastBoundary = 1.0f;
+
+            /* Horizon Estimation */
+            bool found = false;
+
             for (int y = readableTex.height - 1; y >= 0; y--)
             {
                 float _y = (float)y / (float)readableTex.height;
                 bool cur_state = colors[x + y * readableTex.width].r >= 1;
 
+                /* Mirror Y Coordinate  */
                 if (!state && cur_state) // MASK OFF -> MASK ON
                 {
                     stk.Push(new Tuple<float, float>(_y, lastBoundary - _y));
@@ -116,14 +131,29 @@ public class MaskTexture : TextureProvider
                 }
 
                 state = cur_state;
+
+                /* Horizon Estimation */
+                if (!found && cur_state)
+                {
+                    found = true;
+                    horizons.Add(_y);
+                }
             }
         }
         
+        /* Update Mirror Texture */
         readableTex.SetPixels32(colors);
         readableTex.Apply();
 
         m_RenderTexture.DiscardContents();
         Graphics.Blit(readableTex, m_RenderTexture);
+
+        /* Update Estimated Horizon */
+        if (horizons.Count > 0)
+        {
+            horizons.Sort();
+            estimatedHorizon = horizons[Mathf.Clamp(Mathf.RoundToInt(.97f * horizons.Count), 0, horizons.Count - 1)];
+        }
 
         return true;
     }

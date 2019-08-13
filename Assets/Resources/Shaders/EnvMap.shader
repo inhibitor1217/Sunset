@@ -2,7 +2,7 @@ Shader "Compute/EnvMap"
 {
     Properties
     {
-        _MainTex ("Image", 2D) = "black" {}
+        _ImgTex  ("Image", 2D) = "black" {}
         _MaskTex ("Mask",  2D) = "black" {}
 
         _SkyColor ("Sky Color", Color) = (1, 1, 1, 1)
@@ -19,7 +19,7 @@ Shader "Compute/EnvMap"
             #pragma vertex vert
             #pragma fragment frag
 
-            sampler2D _MainTex;
+            sampler2D _ImgTex;
             sampler2D _MaskTex;
 
             fixed4 _SkyColor;
@@ -59,7 +59,7 @@ Shader "Compute/EnvMap"
                 float mask_reflected = tex2D( _MaskTex, half2(IN.texcoord.x, reflected_y) ).r;
                 float use_envmap     = max( mask_reflected, smoothstep(0.9, 1.0, reflected_y) );
 
-                fixed4 color         = lerp( tex2D( _MainTex, half2(IN.texcoord.x, reflected_y) ), _SkyColor, use_envmap );
+                fixed4 color         = lerp( tex2D( _ImgTex, half2(IN.texcoord.x, reflected_y) ), _SkyColor, use_envmap );
                 color.a = mask.r;
 
                 return color;

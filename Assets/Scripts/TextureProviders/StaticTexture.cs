@@ -32,6 +32,11 @@ public class StaticTexture: TextureProvider
         return staticTexture;
     }
 
+    public override string GetProviderName()
+    {
+        return "StaticTexture";
+    }
+
     public Texture2D GetReadableTexture()
     {
         if (m_ReadableTexture)

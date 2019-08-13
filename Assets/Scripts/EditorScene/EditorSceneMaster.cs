@@ -284,8 +284,7 @@ public class EditorSceneMaster : MonoBehaviour
         if (maskIndex == EFFECT_WATER)
         {
             m_EnvMapTexture = m_MaskTextureObjects[maskIndex].AddComponent<EnvironmentTexture>();
-            m_EnvMapTexture.imageTexture = m_RootStaticTexture;
-            m_EnvMapTexture.maskTexture  = m_MaskTextures[maskIndex];
+            m_EnvMapTexture.SetPropertyProvider("MaskTexture" , m_MaskTextures[maskIndex]);
             m_EnvMapTexture.Setup(width / 2, height / 2);
         }
 
