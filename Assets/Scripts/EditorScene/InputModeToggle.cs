@@ -25,7 +25,7 @@ public class InputModeToggle : MonoBehaviour
 
     public void OnToggleChanged(bool isOn)
     {
-        InputMode.Instance.mode ^= modeToggle;
+        InputMode.instance.mode ^= modeToggle;
     }
 
     public void onInputModeChanged(int mode)

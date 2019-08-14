@@ -4,32 +4,40 @@ using UnityEngine;
 public class TextureProviderManager : MonoBehaviour
 {
 
-    private static TextureProviderManager m_Instance;
-    public static TextureProviderManager Instance { get { return m_Instance; } }
+    public TextureProviderManager instance { get; private set; } 
 
-    [SerializeField]
-    private static List<TextureProvider> textureProviders = new List<TextureProvider>();
+    private bool _initialized = false;
+
+    private static List<TextureProvider> _textureProviders;
 
     public static void AddTextureProvider(TextureProvider v)
     {
-        textureProviders.Add(v);
-        // Debug.Log("Count: " + textureProviders.Count);
+        _textureProviders.Add(v);
     }
 
     public static void RemoveTextureProvider(TextureProvider v)
     {
-        textureProviders.Remove(v);
-        // Debug.Log("Count: " + textureProviders.Count);
+        _textureProviders.Remove(v);
     }
 
     void Awake()
     {
-        m_Instance = this;
+        instance = this;
+    }
+
+    public void Init()
+    {
+        _initialized = true;
+
+        _textureProviders = new List<TextureProvider>();
     }
 
     void Update()
     {
-        foreach (var v in textureProviders)
+        if (!_initialized)
+            return;
+
+        foreach (var v in _textureProviders)
         {
             if (v.enabled && v.textureShouldUpdate)
             {
@@ -47,7 +55,7 @@ public class TextureProviderManager : MonoBehaviour
 
     public static void UpdateEager()
     {
-        foreach (var v in textureProviders)
+        foreach (var v in _textureProviders)
         {
             if (v.enabled)
             {
@@ -61,24 +69,6 @@ public class TextureProviderManager : MonoBehaviour
                 }
             }
         }
-    }
-
-    public static void SetPropertyInt(string propertyName, int value)
-    {
-        foreach (var v in textureProviders)
-            v.SetPropertyFloat(propertyName, value);
-    }
-
-    public static void SetPropertyFloat(string propertyName, float value)
-    {
-        foreach (var v in textureProviders)
-            v.SetPropertyFloat(propertyName, value);
-    }
-
-    public static void SetPropertyVector(string propertyName, Vector4 value)
-    {
-        foreach (var v in textureProviders)
-            v.SetPropertyVector(propertyName, value);
     }
 
 }

@@ -3,57 +3,23 @@
 public class FractalNoiseRuntimeTexture : TextureProvider
 {
 
+    public ActionModule subscribeTarget;
+
     private static string[] NOISE_TYPES = { "VALUE", "VALUE_LINEAR", "VALUE_SPLINE", "PERLIN", "PERLIN_LINEAR" };
     private static string[] FRACTAL_TYPES = { "BASIC", "TURBULENT", "ROCKY" }; 
 
-    public const int resolution = 256;
-
-// #if UNITY_EDITOR
-//     [Header("General")]
-//     [SerializeField]
-//     private int seed = 0;
-//     [SerializeField]
-//     private int noiseType = 0;
-//     [SerializeField]
-//     private int fractalType = 0;
-
-//     [Header("Transform")]
-//     [SerializeField]
-//     private Vector4 scale = Vector4.one;
-
-//     [Header("Complexity")]
-//     [SerializeField, Range(0, 1)]
-//     private float subInfluence = .5f;
-//     [SerializeField]
-//     private Vector4 subScale = new Vector4(.5f, .5f, 2, 2);
-//     [Header("Output")]
-//     [SerializeField, Range(-2f, 2f)]
-//     private float brightness = 0;
-//     [SerializeField, Range(0, 10)]
-//     private float contrast = 1;
-
-//     [Header("Evolution")]
-//     [SerializeField]
-//     private float evolutionSpeed = 0;
-
-//     [Header("Gradient")]
-//     [SerializeField, Range(0, 5)]
-//     private float amplitude = 1;
-
-//     void OnValidate()
-//     {
-//         SetPropertyInt   ("NoiseType",      noiseType);
-//         SetPropertyInt   ("FractalType",    fractalType);
-//         SetPropertyInt   ("Seed",           seed);
-//         SetPropertyVector("Scale",          scale);
-//         SetPropertyFloat ("SubInfluence",   subInfluence);
-//         SetPropertyVector("SubScale",       subScale);
-//         SetPropertyFloat ("Brightness",     brightness);
-//         SetPropertyFloat ("Contrast",       contrast);
-//         SetPropertyFloat ("EvolutionSpeed", evolutionSpeed);
-//         SetPropertyFloat ("Amplitude",      amplitude);
-//     }
-// #endif
+    public const int RESOLUTION = 256;
+    public const int NUM_FIELDS = 10;
+    public const int INDEX__FRACTAL_TYPE    = 0;
+    public const int INDEX__NOISE_TYPE      = 1;
+    public const int INDEX__SEED            = 2;
+    public const int INDEX__GLOBAL_SCALE    = 3;
+    public const int INDEX__SUB_INFLUENCE   = 4;
+    public const int INDEX__SUB_SCALE       = 5;
+    public const int INDEX__BRIGHTNESS      = 6;
+    public const int INDEX__CONTRAST        = 7;
+    public const int INDEX__EVOLUTION_SPEED = 8;
+    public const int INDEX__AMPLITUDE       = 9;
 
     [SerializeField]
     private Material m_FractalNoiseMaterial;
@@ -61,6 +27,8 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     private Material m_GradientMaterial;  
     [SerializeField]  
     private RenderTexture m_RenderTexture;
+
+    public string[] fieldNames;
 
     private readonly float[] HASH_ARRAY = {
         151,160,137, 91, 90, 15,131, 13,201, 95, 96, 53,194,233,  7,225,
@@ -85,100 +53,17 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     {
         base.Awake();
 
-        m_RenderTexture = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGB32);
-        m_RenderTexture.wrapMode   = TextureWrapMode.Repeat;
-        m_RenderTexture.filterMode = FilterMode.Trilinear;
-        m_RenderTexture.useMipMap  = true;
-
         /* SETUP MATERIALS */
         m_FractalNoiseMaterial = new Material(Shader.Find("Compute/FractalNoise"));
         m_GradientMaterial     = new Material(Shader.Find("Compute/Gradient"));
-
-        /* SUBMIT STATIC HASH ARRAY */
-        Texture2D hashTex = new Texture2D(256, 1, TextureFormat.RFloat, false);
-        hashTex.wrapMode = TextureWrapMode.Repeat;
-        hashTex.filterMode = FilterMode.Point;
-        Color[] hashColors = new Color[256];
-        for (int i = 0; i < 256; i++)
-            hashColors[i] = new Color(HASH_ARRAY[i] / 256f, 0, 0, 0);
-        hashTex.SetPixels(hashColors);
-        hashTex.Apply();
-        m_FractalNoiseMaterial.SetTexture("_HashTex", hashTex);
-
-        /* SETUP PROPERTIES */
-        AddProperty("NoiseType",       "INT");
-        SubscribeProperty("NoiseType", m_FractalNoiseMaterial, "",
-            (Material material, string uniformName, object value) => {
-                int valueInt = (int)value;
-                for (int i = 0; i < NOISE_TYPES.Length; i++)
-                {
-                    if (i == valueInt)
-                        material.EnableKeyword(NOISE_TYPES[i]);
-                    else
-                        material.DisableKeyword(NOISE_TYPES[i]);
-                }
-            });
-
-        AddProperty("FractalType",     "INT");
-        SubscribeProperty("FractalType", m_FractalNoiseMaterial, "",
-            (Material material, string uniformName, object value) => {
-                int valueInt = (int)value;
-                for (int i = 0; i < FRACTAL_TYPES.Length; i++)
-                {
-                    if (i == valueInt)
-                        material.EnableKeyword(FRACTAL_TYPES[i]);
-                    else
-                        material.DisableKeyword(FRACTAL_TYPES[i]);
-                }
-            });
-
-        AddProperty("Seed",            "INT");
-        SubscribeProperty("Seed", m_FractalNoiseMaterial, "_GradientTex",
-            (Material material, string uniformName, object value) => {
-                int valueInt = (int)value;
-                Texture2D gradientTex = new Texture2D(256, 1, TextureFormat.ARGB32, false);
-                gradientTex.wrapMode = TextureWrapMode.Repeat;
-                gradientTex.filterMode = FilterMode.Point;
-                Color[] graidentColors = new Color[256];
-                Random.InitState(valueInt);
-                for (int i = 0; i < 256; i++)
-                {
-                    Vector3 dir = (2 * new Vector3(Random.value, Random.value, Random.value) - Vector3.one).normalized;
-                    graidentColors[i] = new Color(.5f * dir.x + .5f, .5f * dir.y + .5f, .5f * dir.z + .5f, 1);
-                }
-                gradientTex.SetPixels(graidentColors);
-                gradientTex.Apply();
-                material.SetTexture(uniformName, gradientTex);
-            });
-
-        AddProperty("GlobalScale",    "VECTOR");
-        SubscribeProperty("GlobalScale", m_FractalNoiseMaterial, "_GlobalScale");
-
-        AddProperty("SubInfluence",   "FLOAT");
-        SubscribeProperty("SubInfluence", m_FractalNoiseMaterial, "_SubInfluence");
-
-        AddProperty("SubScale",       "VECTOR");
-        SubscribeProperty("SubScale", m_FractalNoiseMaterial, "_SubScale");
-
-        AddProperty("Brightness",     "FLOAT");
-        SubscribeProperty("Brightness", m_FractalNoiseMaterial, "_Brightness");
-
-        AddProperty("Contrast",       "FLOAT");
-        SubscribeProperty("Contrast", m_FractalNoiseMaterial, "_Contrast");
-
-        AddProperty("EvolutionSpeed", "FLOAT");
-        SubscribeProperty("EvolutionSpeed", m_FractalNoiseMaterial, "_EvolutionSpeed");
-
-        AddProperty("Amplitude",      "FLOAT");
-        SubscribeProperty("Amplitude", m_GradientMaterial, "_Amplitude");
     }
 
     void Update()
     {
-        if (GetPropertyFloat("EvolutionSpeed") > 0
-            && !InputMode.Instance.isBrush()
-            && !InputMode.Instance.isBusy()
-            && !InputMode.Instance.isFlow())
+        if (Store.instance.GetValue<float>(fieldNames[INDEX__EVOLUTION_SPEED]) > 0
+            && !InputMode.instance.isBrush()
+            && !InputMode.instance.isBusy()
+            && !InputMode.instance.isFlow())
             textureShouldUpdate = true;
     }
 
@@ -216,6 +101,84 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     public override string GetProviderName()
     {
         return "FractalNoiseRuntimeTexture";
+    }
+
+    public void Setup()
+    {
+        m_RenderTexture = new RenderTexture(RESOLUTION, RESOLUTION, 0, RenderTextureFormat.ARGB32);
+        m_RenderTexture.wrapMode   = TextureWrapMode.Repeat;
+        m_RenderTexture.filterMode = FilterMode.Trilinear;
+        m_RenderTexture.useMipMap  = true;
+
+        /* SUBMIT STATIC HASH ARRAY */
+        Texture2D hashTex = new Texture2D(256, 1, TextureFormat.RFloat, false);
+        hashTex.wrapMode = TextureWrapMode.Repeat;
+        hashTex.filterMode = FilterMode.Point;
+        Color[] hashColors = new Color[256];
+        for (int i = 0; i < 256; i++)
+            hashColors[i] = new Color(HASH_ARRAY[i] / 256f, 0, 0, 0);
+        hashTex.SetPixels(hashColors);
+        hashTex.Apply();
+        m_FractalNoiseMaterial.SetTexture("_HashTex", hashTex);
+
+        /* SETUP SUBSCRIPTIONS */
+        Subscribe(fieldNames[INDEX__NOISE_TYPE],
+            (_value) => {
+                int value = (int)_value;
+                for (int i = 0; i < NOISE_TYPES.Length; i++)
+                {
+                    if (i == value)
+                        m_FractalNoiseMaterial.EnableKeyword(NOISE_TYPES[i]);
+                    else
+                        m_FractalNoiseMaterial.DisableKeyword(NOISE_TYPES[i]);
+                }
+            });
+
+        Subscribe(fieldNames[INDEX__FRACTAL_TYPE],
+            (_value) => {
+                int value = (int)_value;
+                for (int i = 0; i < FRACTAL_TYPES.Length; i++)
+                {
+                    if (i == value)
+                        m_FractalNoiseMaterial.EnableKeyword(FRACTAL_TYPES[i]);
+                    else
+                        m_FractalNoiseMaterial.DisableKeyword(FRACTAL_TYPES[i]);
+                }
+            });
+
+        Subscribe(fieldNames[INDEX__SEED],
+            (_value) => {
+                int value = (int)_value;
+                Texture2D gradientTex = new Texture2D(256, 1, TextureFormat.ARGB32, false);
+                gradientTex.wrapMode = TextureWrapMode.Repeat;
+                gradientTex.filterMode = FilterMode.Point;
+                Color[] graidentColors = new Color[256];
+                Random.InitState(value);
+                for (int i = 0; i < 256; i++)
+                {
+                    Vector3 dir = (2 * new Vector3(Random.value, Random.value, Random.value) - Vector3.one).normalized;
+                    graidentColors[i] = new Color(.5f * dir.x + .5f, .5f * dir.y + .5f, .5f * dir.z + .5f, 1);
+                }
+                gradientTex.SetPixels(graidentColors);
+                gradientTex.Apply();
+                m_FractalNoiseMaterial.SetTexture("_GradientTex", gradientTex);
+            });
+
+        Subscribe(fieldNames[INDEX__GLOBAL_SCALE],
+            (_value) => {
+                Vector2 value = (Vector2)_value;
+                m_FractalNoiseMaterial.SetVector("_GlobalScale", new Vector4(1f/value.x, 1f/value.y, value.x, value.y));
+            });
+        Subscribe(fieldNames[INDEX__SUB_INFLUENCE]  , m_FractalNoiseMaterial, "_SubInfluence"  , "Float" );
+        Subscribe(fieldNames[INDEX__SUB_SCALE],
+            (_value) => {
+                Vector2 value = (Vector2)_value;
+                m_FractalNoiseMaterial.SetVector("_SubScale", new Vector4(1f/value.x, 1f/value.y, value.x, value.y));
+            });
+        Subscribe(fieldNames[INDEX__BRIGHTNESS]     , m_FractalNoiseMaterial, "_Brightness"    , "Float" );
+        Subscribe(fieldNames[INDEX__CONTRAST]       , m_FractalNoiseMaterial, "_Contrast"      , "Float" );
+        Subscribe(fieldNames[INDEX__EVOLUTION_SPEED], m_FractalNoiseMaterial, "_EvolutionSpeed", "Float" );
+        Subscribe(fieldNames[INDEX__AMPLITUDE]      , m_GradientMaterial    , "_Amplitude"     , "Float" );
     }
 
 }

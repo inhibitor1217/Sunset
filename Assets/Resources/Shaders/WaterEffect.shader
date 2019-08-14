@@ -2,7 +2,7 @@ Shader "Compute/WaterEffect"
 {
     Properties
     {
-        _MainTex    ("Source",      2D) = "white" {}
+        _NoiseTex   ("Noise",       2D) = "white" {}
         _ImgTex     ("Image",       2D) = "white" {}
         _PaletteTex ("Palette",     2D) = "white" {}
         _EnvTex     ("Environment", 2D) = "white" {}
@@ -30,7 +30,7 @@ Shader "Compute/WaterEffect"
 
             #define PI 3.1415926536
 
-            sampler2D _MainTex;
+            sampler2D _NoiseTex;
             sampler2D _ImgTex;
             sampler2D _PaletteTex;
             sampler2D _EnvTex;
@@ -83,7 +83,7 @@ Shader "Compute/WaterEffect"
 
             float get_noise_value(float2 uv, float lod)
             {
-                return tex2Dbias(_MainTex, float4(uv.x, uv.y, 0, lod)).a;
+                return tex2Dbias(_NoiseTex, float4(uv.x, uv.y, 0, lod)).a;
             }
 
             float4 frag(v2f IN) : SV_Target
@@ -143,7 +143,7 @@ Shader "Compute/WaterEffect"
             #define PI 3.1415926536
             #define DEG2RAD (PI / 180.0)
 
-            sampler2D _MainTex;
+            sampler2D _NoiseTex;
             sampler2D _ImgTex;
             sampler2D _PaletteTex;
             sampler2D _EnvTex;
@@ -196,12 +196,12 @@ Shader "Compute/WaterEffect"
 
             float get_noise_value(float2 uv, float lod)
             {
-                return tex2Dbias(_MainTex, float4(uv.x, uv.y, 0, lod)).a;
+                return tex2Dbias(_NoiseTex, float4(uv.x, uv.y, 0, lod)).a;
             }
 
             float3 get_normal(float2 uv, float lod)
             {
-                return 2 * tex2Dbias(_MainTex, float4(uv.x, uv.y, 0, lod)).rgb - float3(1, 1, 1);
+                return 2 * tex2Dbias(_NoiseTex, float4(uv.x, uv.y, 0, lod)).rgb - float3(1, 1, 1);
             }
 
             float4 frag(v2f IN) : SV_Target

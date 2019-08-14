@@ -1858,6 +1858,7 @@ GameObject:
   m_Component:
   - component: {fileID: 503936873}
   - component: {fileID: 503936874}
+  - component: {fileID: 503936875}
   m_Layer: 5
   m_Name: RiverSpeedSlider
   m_TagString: Untagged
@@ -1938,9 +1939,32 @@ MonoBehaviour:
   m_Value: 0.1
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 503936875}
+        m_MethodName: OnValueChanged
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_TypeName: UnityEngine.UI.Slider+SliderEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
+--- !u!114 &503936875
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 503936872}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 949b685451913429899fd14f1ea7b0df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &547223576
 GameObject:
   m_ObjectHideFlags: 0
@@ -2756,7 +2780,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1056186871
 PrefabInstance:
@@ -3448,7 +3472,7 @@ RectTransform:
   - {fileID: 2074056321}
   - {fileID: 691208893}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -4229,7 +4253,7 @@ RectTransform:
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -4470,7 +4494,7 @@ RectTransform:
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -4600,6 +4624,10 @@ GameObject:
   m_Component:
   - component: {fileID: 1846091526}
   - component: {fileID: 1846091525}
+  - component: {fileID: 1846091530}
+  - component: {fileID: 1846091527}
+  - component: {fileID: 1846091529}
+  - component: {fileID: 1846091528}
   m_Layer: 0
   m_Name: SceneMaster
   m_TagString: Untagged
@@ -4638,7 +4666,6 @@ MonoBehaviour:
   FlowCameraPrefab: {fileID: 7543940906030479524, guid: 8a52abe9ceab3477aa5ae20baf5ac942,
     type: 3}
   container: {fileID: 63342699}
-  waterEffect: {fileID: 1916399988}
 --- !u!4 &1846091526
 Transform:
   m_ObjectHideFlags: 0
@@ -4653,6 +4680,61 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1846091527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1846091524}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc579b7fdf7e748d9a0587bb201f0f6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1846091528
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1846091524}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52c6ae7982ba14602a45a0250578d628, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  riverOptionPanel: {fileID: 1885583592}
+  paletteProvider: {fileID: 0}
+  environmentProvider: {fileID: 0}
+  target: {fileID: 0}
+--- !u!114 &1846091529
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1846091524}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8426cf54b31f342bc8b1e69a10bf6dfc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1846091530
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1846091524}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d7295b6f41e54647837dfac948108d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  container: {fileID: 63342699}
+  image: {fileID: 0}
+  optionMenu: {fileID: 0}
 --- !u!1001 &1853739608
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4938,7 +5020,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1883483000
 GameObject:
@@ -4995,7 +5077,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1885583593
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5054,60 +5136,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1885583592}
   m_CullTransparentMesh: 0
---- !u!1 &1916399986
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1916399987}
-  - component: {fileID: 1916399988}
-  m_Layer: 0
-  m_Name: WaterEffectManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1916399987
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1916399986}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1916399988
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1916399986}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52c6ae7982ba14602a45a0250578d628, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  riverOptionPanel: {fileID: 1885583592}
-  riverSpeedSlider: {fileID: 503936874}
-  paletteProvider: {fileID: 0}
-  environmentProvider: {fileID: 0}
-  target: {fileID: 0}
-  _horizon: 0
-  _perspective: 0
-  _sunAltitude: 0
-  _sunDirection: 0
-  _relativeSpeed: 0
-  _rotation: 0
 --- !u!1001 &1947635590
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5970,7 +5998,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2143991163
 PrefabInstance:

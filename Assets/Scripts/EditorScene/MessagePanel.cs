@@ -4,8 +4,7 @@ using UnityEngine.UI;
 public class MessagePanel : MonoBehaviour
 {
 
-    private static MessagePanel m_Instance;
-    public static MessagePanel Instance { get { return m_Instance; } }
+    public static MessagePanel instance { get; private set; }
 
     private Image m_Image;
     public Text mainText;
@@ -13,7 +12,7 @@ public class MessagePanel : MonoBehaviour
 
     void Awake()
     {
-        m_Instance = this;
+        instance = this;
 
         m_Image = GetComponent<Image>();
 

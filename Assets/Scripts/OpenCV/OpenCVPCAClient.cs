@@ -21,7 +21,7 @@ public class OpenCVPCAClient : MonoBehaviour
             return false;
 
         _nextMode = nextMode;
-        InputMode.Instance.SetModeWithoutSideEffect(InputMode.BUSY);
+        InputMode.instance.SetModeWithoutSideEffect(InputMode.BUSY);
 
         m_Data = new OpenCVPCAData();
         m_Data.levels = OCTAVE_LEVELS;
@@ -44,14 +44,14 @@ public class OpenCVPCAClient : MonoBehaviour
     {
         if (m_Invoked)
         {
-            MessagePanel.Instance.ShowMessage("영역 설정 적용 중...", "OpenCV - PCA Procedure");
+            MessagePanel.instance.ShowMessage("영역 설정 적용 중...", "OpenCV - PCA Procedure");
         }
 
         if (m_Invoked && !OpenCVPCA.asyncBusy)
         {
             m_Invoked = false;
 
-            InputMode.Instance.SetModeWithoutSideEffect(_nextMode);
+            InputMode.instance.SetModeWithoutSideEffect(_nextMode);
 
 #if UNITY_EDITOR
             Debug.Log("OpenCVPCAClient - Finished AsyncPCA in " + (Time.time - m_InvokedTime) + " seconds.");
@@ -145,7 +145,7 @@ public class OpenCVPCAClient : MonoBehaviour
 
             m_Data = null;
 
-            MessagePanel.Instance.Disable();
+            MessagePanel.instance.Disable();
         }
     }
 

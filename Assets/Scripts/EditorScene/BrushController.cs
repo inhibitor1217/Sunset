@@ -20,13 +20,13 @@ public class BrushController : MonoBehaviour
 
     void Update()
     {
-        if (InputMode.Instance.isBrush() && !InputMode.Instance.isSLIC() 
-            && InputManager.Instance.held
-            && InputManager.Instance.withinContainer)
+        if (InputMode.instance.isBrush() && !InputMode.instance.isSLIC() 
+            && InputManager.instance.held
+            && InputManager.instance.withinContainer)
         {
             if (!m_MeshRenderer.enabled)
                 m_MeshRenderer.enabled = true;
-            transform.position = InputManager.Instance.inputPosition;
+            transform.position = InputManager.instance.inputPosition;
         }
         else
         {

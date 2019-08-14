@@ -24,12 +24,12 @@ public class OpenCVSLICClient : MonoBehaviour
 
         if (inTex == __cached_inTex)
         {
-            InputMode.Instance.SetModeWithoutSideEffect(nextMode);
+            InputMode.instance.SetModeWithoutSideEffect(nextMode);
             return true;
         }
 
         _nextMode = nextMode;
-        InputMode.Instance.SetModeWithoutSideEffect(InputMode.BUSY);
+        InputMode.instance.SetModeWithoutSideEffect(InputMode.BUSY);
 
         __cached_inTex = inTex;
 
@@ -48,7 +48,7 @@ public class OpenCVSLICClient : MonoBehaviour
     {
         if (m_Invoked)
         {
-            MessagePanel.Instance.ShowMessage("이미지 전처리 중...", "OpenCV - SLIC Procedure");
+            MessagePanel.instance.ShowMessage("이미지 전처리 중...", "OpenCV - SLIC Procedure");
         }
 
         // Busy wait
@@ -57,7 +57,7 @@ public class OpenCVSLICClient : MonoBehaviour
             // Job finished
             m_Invoked = false;
 
-            InputMode.Instance.SetModeWithoutSideEffect(_nextMode);
+            InputMode.instance.SetModeWithoutSideEffect(_nextMode);
 
 #if UNITY_EDITOR
             Debug.Log("OpenCVSLICClient - Finished AsyncSLIC in " + (Time.time - m_InvokedTime) + " seconds.");
@@ -69,7 +69,7 @@ public class OpenCVSLICClient : MonoBehaviour
             
             m_Data = null;
 
-            MessagePanel.Instance.Disable();
+            MessagePanel.instance.Disable();
 
         }
     }

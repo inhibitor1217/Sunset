@@ -9,6 +9,15 @@ public class EnvironmentTexture : TextureProvider
     private Material m_BlurMaterial;
     private int m_HorizontalBlurPass;
 
+    public TextureProvider _maskProvider;
+    
+    public TextureProvider maskProvider { 
+        set {
+            UpdatePipeline(ref _maskProvider, value);
+            m_EnvMapMaterial.SetTexture("_MaskTex", value.GetTexture()); 
+        } 
+    }
+
     new void Awake()
     {
         base.Awake();
@@ -18,12 +27,6 @@ public class EnvironmentTexture : TextureProvider
         m_BlurMaterial = new Material(Shader.Find("Compute/Blur"));
         m_BlurMaterial.SetFloat("_BlurSize", .005f);
         m_HorizontalBlurPass = m_BlurMaterial.FindPass("Horizontal");
-
-        /* SETUP PROPERTIES */
-        m_EnvMapMaterial.SetTexture("_ImgTex", EditorSceneMaster.Instance.GetRootTextureProvider().GetTexture());
-
-        AddProperty("MaskTexture",        "PROVIDER");
-        SubscribeProperty("MaskTexture", m_EnvMapMaterial, "_MaskTex");
     }
 
     public override Texture GetTexture()
@@ -76,6 +79,9 @@ public class EnvironmentTexture : TextureProvider
         m_RenderTexture.useMipMap = false;
         m_RenderTexture.wrapMode = TextureWrapMode.Clamp;
         m_RenderTexture.filterMode = FilterMode.Bilinear;
+
+        /* SETUP PROPERTIES */
+        m_EnvMapMaterial.SetTexture("_ImgTex", EditorSceneMaster.instance.GetRootTextureProvider().GetTexture());
     }
 
 

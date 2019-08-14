@@ -30,11 +30,11 @@ public class EditorGalleryButton : MonoBehaviour
 #else
     void onClick()
     {
-        if (InputMode.Instance.isBusy())
+        if (InputMode.instance.isBusy())
             return;
 
         if (initTexture)
-            EditorSceneMaster.Instance.InitScene(initTexture);
+            EditorSceneMaster.instance.InitScene(initTexture);
     }
 #endif
 

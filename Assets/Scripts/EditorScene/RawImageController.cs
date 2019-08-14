@@ -9,6 +9,9 @@ public class RawImageController : MonoBehaviour
     public bool useGrid = true;
     public float globalScale = 1f;
 
+    public float xBound { get; private set; }
+    public float yBound { get; private set; }
+
     private RawImage m_RawImage;
     private RectTransform m_RectTransform;
     private Vector2 m_ImageBaseScale;
@@ -46,7 +49,7 @@ public class RawImageController : MonoBehaviour
         if (useGrid)
         {
             m_RawImage.materialForRendering.SetFloat("_Grid_Opacity",
-                Mathf.Clamp(.5f + .1f * (InputManager.Instance.MultiplicativeScale - GRID_OPACITY_CURVE_CENTER), 0f, 1f)
+                Mathf.Clamp(.5f + .1f * (InputManager.instance.multiplicativeScale - GRID_OPACITY_CURVE_CENTER), 0f, 1f)
             );
         }
         else
@@ -56,15 +59,15 @@ public class RawImageController : MonoBehaviour
 
         if (movePosition)
         {
-            m_RectTransform.anchoredPosition = InputManager.Instance.Position * InputManager.Instance.MultiplicativeScale;
+            m_RectTransform.anchoredPosition = InputManager.instance.position * InputManager.instance.multiplicativeScale;
             foreach (var maskCamera in m_MaskCameras)
             {
                 if (maskCamera)
-                    maskCamera.orthographicSize = .5f * globalScale * m_ImageBaseScale.y * InputManager.Instance.MultiplicativeScale;
+                    maskCamera.orthographicSize = .5f * globalScale * m_ImageBaseScale.y * InputManager.instance.multiplicativeScale;
             }
         }
         if (moveScale)
-            m_RectTransform.sizeDelta = globalScale * m_ImageBaseScale * InputManager.Instance.MultiplicativeScale;
+            m_RectTransform.sizeDelta = globalScale * m_ImageBaseScale * InputManager.instance.multiplicativeScale;
     }
 
     public Rect GetRect()
@@ -90,17 +93,17 @@ public class RawImageController : MonoBehaviour
         m_ImageBaseScale = new Vector2(texture.width, texture.height);
 
         if (movePosition)
-            m_RectTransform.anchoredPosition = InputManager.Instance.Position * InputManager.Instance.MultiplicativeScale;
+            m_RectTransform.anchoredPosition = InputManager.instance.position * InputManager.instance.multiplicativeScale;
         
         if (moveScale)
-            m_RectTransform.sizeDelta = globalScale * m_ImageBaseScale * InputManager.Instance.MultiplicativeScale;
+            m_RectTransform.sizeDelta = globalScale * m_ImageBaseScale * InputManager.instance.multiplicativeScale;
         else
             m_RectTransform.sizeDelta = globalScale * m_ImageBaseScale;
 
         if (movePosition)
         {
-            InputManager.Instance.xBound = globalScale * m_ImageBaseScale.x;
-            InputManager.Instance.yBound = globalScale * m_ImageBaseScale.y;
+            xBound = globalScale * m_ImageBaseScale.x;
+            yBound = globalScale * m_ImageBaseScale.y;
         }
     }
 

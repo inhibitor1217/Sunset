@@ -3,8 +3,7 @@ using UnityEngine;
 public class EditorSceneMaster : MonoBehaviour
 {
 
-    private static EditorSceneMaster instance;
-    public static EditorSceneMaster Instance { get { return instance; } }
+    public static EditorSceneMaster instance { get; private set; }
 
 
     [Header("Prefabs")]
@@ -24,14 +23,20 @@ public class EditorSceneMaster : MonoBehaviour
     // Managers
     private TextureProviderManager m_TextureProviderManager;
     private InputManager m_InputManager;
+    private WaterEffectManager m_WaterEffectManager;
+    private Store m_Store;
+    private static ActionModule[] actionModules = {
+        SharedActions.instance,
+        WaterEffectActions.instance,
+    };
 
     // Root Info
     public int width { get; private set; }
     public int height { get; private set; }
 
     // Layers
-    private GameObject m_RootLayerObject;
-    private RawImageController m_RootLayer;
+    public GameObject rootLayerObject { get; private set; }
+    public RawImageController rootLayer { get; private set; }
     private GameObject m_MaskLayerObject;
     private RawImageController m_MaskLayer;
 
@@ -69,7 +74,6 @@ public class EditorSceneMaster : MonoBehaviour
     private StaticTexture[] m_PaletteTextures = new StaticTexture[MAX_EFFECTS];
 
     // Effect
-    public WaterEffectManager waterEffect;
     private GameObject[] m_EffectLayerObjects = new GameObject[MAX_EFFECTS];
     private RawImageController[] m_EffectLayers = new RawImageController[MAX_EFFECTS];
 
@@ -97,6 +101,11 @@ public class EditorSceneMaster : MonoBehaviour
     void Awake()
     {
         instance = this;
+
+        m_TextureProviderManager = GetComponent<TextureProviderManager>();
+        m_InputManager = GetComponent<InputManager>();
+        m_WaterEffectManager = GetComponent<WaterEffectManager>();
+        m_Store = GetComponent<Store>();
     }
 
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -111,21 +120,6 @@ public class EditorSceneMaster : MonoBehaviour
     public StaticTexture GetRootTextureProvider()
     {
         return m_RootStaticTexture;
-    }
-
-    public Rect GetRootRect()
-    {
-        return m_RootLayer.GetRect();
-    }
-
-    public Vector2 RelativeCoordsToRootRect(Vector2 pos)
-    {
-        return m_RootLayer.RelativeCoords(pos);
-    }
-
-    public Transform GetRootLayerTransform()
-    {
-        return m_RootLayerObject.transform;
     }
 
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -178,12 +172,10 @@ public class EditorSceneMaster : MonoBehaviour
         // ** Clean up **
 
         // Managers
-        if (m_TextureProviderManager)
-            Destroy(m_TextureProviderManager);
-        if (m_InputManager)
-            Destroy(m_InputManager);
-        if (waterEffect)
-            waterEffect.Init();
+        m_TextureProviderManager.Init();
+        m_InputManager.Init();
+        m_WaterEffectManager.Init();
+        m_Store.Init(Store.MergeInitialStates(actionModules), Store.MergeReducers(actionModules));
 
         // Compute Clients
         if (m_SLICClient)
@@ -192,8 +184,8 @@ public class EditorSceneMaster : MonoBehaviour
             Destroy(m_PCAClient);
         
         // Root Layer
-        if (m_RootLayerObject)
-            Destroy(m_RootLayerObject);
+        if (rootLayerObject)
+            Destroy(rootLayerObject);
         if (m_RootStaticTextureObject)
             Destroy(m_RootStaticTextureObject);
 
@@ -227,34 +219,29 @@ public class EditorSceneMaster : MonoBehaviour
         width = rootTexture.width;
         height = rootTexture.height;
 
-        // Initialize Global Managers
-        m_TextureProviderManager = gameObject.AddComponent(typeof(TextureProviderManager)) as TextureProviderManager;
-        m_InputManager = gameObject.AddComponent(typeof(InputManager)) as InputManager;
-        m_InputManager.container  = container;
-
         // Initialize Compute Clients
         m_SLICClient = gameObject.AddComponent(typeof(OpenCVSLICClient)) as OpenCVSLICClient;
         m_PCAClient  = gameObject.AddComponent(typeof(OpenCVPCAClient))  as OpenCVPCAClient;
 
         // Setup Root Layer
-        m_RootLayerObject = GameObject.Instantiate(LayerPrefab);
-        m_RootLayerObject.name = "Layer: Root";
-        m_RootLayerObject.GetComponent<RectTransform>().SetParent(container);
-        m_RootLayerObject.GetComponent<RectTransform>().SetAsFirstSibling();
-        m_RootLayer = m_RootLayerObject.GetComponent<RawImageController>();
-        m_RootLayer.movePosition = true;
-        m_RootLayer.moveScale    = true;
-        m_RootLayer.useGrid      = true;
-        m_RootLayer.material     = new Material(Shader.Find("UI/Grid"));
-        m_RootLayer.material.SetVector("_RootImageSize", new Vector4(1f / (float)width, 1f / (float)height, (float)width, (float)height));
-        m_InputManager.image = m_RootLayerObject.GetComponent<RectTransform>();
+        rootLayerObject = GameObject.Instantiate(LayerPrefab);
+        rootLayerObject.name = "Layer: Root";
+        rootLayerObject.GetComponent<RectTransform>().SetParent(container);
+        rootLayerObject.GetComponent<RectTransform>().SetAsFirstSibling();
+        rootLayer = rootLayerObject.GetComponent<RawImageController>();
+        rootLayer.movePosition = true;
+        rootLayer.moveScale    = true;
+        rootLayer.useGrid      = true;
+        rootLayer.material     = new Material(Shader.Find("UI/Grid"));
+        rootLayer.material.SetVector("_RootImageSize", new Vector4(1f / (float)width, 1f / (float)height, (float)width, (float)height));
+        m_InputManager.image = rootLayerObject.GetComponent<RectTransform>();
 
         // Setup Root Texture Provider and Reference to Root Layer
         m_RootStaticTextureObject = GameObject.Instantiate(StaticTexturePrefab);
         m_RootStaticTextureObject.name = "Static Texture: Root";
         m_RootStaticTexture = m_RootStaticTextureObject.GetComponent<StaticTexture>();
         m_RootStaticTexture.SetStaticTexture(rootTexture);
-        m_RootStaticTexture.SetTarget(m_RootLayer);
+        m_RootStaticTexture.SetTarget(rootLayer);
 
         // Initialize Mask Components
         CreateMask(EFFECT_WATER);
@@ -284,7 +271,7 @@ public class EditorSceneMaster : MonoBehaviour
         if (maskIndex == EFFECT_WATER)
         {
             m_EnvMapTexture = m_MaskTextureObjects[maskIndex].AddComponent<EnvironmentTexture>();
-            m_EnvMapTexture.SetPropertyProvider("MaskTexture" , m_MaskTextures[maskIndex]);
+            m_EnvMapTexture.maskProvider = m_MaskTextures[maskIndex];
             m_EnvMapTexture.Setup(width / 2, height / 2);
         }
 
@@ -302,7 +289,7 @@ public class EditorSceneMaster : MonoBehaviour
 
         m_MaskCameraObjects[maskIndex] = GameObject.Instantiate(MaskCameraPrefab);
         m_MaskCameraObjects[maskIndex].name = "Mask Camera: " + maskIndexToString(maskIndex);
-        m_MaskCameraObjects[maskIndex].transform.SetParent(m_RootLayerObject.transform);
+        m_MaskCameraObjects[maskIndex].transform.SetParent(rootLayerObject.transform);
         m_MaskCameraObjects[maskIndex].transform.localPosition = Vector3.back;
         m_MaskCameras[maskIndex] = m_MaskCameraObjects[maskIndex].GetComponent<MaskRendererCamera>();
 
@@ -319,7 +306,7 @@ public class EditorSceneMaster : MonoBehaviour
         c.enabled = false;
 
         m_MaskTextures[maskIndex].SetCamera(c);
-        m_RootLayer.SetMaskCamera(c, maskIndex);
+        rootLayer.SetMaskCamera(c, maskIndex);
     }
 
     public void RemoveMask(int maskIndex)
@@ -331,8 +318,8 @@ public class EditorSceneMaster : MonoBehaviour
             Destroy(m_MaskCameraObjects[maskIndex]);
 
 
-        if (m_RootLayer)
-            m_RootLayer.SetMaskCamera(null, maskIndex);
+        if (rootLayer)
+            rootLayer.SetMaskCamera(null, maskIndex);
 
         m_MaskTextureObjects[maskIndex] = null;
         m_MaskTextures[maskIndex] = null;
@@ -354,7 +341,7 @@ public class EditorSceneMaster : MonoBehaviour
         {
             m_BrushObject = GameObject.Instantiate(BrushPrefab);
             m_BrushObject.name = "Brush";
-            m_BrushObject.transform.SetParent(m_RootLayerObject.transform);
+            m_BrushObject.transform.SetParent(rootLayerObject.transform);
         }
         if (!m_Brush)
             m_Brush = m_BrushObject.GetComponent<BrushController>();
@@ -374,7 +361,7 @@ public class EditorSceneMaster : MonoBehaviour
         {
             m_MaskLayerObject = GameObject.Instantiate(LayerPrefab);
             m_MaskLayerObject.name = "Layer: Mask";
-            m_MaskLayerObject.GetComponent<RectTransform>().SetParent(m_RootLayerObject.GetComponent<RectTransform>());
+            m_MaskLayerObject.GetComponent<RectTransform>().SetParent(rootLayerObject.GetComponent<RectTransform>());
             m_MaskLayerObject.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
         }
         if (!m_MaskLayer)
@@ -436,7 +423,7 @@ public class EditorSceneMaster : MonoBehaviour
         {
             m_MaskLayerObject = GameObject.Instantiate(LayerPrefab);
             m_MaskLayerObject.name = "Layer: Mask";
-            m_MaskLayerObject.GetComponent<RectTransform>().SetParent(m_RootLayerObject.GetComponent<RectTransform>());
+            m_MaskLayerObject.GetComponent<RectTransform>().SetParent(rootLayerObject.GetComponent<RectTransform>());
             m_MaskLayerObject.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
         }
         if (!m_MaskLayer)
@@ -514,7 +501,7 @@ public class EditorSceneMaster : MonoBehaviour
 
         // Invoke Flow Texture Draw
         if (m_FlowController)
-            waterEffect.CreateFlow(m_FlowController.GetMesh());
+            m_WaterEffectManager.CreateFlow(m_FlowController);
 
         // Enable All Effects
         if (m_EffectLayerObjects[EFFECT_WATER])
@@ -603,7 +590,7 @@ public class EditorSceneMaster : MonoBehaviour
         {
             m_EffectLayerObjects[maskIndex] = GameObject.Instantiate(LayerPrefab);
             m_EffectLayerObjects[maskIndex].name = "Layer: Effect " + maskIndexToString(maskIndex);
-            m_EffectLayerObjects[maskIndex].GetComponent<RectTransform>().SetParent(m_RootLayerObject.GetComponent<RectTransform>());
+            m_EffectLayerObjects[maskIndex].GetComponent<RectTransform>().SetParent(rootLayerObject.GetComponent<RectTransform>());
             m_EffectLayerObjects[maskIndex].GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
         }
         if (!m_EffectLayers[maskIndex])
@@ -619,10 +606,10 @@ public class EditorSceneMaster : MonoBehaviour
 
         if (maskIndex == EFFECT_WATER)
         {
-            waterEffect.paletteProvider     = m_PaletteTextures[maskIndex];
-            waterEffect.environmentProvider = m_EnvMapTexture;
-            waterEffect.target              = m_EffectLayers[maskIndex];
-            waterEffect.Setup(effectType, width / 2, height / 2);
+            m_WaterEffectManager.paletteProvider     = m_PaletteTextures[maskIndex];
+            m_WaterEffectManager.environmentProvider = m_EnvMapTexture;
+            m_WaterEffectManager.target              = m_EffectLayers[maskIndex];
+            m_WaterEffectManager.Setup(effectType, width / 2, height / 2);
         }
     }
 
@@ -636,8 +623,7 @@ public class EditorSceneMaster : MonoBehaviour
 
         if (maskIndex == EFFECT_WATER)
         {
-            if (waterEffect)
-                waterEffect.Setup(WaterEffectManager.NONE, 0, 0);
+            m_WaterEffectManager.Setup(WaterEffectManager.NONE, 0, 0);
         }
     }
 

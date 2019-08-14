@@ -1,23 +1,17 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections.Generic;
 
 public abstract class TextureProvider : MonoBehaviour
 {
-
-#if UNITY_EDITOR
-    public RawImageController defaultTarget;
-#endif
 
     [SerializeField]
     private TextureProvider[] m_PipeInputs  = { null, null, null, null };
     [SerializeField]
     private TextureProvider[] m_PipeOutputs = { null, null, null, null };
 
-    [Header("Properties")]
-    [SerializeField]
-    private Dictionary<string, TextureProviderProperty> _properties;
-
     protected RawImageController m_Target = null;
+    protected List<ValueTuple<string, int>> m_Subscriptions = null;
 
     [HideInInspector]
     public bool textureShouldUpdate = false;
@@ -26,17 +20,9 @@ public abstract class TextureProvider : MonoBehaviour
     {
         TextureProviderManager.AddTextureProvider(this);
 
+        m_Subscriptions = new List<ValueTuple<string, int>>();
+
         textureShouldUpdate = true;
-
-        _properties = new Dictionary<string, TextureProviderProperty>();
-    }
-
-    protected void Start()
-    {
-#if UNITY_EDITOR
-        if (defaultTarget)
-            SetTarget(defaultTarget);
-#endif
     }
 
     protected void OnDestroy()
@@ -49,127 +35,36 @@ public abstract class TextureProvider : MonoBehaviour
             if (m_PipeOutputs[i])
                 Unlink(this, m_PipeOutputs[i]);
         }
+        foreach ((string key, int id) in m_Subscriptions)
+        {
+            Store.instance.Unsubscribe(key, id);
+        }
     }
 
     public abstract bool Draw();
     public abstract Texture GetTexture();
     public abstract string GetProviderName();
 
-    protected void AddProperty(string propertyName, string type)
+    protected void Subscribe(string key, Store.SubscriptionFunction func)
+    {
+        int id = Store.instance.Subscribe(key, func);
+        m_Subscriptions.Add((key, id));
+    }
+
+    protected void Subscribe(string key, Material material, string uniformName, string type)
     {
         switch (type)
         {
-        case "INT":
-            _properties[propertyName] = new TextureProviderIntProperty(propertyName);
+        case "Float":
+            Subscribe(key, (value) => {
+                material.SetFloat(uniformName, (float)value);
+            });
             break;
-        case "FLOAT":
-            _properties[propertyName] = new TextureProviderFloatProperty(propertyName);
+        case "Vector":
+            Subscribe(key, (value) => {
+                material.SetVector(uniformName, (Vector4)value);
+            });
             break;
-        case "VECTOR":
-            _properties[propertyName] = new TextureProviderVectorProperty(propertyName);
-            break;
-        case "PROVIDER":
-            _properties[propertyName] = new TextureProviderTextureProperty(propertyName);
-            break;
-        default:
-#if UNITY_EDITOR
-            Debug.Log("AddProperty: Property type " + type + " is not supported");
-#endif
-            break;
-        }
-    }
-    protected void SubscribeProperty(string propertyName, Material material, string uniformName, TextureProviderProperty.CustomSetter mapper=null)
-    {
-        _properties[propertyName].Subscribe(material, uniformName, mapper);
-    }
-
-    protected void UnsubscribeProperty(string propertyName, Material material, string uniformName)
-    {
-        _properties[propertyName].Unsubscribe(material, uniformName);
-    }
-
-    public int GetPropertyInt(string propertyName) 
-    {
-        if (_properties.ContainsKey(propertyName))
-        {
-            return _properties[propertyName].GetInt();
-        }
-        else
-        {
-            return 0;
-        }
-    }
-    public void SetPropertyInt(string propertyName, int value)
-    {
-        if (_properties.ContainsKey(propertyName))
-        {
-            _properties[propertyName].SetInt(value);
-            textureShouldUpdate = true;
-        }
-    }
-
-    public float GetPropertyFloat(string propertyName) 
-    {
-        if (_properties.ContainsKey(propertyName))
-        {
-            return _properties[propertyName].GetFloat();
-        }
-        else
-        {
-            return 0;
-        }
-    }
-    public void SetPropertyFloat(string propertyName, float value)
-    {
-        if (_properties.ContainsKey(propertyName))
-        {
-            _properties[propertyName].SetFloat(value);
-            textureShouldUpdate = true;
-        }
-    }
-
-    public Vector4 GetPropertyVector(string propertyName)
-    {
-        if (_properties.ContainsKey(propertyName))
-        {
-            return _properties[propertyName].GetVector();
-        }
-        else
-        {
-            return Vector4.zero;
-        }
-    }
-    public void SetPropertyVector(string propertyName, Vector4 value)
-    {
-        if (_properties.ContainsKey(propertyName))
-        {
-            _properties[propertyName].SetVector(value);
-            textureShouldUpdate = true;
-        }
-    }
-
-    public TextureProvider GetPropertyProvider(string propertyName)
-    {
-        if (_properties.ContainsKey(propertyName))
-        {
-            return _properties[propertyName].GetTextureProvider();
-        }
-        else
-        {
-            return null;
-        }
-    }
-    public void SetPropertyProvider(string propertyName, TextureProvider value)
-    {
-        if (_properties.ContainsKey(propertyName))
-        {
-            updatePipeline(_properties[propertyName].GetTextureProvider(), value);
-            _properties[propertyName].SetTextureProvider(value);
-            textureShouldUpdate = true;
-        }
-        else
-        {
-            Debug.Log(GetProviderName() + " does not contain property " + propertyName);
         }
     }
 
@@ -236,7 +131,7 @@ public abstract class TextureProvider : MonoBehaviour
         return -1;
     }
 
-    void updatePipeline(TextureProvider old, TextureProvider value)
+    protected void UpdatePipeline(ref TextureProvider old, TextureProvider value)
     {
         if (old == value)
             return;
@@ -263,6 +158,8 @@ public abstract class TextureProvider : MonoBehaviour
             Unlink(old, this);
         if (value)
             Link(value, outIndex, this, inIndex);
+
+        old = value;
     }
 
     public void Propagate()

@@ -7,7 +7,7 @@ public class FlowController : MonoBehaviour
     public GameObject FlowPrefab;
 
     private List<Vector3> _currentPivots;
-    private List<List<Vector3>> _pivots;
+    public List<List<Vector3>> pivots { get; private set; }
     private Vector3 _lastPivot;
 
     private bool _editing = false;
@@ -23,22 +23,24 @@ public class FlowController : MonoBehaviour
     void Awake()
     {
         _currentPivots = new List<Vector3>();
-        _pivots        = new List<List<Vector3>>();        
+        pivots         = new List<List<Vector3>>();        
         _uiFlowObjects = new List<GameObject>();
     }
 
     void Update()
     {
-        if (InputMode.Instance.isFlow())
+        if (InputMode.instance.isFlow())
         {
-            if (!InputMode.Instance.isErase())
+            Vector2 pos = EditorSceneMaster.instance.rootLayer.RelativeCoords(InputManager.instance.inputPosition);
+            
+            if (!InputMode.instance.isErase())
             {
-                if (!_editing && InputManager.Instance.held && InputManager.Instance.withinImage)
+                if (!_editing && InputManager.instance.held && InputManager.instance.withinImage)
                 {
                     _editing = true;
-                    _lastPivot = EditorSceneMaster.Instance.RelativeCoordsToRootRect(InputManager.Instance.inputPosition);
+                    _lastPivot = pos;
                 }
-                if (!InputManager.Instance.held || !InputManager.Instance.withinImage)
+                if (!InputManager.instance.held || !InputManager.instance.withinImage)
                 {
                     _editing = false;
                     _created = false;
@@ -46,27 +48,24 @@ public class FlowController : MonoBehaviour
 
                 if (_editing)
                 {
-                    if (Vector2.Distance(
-                        _lastPivot, 
-                        EditorSceneMaster.Instance.RelativeCoordsToRootRect(InputManager.Instance.inputPosition)
-                    ) > ADD_THRESHOLD)
+                    if (Vector2.Distance(_lastPivot, pos) > ADD_THRESHOLD)
                     {
                         if (!_created)
                         {
                             _created = true;
 
                             _currentPivots = new List<Vector3>();
-                            _pivots.Add(_currentPivots);
+                            pivots.Add(_currentPivots);
                             _currentPivots.Add(_lastPivot);
 
                             _currentFlowObject = GameObject.Instantiate(FlowPrefab);
-                            _currentFlowObject.name = "Flow " + _pivots.Count;
-                            _currentFlowObject.GetComponent<RectTransform>().SetParent(EditorSceneMaster.Instance.GetRootLayerTransform());
+                            _currentFlowObject.name = "Flow " + pivots.Count;
+                            _currentFlowObject.GetComponent<RectTransform>().SetParent(EditorSceneMaster.instance.rootLayerObject.transform);
                             _currentLineRenderer = _currentFlowObject.GetComponent<LineRenderer>();
                             _uiFlowObjects.Add(_currentFlowObject);
                         }
 
-                        _lastPivot = EditorSceneMaster.Instance.RelativeCoordsToRootRect(InputManager.Instance.inputPosition);
+                        _lastPivot = pos;
                         _currentPivots.Add(_lastPivot);
                         
                         _currentLineRenderer.positionCount = _currentPivots.Count;
@@ -76,12 +75,12 @@ public class FlowController : MonoBehaviour
             }
             else
             {
-                if (InputManager.Instance.pressed && InputManager.Instance.withinImage)
+                if (InputManager.instance.pressed && InputManager.instance.withinImage)
                 {
-                    int curveIdx = selectCurve(EditorSceneMaster.Instance.RelativeCoordsToRootRect(InputManager.Instance.inputPosition));
+                    int curveIdx = selectCurve(pos);
                     if (curveIdx != -1)
                     {
-                        _pivots.RemoveAt(curveIdx);
+                        pivots.RemoveAt(curveIdx);
                         Destroy(_uiFlowObjects[curveIdx]);
                         _uiFlowObjects.RemoveAt(curveIdx);
                     }
@@ -94,13 +93,13 @@ public class FlowController : MonoBehaviour
                     obj.SetActive(true);
 
                 obj.GetComponent<RectTransform>().localPosition = new Vector3(
-                    -.5f * InputManager.Instance.MultiplicativeScale * EditorSceneMaster.Instance.width,
-                    -.5f * InputManager.Instance.MultiplicativeScale * EditorSceneMaster.Instance.height,
+                    -.5f * InputManager.instance.multiplicativeScale * EditorSceneMaster.instance.width,
+                    -.5f * InputManager.instance.multiplicativeScale * EditorSceneMaster.instance.height,
                     0
                 );
                 obj.GetComponent<RectTransform>().localScale = new Vector3(
-                    InputManager.Instance.MultiplicativeScale * EditorSceneMaster.Instance.width,
-                    InputManager.Instance.MultiplicativeScale * EditorSceneMaster.Instance.height,
+                    InputManager.instance.multiplicativeScale * EditorSceneMaster.instance.width,
+                    InputManager.instance.multiplicativeScale * EditorSceneMaster.instance.height,
                     1
                 );
             }
@@ -120,19 +119,19 @@ public class FlowController : MonoBehaviour
         int closestCurve = -1;
         float closestDist = 0;
 
-        if (_pivots.Count == 0)
+        if (pivots.Count == 0)
             return closestCurve;
 
-        for (int i = 0; i < _pivots.Count; i++)
-            for (int j = 0; j < _pivots[i].Count - 1; j++)
+        for (int i = 0; i < pivots.Count; i++)
+            for (int j = 0; j < pivots[i].Count - 1; j++)
             {
-                Vector2 curveDir = (_pivots[i][j + 1] - _pivots[i][j]).normalized;
-                Vector2 posDir   = pos - new Vector2(_pivots[i][j].x, _pivots[i][j].y);
+                Vector2 curveDir = (pivots[i][j + 1] - pivots[i][j]).normalized;
+                Vector2 posDir   = pos - new Vector2(pivots[i][j].x, pivots[i][j].y);
 
                 float p = Vector2.Dot(curveDir, posDir);
                 float curDist = (posDir - p * curveDir).magnitude;
 
-                if (0 < p && p < (_pivots[i][j + 1] - _pivots[i][j]).magnitude && curDist < ERASE_THRESHOLD)
+                if (0 < p && p < (pivots[i][j + 1] - pivots[i][j]).magnitude && curDist < ERASE_THRESHOLD)
                     if (closestCurve == -1 || closestDist > curDist)
                     {
                         closestCurve = i;
@@ -141,35 +140,6 @@ public class FlowController : MonoBehaviour
             }
 
         return closestCurve;
-    }
-
-    public Mesh GetMesh()
-    {
-        Mesh mesh = new Mesh();
-
-        List<Vector3> vertices = new List<Vector3>();
-        List<int>     indices  = new List<int>();
-
-        int cnt = 0;
-        foreach (List<Vector3> curve in _pivots)
-        {
-            for (int i = 0; i < curve.Count - 1; i++)
-            {
-                Vector3 st = curve[i];
-                Vector3 ed = curve[i + 1];
-
-                vertices.Add(st);
-                vertices.Add(ed);
-
-                indices.Add(cnt++);
-                indices.Add(cnt++);
-            }
-        }
-
-        mesh.SetVertices(vertices);
-        mesh.SetIndices(indices.ToArray(), MeshTopology.Lines, 0, false);
-
-        return mesh;
     }
 
 }

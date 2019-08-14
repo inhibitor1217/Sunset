@@ -7,22 +7,21 @@ public class InputManager : MonoBehaviour
     public RectTransform image;
     public RectTransform optionMenu;
     
-    public static InputManager Instance { get; private set; }
+    public static InputManager instance { get; private set; }
 
-    [HideInInspector]
-    public float xBound = .5f, yBound = .5f;
+    private bool _initialized = false;
 
-    public float MultiplicativeScale { get; private set; }
+    public float multiplicativeScale { get; private set; }
     private float m_DesiredMultiplicativeScale;
-    public Vector2 Position { get; private set; }
+    public Vector2 position { get; private set; }
     private Vector2 m_DesiredPosition;
 
-    public Vector2 inputPosition { get; private set; } = Vector2.zero;
-    public bool pressed { get; private set; } = false;
-    public bool released { get; private set; } = false;
-    public bool held { get; private set; } = false;
-    public bool withinContainer { get; private set; } = false;
-    public bool withinImage { get; private set; } = false;
+    public Vector2 inputPosition { get; private set; }
+    public bool pressed { get; private set; }
+    public bool released { get; private set; }
+    public bool held { get; private set; }
+    public bool withinContainer { get; private set; }
+    public bool withinImage { get; private set; }
 
     public const float MIN_SCALE = 0.5f;
     public const float MAX_SCALE = 32.0f;
@@ -31,16 +30,34 @@ public class InputManager : MonoBehaviour
 
     void Awake()
     {
-        Instance = this;
+        instance = this;
+    }
 
-        MultiplicativeScale = 1f;
+    public void Init()
+    {
+        _initialized = true;
+
+        image = null;
+        optionMenu = null;
+
+        multiplicativeScale = 1f;
         m_DesiredMultiplicativeScale = 1f;
-        Position = Vector2.zero;
+        position = Vector2.zero;
         m_DesiredPosition = Vector2.zero;
+
+        inputPosition = Vector2.zero;
+        pressed = false;
+        released = false;
+        held = false;
+        withinContainer = false;
+        withinImage = false;
     }
 
     void Update()
     {
+        if (!_initialized)
+            return;
+
 #if UNITY_ANDROID && !UNITY_EDITOR
         if (Input.touchCount == 1)
         {
@@ -126,17 +143,21 @@ public class InputManager : MonoBehaviour
             updateScale(1f/SCALE_MULTIPLIER);
 #endif
 
-        MultiplicativeScale = Mathf.Lerp(
-            MultiplicativeScale, m_DesiredMultiplicativeScale, 10f * Time.deltaTime
+        multiplicativeScale = Mathf.Lerp(
+            multiplicativeScale, m_DesiredMultiplicativeScale, 10f * Time.deltaTime
         );
-        Position = Vector2.Lerp(
-            Position, m_DesiredPosition, 10f * Time.deltaTime
+        position = Vector2.Lerp(
+            position, m_DesiredPosition, 10f * Time.deltaTime
         );
     }
 
     void updatePosition(Vector2 deltaPosition)
     {
-        m_DesiredPosition += deltaPosition / MultiplicativeScale;
+        m_DesiredPosition += deltaPosition / multiplicativeScale;
+
+        float xBound = EditorSceneMaster.instance.rootLayer.xBound;
+        float yBound = EditorSceneMaster.instance.rootLayer.yBound;
+        
         m_DesiredPosition.x = Mathf.Clamp(m_DesiredPosition.x, -.5f * xBound, .5f * xBound);
         m_DesiredPosition.y = Mathf.Clamp(m_DesiredPosition.y, -.5f * yBound, .5f * yBound);
     }

@@ -16,26 +16,26 @@ public class MaskRendererCamera : MonoBehaviour
     void Update()
     {
         m_Material.SetInt("_UseLabel",
-            InputMode.Instance.isSLIC()
-            && InputMode.Instance.isBrush()
-            && InputManager.Instance.held
-            && InputManager.Instance.withinContainer
+            InputMode.instance.isSLIC()
+            && InputMode.instance.isBrush()
+            && InputManager.instance.held
+            && InputManager.instance.withinContainer
             ? 1 : 0);
 
         m_Material.SetInt("_UseEraser",
-            InputMode.Instance.isBrush()
-            && InputMode.Instance.isErase()
+            InputMode.instance.isBrush()
+            && InputMode.instance.isErase()
             ? 1 : 0);
 
-        if (InputMode.Instance.isBrush() && InputMode.Instance.isSLIC())
+        if (InputMode.instance.isBrush() && InputMode.instance.isSLIC())
         {
             if (labelTexture)
                 m_Material.SetTexture("_LabelTex", labelTexture.GetTexture());
 
-            Vector2 inputTexCoords = EditorSceneMaster.Instance.RelativeCoordsToRootRect(InputManager.Instance.inputPosition);
+            Vector2 inputTexCoords = EditorSceneMaster.instance.rootLayer.RelativeCoords(InputManager.instance.inputPosition);
             m_Material.SetVector("_InputCoords", new Vector4(
                 inputTexCoords.x, inputTexCoords.y,
-                InputManager.Instance.inputPosition.x, InputManager.Instance.inputPosition.y
+                InputManager.instance.inputPosition.x, InputManager.instance.inputPosition.y
             ));
         }
     }

@@ -4,14 +4,14 @@ using UnityEngine;
 public class InputMode
 {
     
-    private static InputMode instance = null;
-    public static InputMode Instance
+    private static InputMode _instance = null;
+    public static InputMode instance
     {
         get
         {
-            if (instance == null)
-                instance = new InputMode();
-            return instance;
+            if (_instance == null)
+                _instance = new InputMode();
+            return _instance;
         }
     }
 
@@ -54,23 +54,23 @@ public class InputMode
                 {
                     if (isWater(_mode))
                     {
-                        EditorSceneMaster.Instance.RemoveBrush(EditorSceneMaster.EFFECT_WATER);
-                        if (EditorSceneMaster.Instance.GetMaskTexture(EditorSceneMaster.EFFECT_WATER).dirty)
+                        EditorSceneMaster.instance.RemoveBrush(EditorSceneMaster.EFFECT_WATER);
+                        if (EditorSceneMaster.instance.GetMaskTexture(EditorSceneMaster.EFFECT_WATER).dirty)
                         {
-                            EditorSceneMaster.Instance.InvokePCA(EditorSceneMaster.EFFECT_WATER, value);
-                            EditorSceneMaster.Instance.GetMaskTexture(EditorSceneMaster.EFFECT_WATER).textureShouldUpdate = true;
-                            EditorSceneMaster.Instance.GetMaskTexture(EditorSceneMaster.EFFECT_WATER).dirty = false;
+                            EditorSceneMaster.instance.InvokePCA(EditorSceneMaster.EFFECT_WATER, value);
+                            EditorSceneMaster.instance.GetMaskTexture(EditorSceneMaster.EFFECT_WATER).textureShouldUpdate = true;
+                            EditorSceneMaster.instance.GetMaskTexture(EditorSceneMaster.EFFECT_WATER).dirty = false;
                             return;
                         }
                     }
                     if (isSky(_mode))
                     {
-                        EditorSceneMaster.Instance.RemoveBrush(EditorSceneMaster.EFFECT_SKY);
-                        if ( EditorSceneMaster.Instance.GetMaskTexture(EditorSceneMaster.EFFECT_SKY).dirty)
+                        EditorSceneMaster.instance.RemoveBrush(EditorSceneMaster.EFFECT_SKY);
+                        if ( EditorSceneMaster.instance.GetMaskTexture(EditorSceneMaster.EFFECT_SKY).dirty)
                         {
-                            EditorSceneMaster.Instance.InvokePCA(EditorSceneMaster.EFFECT_SKY, value);
-                            EditorSceneMaster.Instance.GetMaskTexture(EditorSceneMaster.EFFECT_SKY).textureShouldUpdate = true;
-                            EditorSceneMaster.Instance.GetMaskTexture(EditorSceneMaster.EFFECT_SKY).dirty = false;
+                            EditorSceneMaster.instance.InvokePCA(EditorSceneMaster.EFFECT_SKY, value);
+                            EditorSceneMaster.instance.GetMaskTexture(EditorSceneMaster.EFFECT_SKY).textureShouldUpdate = true;
+                            EditorSceneMaster.instance.GetMaskTexture(EditorSceneMaster.EFFECT_SKY).dirty = false;
                             return;
                         }
                     }
@@ -78,18 +78,18 @@ public class InputMode
                 if (!isBrush(_mode) && isBrush(value))
                 {
                     if (isWater(value))
-                        EditorSceneMaster.Instance.CreateBrush(EditorSceneMaster.EFFECT_WATER);
+                        EditorSceneMaster.instance.CreateBrush(EditorSceneMaster.EFFECT_WATER);
                     if (isSky(value))
-                        EditorSceneMaster.Instance.CreateBrush(EditorSceneMaster.EFFECT_SKY);
+                        EditorSceneMaster.instance.CreateBrush(EditorSceneMaster.EFFECT_SKY);
                 }
 
                 if (!isFlow(_mode) && isFlow(value))
                 {
-                    EditorSceneMaster.Instance.CreateFlow();
+                    EditorSceneMaster.instance.CreateFlow();
                 }
                 if (isFlow(_mode) && !isFlow(value))
                 {
-                    EditorSceneMaster.Instance.RemoveFlow();
+                    EditorSceneMaster.instance.RemoveFlow();
                 }
 
                 SetModeWithoutSideEffect(value);

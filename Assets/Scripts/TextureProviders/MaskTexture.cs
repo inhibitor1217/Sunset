@@ -27,15 +27,15 @@ public class MaskTexture : TextureProvider
 
     void LateUpdate()
     {
-        if (InputMode.Instance.isBrush()
-            && InputMode.Instance.isMode(mode)
-            && InputManager.Instance.withinContainer
-            && InputManager.Instance.held)
+        if (InputMode.instance.isBrush()
+            && InputMode.instance.isMode(mode)
+            && InputManager.instance.withinContainer
+            && InputManager.instance.held)
         {
             modified = true;   
         }
 
-        if (InputManager.Instance.released && modified)
+        if (InputManager.instance.released && modified)
         {
             dirty = true;
             modified = false;
