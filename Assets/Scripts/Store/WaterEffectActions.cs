@@ -142,8 +142,6 @@ public class WaterEffectActions : ActionModule
                     var _state = new Dictionary<string, object>(state);
                     float payload = ((Action<float>) action).payload;
 
-                    Debug.Log("Set River Speed");
-
                     _state[FIELD__EVOLUTION_SPEED] = MAX_EVOLUTION_SPEED * payload;
                     _state[FIELD__AMPLITUDE]       = MAX_AMPLITUDE * payload;
                     _state[FIELD__SPEED]           = MAX_SPEED * payload;

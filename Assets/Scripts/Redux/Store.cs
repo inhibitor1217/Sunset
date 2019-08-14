@@ -1,4 +1,7 @@
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using System.Collections.Generic;
 
 public class Store : MonoBehaviour
@@ -45,6 +48,20 @@ public class Store : MonoBehaviour
         _actions = new Queue<Action>();
     }
 
+    public void Init(Dictionary<string, object> initialState, Dictionary<string, Reducer> reducers)
+    {
+        _initialized = true;
+        
+        _state    = initialState;
+        _reducers = reducers;
+
+        _subscriptions = new Dictionary<string, Dictionary<int, SubscriptionFunction>>();
+        foreach (string key in initialState.Keys)
+        {
+            _subscriptions[key] = new Dictionary<int, SubscriptionFunction>();
+        }
+    }
+
     void Update()
     {
         if (!_initialized)
@@ -65,10 +82,17 @@ public class Store : MonoBehaviour
 #endif
         }
 
+#if UNITY_EDITOR
+        bool valueChanged = false;
+#endif
+
         foreach (string key in _state.Keys)
         {
             if (!_state[key].Equals(state[key]))
             {
+#if UNITY_EDITOR
+                valueChanged = true;
+#endif
                 foreach (SubscriptionFunction func in _subscriptions[key].Values)
                 {
                     func(state[key]);
@@ -76,21 +100,13 @@ public class Store : MonoBehaviour
             }
         }
 
+#if UNITY_EDITOR
+        if (valueChanged)
+            if (EditorApplication.isPlaying)
+                StoreEditor.instance.Repaint();
+#endif
+
         _state = state;
-    }
-
-    public void Init(Dictionary<string, object> initialState, Dictionary<string, Reducer> reducers)
-    {
-        _initialized = true;
-        
-        _state    = initialState;
-        _reducers = reducers;
-
-        _subscriptions = new Dictionary<string, Dictionary<int, SubscriptionFunction>>();
-        foreach (string key in initialState.Keys)
-        {
-            _subscriptions[key] = new Dictionary<int, SubscriptionFunction>();
-        }
     }
 
     public T GetValue<T> (string key)
@@ -120,5 +136,19 @@ public class Store : MonoBehaviour
             Debug.Log("Store: Subscription for " + key + " does not contain ID " + subscriptionID);
 #endif
     }
+
+#if UNITY_EDITOR
+    /* DANGEROUS: ONLY FOR EDITOR */
+    public Dictionary<string, object> GetState() { return _state; }
+    public Dictionary<string, Reducer> GetReducers() { return _reducers; }
+    public void SetValue(string key, object value)
+    {
+        _state[key] = value;
+        foreach (SubscriptionFunction func in _subscriptions[key].Values)
+        {
+            func(value);
+        }
+    }
+#endif
 
 }
