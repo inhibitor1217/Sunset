@@ -15,8 +15,6 @@ public class MaskTexture : TextureProvider
     [HideInInspector]
     public int mode;
 
-    public float estimatedHorizon { get; private set; } = .5f;
-
     new void OnDestroy()
     {
         base.OnDestroy();
@@ -152,7 +150,9 @@ public class MaskTexture : TextureProvider
         if (horizons.Count > 0)
         {
             horizons.Sort();
-            estimatedHorizon = horizons[Mathf.Clamp(Mathf.RoundToInt(.97f * horizons.Count), 0, horizons.Count - 1)];
+            Store.instance.Dispatch(SharedActions.instance.SetHorizon(
+                horizons[Mathf.Clamp(Mathf.RoundToInt(.97f * horizons.Count), 0, horizons.Count - 1)] + .05f
+            ));
         }
 
         return true;

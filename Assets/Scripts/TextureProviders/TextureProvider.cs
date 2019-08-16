@@ -11,7 +11,7 @@ public abstract class TextureProvider : MonoBehaviour
     private TextureProvider[] m_PipeOutputs = { null, null, null, null };
 
     protected RawImageController m_Target = null;
-    protected List<ValueTuple<string, int>> m_Subscriptions = null;
+    protected List<int> m_Subscriptions = null;
 
     [HideInInspector]
     public bool textureShouldUpdate = false;
@@ -20,7 +20,7 @@ public abstract class TextureProvider : MonoBehaviour
     {
         TextureProviderManager.AddTextureProvider(this);
 
-        m_Subscriptions = new List<ValueTuple<string, int>>();
+        m_Subscriptions = new List<int>();
 
         textureShouldUpdate = true;
     }
@@ -35,9 +35,9 @@ public abstract class TextureProvider : MonoBehaviour
             if (m_PipeOutputs[i])
                 Unlink(this, m_PipeOutputs[i]);
         }
-        foreach ((string key, int id) in m_Subscriptions)
+        foreach (var id in m_Subscriptions)
         {
-            Store.instance.Unsubscribe(key, id);
+            Store.instance.Unsubscribe(id);
         }
     }
 
@@ -45,10 +45,15 @@ public abstract class TextureProvider : MonoBehaviour
     public abstract Texture GetTexture();
     public abstract string GetProviderName();
 
+    protected void Subscribe(string[] keys, Store.SubscriptionFunction func)
+    {
+        int id = Store.instance.Subscribe(keys, func);
+        m_Subscriptions.Add(id);
+    }
+
     protected void Subscribe(string key, Store.SubscriptionFunction func)
     {
-        int id = Store.instance.Subscribe(key, func);
-        m_Subscriptions.Add((key, id));
+        Subscribe(new string[] { key }, func);
     }
 
     protected void Subscribe(string key, Material material, string uniformName, string type)
@@ -56,13 +61,13 @@ public abstract class TextureProvider : MonoBehaviour
         switch (type)
         {
         case "Float":
-            Subscribe(key, (value) => {
-                material.SetFloat(uniformName, (float)value);
+            Subscribe(key, (state) => {
+                material.SetFloat(uniformName, (float)state[key]);
             });
             break;
         case "Vector":
-            Subscribe(key, (value) => {
-                material.SetVector(uniformName, (Vector4)value);
+            Subscribe(key, (state) => {
+                material.SetVector(uniformName, (Vector4)state[key]);
             });
             break;
         }

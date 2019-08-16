@@ -14,9 +14,13 @@ public class SharedActions : ActionModule
         }
     }
 
+    private const string ACTION__SET_HORIZON = "SHARED__SET_HORIZON";
+
     public const string FIELD__HORIZON         = "Shared__Horizon";
     public const string FIELD__PERSPECTIVE     = "Shared__Perspective";
     public const string FIELD__LIGHT_DIRECTION = "Shared__LightDirection";
+
+    public Action SetHorizon(float value) { return new Action<float>(ACTION__SET_HORIZON, value); }
 
     public override Dictionary<string, object> GetInitialState()
     {
@@ -32,7 +36,17 @@ public class SharedActions : ActionModule
     {
         return new Dictionary<string, Reducer>
         {
+            {
+                ACTION__SET_HORIZON,
+                new Reducer((state, action) => {
+                    var _state = new Dictionary<string, object>(state);
+                    float payload = ((Action<float>) action).payload;
 
+                    _state[FIELD__HORIZON] = payload;
+
+                    return _state;
+                })
+            }
         };
     }
 

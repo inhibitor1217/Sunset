@@ -9,15 +9,12 @@ public class WebCamTextureAttacher : MonoBehaviour
 
     public Image snapshotImage;
 
-    public const int WEBCAM_TEXTURE_WIDTH = 1920;
-    public const int WEBCAM_TEXTURE_HEIGHT = 1080;
-
     void Awake()
     {
         m_RawImage = GetComponent<RawImage>();
         if (m_RawImage)
         {
-            m_WebCamTexture = new WebCamTexture(WEBCAM_TEXTURE_WIDTH, WEBCAM_TEXTURE_HEIGHT);
+            m_WebCamTexture = new WebCamTexture(1920, 1080);
             m_RawImage.texture = m_WebCamTexture;
             m_RawImage.material = new Material(Shader.Find("UI/Default"));
             m_RawImage.material.SetTexture("_MainTexture", m_WebCamTexture);

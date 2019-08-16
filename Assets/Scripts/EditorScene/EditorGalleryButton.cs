@@ -18,7 +18,7 @@ public class EditorGalleryButton : MonoBehaviour
 #if UNITY_ANDROID && !UNITY_EDITOR
     void onClick()
     {
-        if (InputMode.Instance.isBusy())
+        if (InputMode.instance.isBusy())
             return;
             
         NativeGallery.Permission permission = NativeGallery.GetImageFromGallery(

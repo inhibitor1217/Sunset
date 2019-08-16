@@ -8,7 +8,7 @@ public class Store : MonoBehaviour
 {
 
     public static Store instance { get; private set; }
-    public delegate void SubscriptionFunction(object payload);
+    public delegate void SubscriptionFunction(Dictionary<string, object> state);
 
     public static Dictionary<string, object> MergeInitialStates(ActionModule[] modules)
     {
@@ -37,29 +37,37 @@ public class Store : MonoBehaviour
     private bool _initialized = false;
     private Dictionary<string, object> _state;
     private Dictionary<string, Reducer> _reducers;
-
-    private Dictionary<string, Dictionary<int, SubscriptionFunction>> _subscriptions;
+    private Dictionary<HashSet<string>, List<int>> _subscriptions;
+    private Dictionary<int, SubscriptionFunction>  _functionMap;
     private Queue<Action> _actions;
+    private HashSet<string> _updatedKeys;
 
     void Awake()
     {
         instance = this;
 
-        _actions = new Queue<Action>();
+        _subscriptions = new Dictionary<HashSet<string>, List<int>>(HashSet<string>.CreateSetComparer());
+        _functionMap   = new Dictionary<int, SubscriptionFunction>();
+        _actions       = new Queue<Action>();
+        _updatedKeys   = new HashSet<string>();
     }
 
     public void Init(Dictionary<string, object> initialState, Dictionary<string, Reducer> reducers)
     {
         _initialized = true;
         
-        _state    = initialState;
-        _reducers = reducers;
-
-        _subscriptions = new Dictionary<string, Dictionary<int, SubscriptionFunction>>();
-        foreach (string key in initialState.Keys)
+        foreach (var set in _subscriptions.Keys)
         {
-            _subscriptions[key] = new Dictionary<int, SubscriptionFunction>();
+            set.Clear();
+            _subscriptions[set].Clear();
         }
+        _subscriptions.Clear();
+        _functionMap.Clear();
+        _actions.Clear();
+        _updatedKeys.Clear();
+
+        _state    = new Dictionary<string, object>(initialState);
+        _reducers = new Dictionary<string, Reducer>(reducers);
     }
 
     void Update()
@@ -69,6 +77,7 @@ public class Store : MonoBehaviour
 
         Dictionary<string, object> state = _state;
 
+        /* PROCESS ACTIONS */
         while (_actions.Count > 0)
         {
             Action action = _actions.Dequeue();
@@ -82,9 +91,11 @@ public class Store : MonoBehaviour
 #endif
         }
 
+        /* DETECT CHANGES */
 #if UNITY_EDITOR
         bool valueChanged = false;
 #endif
+        _updatedKeys.Clear();
 
         foreach (string key in _state.Keys)
         {
@@ -93,16 +104,23 @@ public class Store : MonoBehaviour
 #if UNITY_EDITOR
                 valueChanged = true;
 #endif
-                foreach (SubscriptionFunction func in _subscriptions[key].Values)
-                {
-                    func(state[key]);
-                }
+                _updatedKeys.Add(key);
             }
+        }
+
+        /* NOTIFY SUBSCRIPTORS */
+        foreach (var keySet in _subscriptions.Keys)
+        {
+            if (keySet.Overlaps(_updatedKeys))
+                foreach (int id in _subscriptions[keySet])
+                {
+                    _functionMap[id](_state);
+                }
         }
 
 #if UNITY_EDITOR
         if (valueChanged)
-            if (EditorApplication.isPlaying)
+            if (EditorApplication.isPlaying && StoreEditor.instance)
                 StoreEditor.instance.Repaint();
 #endif
 
@@ -119,22 +137,27 @@ public class Store : MonoBehaviour
         _actions.Enqueue(action);
     }
 
-    public int Subscribe(string key, SubscriptionFunction func)
+    public int Subscribe(string[] keys, SubscriptionFunction func)
     {
-        int subscriptionID = key.GetHashCode() ^ func.GetHashCode();
-        _subscriptions[key][subscriptionID] = func;
-        func(_state[key]);
+        int subscriptionID = func.GetHashCode();
+        HashSet<string> keySet = new HashSet<string>(keys);
+
+        if (!_subscriptions.ContainsKey(keySet))
+            _subscriptions[keySet] = new List<int>();
+        _subscriptions[keySet].Add(subscriptionID);
+        _functionMap[subscriptionID] = func;
+
+        func(_state);
+
         return subscriptionID;
     }
 
-    public void Unsubscribe(string key, int subscriptionID)
+    public void Unsubscribe(int subscriptionID)
     {
-        if (_subscriptions[key].ContainsKey(subscriptionID))
-            _subscriptions[key].Remove(subscriptionID);
-#if UNITY_EDITOR
-        else
-            Debug.Log("Store: Subscription for " + key + " does not contain ID " + subscriptionID);
-#endif
+        foreach (var keySet in _subscriptions.Keys)
+        {
+            _subscriptions[keySet].Remove(subscriptionID);
+        }
     }
 
 #if UNITY_EDITOR
@@ -144,9 +167,13 @@ public class Store : MonoBehaviour
     public void SetValue(string key, object value)
     {
         _state[key] = value;
-        foreach (SubscriptionFunction func in _subscriptions[key].Values)
+        foreach (var keySet in _subscriptions.Keys)
         {
-            func(value);
+            if (keySet.Contains(key))
+                foreach (int id in _subscriptions[keySet])
+                {
+                    _functionMap[id](_state);
+                }
         }
     }
 #endif

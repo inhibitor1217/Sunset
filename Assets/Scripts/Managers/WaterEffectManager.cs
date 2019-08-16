@@ -20,6 +20,8 @@ public class WaterEffectManager : MonoBehaviour
     [Header("Render Target")]
     public RawImageController target;
 
+    private Constants.ModeWaterType _effectType;
+
     void Awake()
     {
         instance = this;
@@ -32,21 +34,14 @@ public class WaterEffectManager : MonoBehaviour
         RemoveFlow();
     }
 
-    private int _effectType;
-    public const int NONE = 0;
-    public const int CL01  = 1;
-    public const int CL02  = 2;
-    public const int RV01 = 10;
-
-    public void Setup(int effectType, int width, int height)
+    public void Setup(Constants.ModeWaterType effectType, int width, int height)
     {
-        if (effectType == _effectType)
+        if (_effectType == effectType)
             return;
-
         _effectType = effectType;
 
         /* SETUP NOISE */
-        if (!_noiseProvider && _effectType != NONE)
+        if (!_noiseProvider && _effectType != Constants.ModeWaterType.NONE)
         {
             _noiseProvider = gameObject.AddComponent<FractalNoiseRuntimeTexture>();
             _noiseProvider.fieldNames = WaterEffectActions.fractalNoiseFieldNames;
@@ -59,7 +54,7 @@ public class WaterEffectManager : MonoBehaviour
 
         switch (_effectType)
         {
-        case NONE:
+        case Constants.ModeWaterType.NONE:
             if (_noiseProvider)
             {
                 Destroy(_noiseProvider);
@@ -74,8 +69,8 @@ public class WaterEffectManager : MonoBehaviour
             riverOptionPanel.SetActive(false);
             InputManager.instance.optionMenu = null;
             break;
-        case CL01:
-        case CL02:
+        case Constants.ModeWaterType.CL01:
+        case Constants.ModeWaterType.CL02:
             _effectProvider = gameObject.AddComponent<CalmEffectTexture>();
             CalmEffectTexture calm  = _effectProvider as CalmEffectTexture;
             calm.noiseProvider = _noiseProvider;
@@ -86,7 +81,7 @@ public class WaterEffectManager : MonoBehaviour
             /* SETUP UI */
             riverOptionPanel.SetActive(false);
             break;
-        case RV01:
+        case Constants.ModeWaterType.RV01:
             _effectProvider = gameObject.AddComponent<RiverEffectTexture>();
             RiverEffectTexture river = _effectProvider as RiverEffectTexture;
             river.noiseProvider = _noiseProvider;
@@ -101,27 +96,28 @@ public class WaterEffectManager : MonoBehaviour
         default:
             break;
         }
-        
-        if (target)
-            _effectProvider.SetTarget(target);
 
         /* DISPATCH ACTIONS */
         switch (_effectType)
         {
-        case NONE:
+        case Constants.ModeWaterType.NONE:
             break;
-        case CL01:
+        case Constants.ModeWaterType.CL01:
             Store.instance.Dispatch(WaterEffectActions.instance.SetupCL01());
             break;
-        case CL02:
+        case Constants.ModeWaterType.CL02:
             Store.instance.Dispatch(WaterEffectActions.instance.SetupCL02());
             break;
-        case RV01:
+        case Constants.ModeWaterType.RV01:
             Store.instance.Dispatch(WaterEffectActions.instance.SetupRV01());
             break;
         default:
             break;
         }
+
+        /* SET TARGET */
+        if (target && _effectType != Constants.ModeWaterType.NONE)
+            _effectProvider.SetTarget(target);
     }
 
     public void CreateFlow(FlowController controller)

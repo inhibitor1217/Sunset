@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using System;
 using System.Collections.Generic;
 
 [CustomEditor(typeof(Store))]
@@ -24,9 +25,29 @@ public class StoreEditor : Editor
             var keys = new List<string>(state.Keys);
             foreach (string key in keys)
             {
-                if (state[key].GetType() == typeof(int))
+                if (state[key].GetType() == typeof(bool))
+                {
+                    bool value = EditorGUILayout.Toggle(key, (bool)state[key]);
+                    store.SetValue(key, value);
+                }
+                else if (state[key].GetType() == typeof(int))
                 {
                     int value = EditorGUILayout.IntField(key, (int)state[key]);
+                    store.SetValue(key, value);
+                }
+                else if (state[key].GetType() == typeof(Constants.ModeWaterType))
+                {
+                    Enum value = EditorGUILayout.EnumPopup(key, (Constants.ModeWaterType)state[key]);
+                    store.SetValue(key, value);
+                }
+                else if (state[key].GetType() == typeof(Constants.ModeInput))
+                {
+                    Enum value = EditorGUILayout.EnumPopup(key, (Constants.ModeInput)state[key]);
+                    store.SetValue(key, value);
+                }
+                else if (state[key].GetType() == typeof(Constants.ModeEdit))
+                {
+                    Enum value = EditorGUILayout.EnumPopup(key, (Constants.ModeEdit)state[key]);
                     store.SetValue(key, value);
                 }
                 else if (state[key].GetType() == typeof(float))

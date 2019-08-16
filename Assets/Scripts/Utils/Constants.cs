@@ -1,5 +1,6 @@
 public static class Constants
 {
-    public static float CONTAINER_WIDTH = 1458f;
-    public static float CONTAINER_HEIGHT = 864f;
+    public enum ModeInput  { NONE, MOVE, BRUSH, FLOW }
+    public enum ModeEdit { NONE, WATER, SKY }
+    public enum ModeWaterType { NONE, CL01, CL02, RV01 }
 }

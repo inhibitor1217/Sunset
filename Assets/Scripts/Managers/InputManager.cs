@@ -23,10 +23,9 @@ public class InputManager : MonoBehaviour
     public bool withinContainer { get; private set; }
     public bool withinImage { get; private set; }
 
-    public const float MIN_SCALE = 0.5f;
-    public const float MAX_SCALE = 32.0f;
-    public const float SCALE_MULTIPLIER = 1.1f;
-    public const float MAX_SCALE_LOG = 1.50515f;
+    private const float MIN_SCALE = 0.5f;
+    private const float MAX_SCALE = 32.0f;
+    private const float SCALE_MULTIPLIER = 1.1f;
 
     void Awake()
     {

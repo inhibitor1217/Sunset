@@ -8,7 +8,6 @@ public class FractalNoiseRuntimeTexture : TextureProvider
     private static string[] NOISE_TYPES = { "VALUE", "VALUE_LINEAR", "VALUE_SPLINE", "PERLIN", "PERLIN_LINEAR" };
     private static string[] FRACTAL_TYPES = { "BASIC", "TURBULENT", "ROCKY" }; 
 
-    public const int RESOLUTION = 256;
     public const int NUM_FIELDS = 10;
     public const int INDEX__FRACTAL_TYPE    = 0;
     public const int INDEX__NOISE_TYPE      = 1;
@@ -105,7 +104,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
 
     public void Setup()
     {
-        m_RenderTexture = new RenderTexture(RESOLUTION, RESOLUTION, 0, RenderTextureFormat.ARGB32);
+        m_RenderTexture = new RenderTexture(256, 256, 0, RenderTextureFormat.ARGB32);
         m_RenderTexture.wrapMode   = TextureWrapMode.Repeat;
         m_RenderTexture.filterMode = FilterMode.Trilinear;
         m_RenderTexture.useMipMap  = true;
@@ -123,8 +122,8 @@ public class FractalNoiseRuntimeTexture : TextureProvider
 
         /* SETUP SUBSCRIPTIONS */
         Subscribe(fieldNames[INDEX__NOISE_TYPE],
-            (_value) => {
-                int value = (int)_value;
+            (state) => {
+                int value = (int)state[WaterEffectActions.FIELD__NOISE_TYPE];
                 for (int i = 0; i < NOISE_TYPES.Length; i++)
                 {
                     if (i == value)
@@ -135,8 +134,8 @@ public class FractalNoiseRuntimeTexture : TextureProvider
             });
 
         Subscribe(fieldNames[INDEX__FRACTAL_TYPE],
-            (_value) => {
-                int value = (int)_value;
+            (state) => {
+                int value = (int)state[WaterEffectActions.FIELD__FRACTAL_TYPE];
                 for (int i = 0; i < FRACTAL_TYPES.Length; i++)
                 {
                     if (i == value)
@@ -147,8 +146,8 @@ public class FractalNoiseRuntimeTexture : TextureProvider
             });
 
         Subscribe(fieldNames[INDEX__SEED],
-            (_value) => {
-                int value = (int)_value;
+            (state) => {
+                int value = (int)state[WaterEffectActions.FIELD__SEED];
                 Texture2D gradientTex = new Texture2D(256, 1, TextureFormat.ARGB32, false);
                 gradientTex.wrapMode = TextureWrapMode.Repeat;
                 gradientTex.filterMode = FilterMode.Point;
@@ -165,14 +164,14 @@ public class FractalNoiseRuntimeTexture : TextureProvider
             });
 
         Subscribe(fieldNames[INDEX__GLOBAL_SCALE],
-            (_value) => {
-                Vector2 value = (Vector2)_value;
+            (state) => {
+                Vector2 value = (Vector2)state[WaterEffectActions.FIELD__GLOBAL_SCALE];
                 m_FractalNoiseMaterial.SetVector("_GlobalScale", new Vector4(1f/value.x, 1f/value.y, value.x, value.y));
             });
         Subscribe(fieldNames[INDEX__SUB_INFLUENCE]  , m_FractalNoiseMaterial, "_SubInfluence"  , "Float" );
         Subscribe(fieldNames[INDEX__SUB_SCALE],
-            (_value) => {
-                Vector2 value = (Vector2)_value;
+            (state) => {
+                Vector2 value = (Vector2)state[WaterEffectActions.FIELD__SUB_SCALE];
                 m_FractalNoiseMaterial.SetVector("_SubScale", new Vector4(1f/value.x, 1f/value.y, value.x, value.y));
             });
         Subscribe(fieldNames[INDEX__BRIGHTNESS]     , m_FractalNoiseMaterial, "_Brightness"    , "Float" );

@@ -32,11 +32,11 @@ public class WaterEffectActions : ActionModule
     public const string FIELD__SPEED           = "WaterEffect__Speed";
     public const string FIELD__ROTATION        = "WaterEffect__Rotation";
 
+    public static string[] fractalNoiseFieldNames;
+
     private const float MAX_SPEED = .4f;
     private const float MAX_AMPLITUDE = 1.6f;
     private const float MAX_EVOLUTION_SPEED = 2.4f;
-
-    public static string[] fractalNoiseFieldNames;
 
     public WaterEffectActions()
     {

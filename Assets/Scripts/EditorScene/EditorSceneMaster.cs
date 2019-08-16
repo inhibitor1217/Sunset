@@ -580,11 +580,11 @@ public class EditorSceneMaster : MonoBehaviour
         m_PaletteTextures[maskIndex] = null;
     }
 
-    public void Effect_CL01() { CreateEffect(EFFECT_WATER, WaterEffectManager.CL01); }
-    public void Effect_CL02() { CreateEffect(EFFECT_WATER, WaterEffectManager.CL02); }
-    public void Effect_RV01() { CreateEffect(EFFECT_WATER, WaterEffectManager.RV01); }
+    public void Effect_CL01() { CreateEffect(EFFECT_WATER, Constants.ModeWaterType.CL01); }
+    public void Effect_CL02() { CreateEffect(EFFECT_WATER, Constants.ModeWaterType.CL02); }
+    public void Effect_RV01() { CreateEffect(EFFECT_WATER, Constants.ModeWaterType.RV01); }
 
-    public void CreateEffect(int maskIndex, int effectType)
+    public void CreateEffect(int maskIndex, Constants.ModeWaterType effectType)
     {
         if (!m_EffectLayerObjects[maskIndex])
         {
@@ -623,7 +623,7 @@ public class EditorSceneMaster : MonoBehaviour
 
         if (maskIndex == EFFECT_WATER)
         {
-            m_WaterEffectManager.Setup(WaterEffectManager.NONE, 0, 0);
+            m_WaterEffectManager.Setup(Constants.ModeWaterType.NONE, 0, 0);
         }
     }
 
