@@ -12,8 +12,6 @@ public class MaskTexture : TextureProvider
     private bool modified = false;
     [HideInInspector]
     public bool dirty = false;
-    [HideInInspector]
-    public int mode;
 
     new void OnDestroy()
     {
@@ -26,7 +24,6 @@ public class MaskTexture : TextureProvider
     void LateUpdate()
     {
         if (InputMode.instance.isBrush()
-            && InputMode.instance.isMode(mode)
             && InputManager.instance.withinContainer
             && InputManager.instance.held)
         {

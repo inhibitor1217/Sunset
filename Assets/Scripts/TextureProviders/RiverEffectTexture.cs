@@ -85,7 +85,12 @@ public class RiverEffectTexture : TextureProvider
         Subscribe(SharedActions.FIELD__HORIZON,         m_WaterMaterial, "_Horizon", "Float");
         Subscribe(SharedActions.FIELD__PERSPECTIVE,     m_WaterMaterial, "_Perspective", "Float");
         Subscribe(SharedActions.FIELD__LIGHT_DIRECTION, m_WaterMaterial, "_LightDirection", "Vector");
-        Subscribe(WaterEffectActions.FIELD__ROTATION,   m_WaterMaterial, "_Rotation", "Float");
+        Subscribe(
+            WaterEffectActions.FIELD__ROTATION,
+            (state) => {
+                float rotation = Mathf.Deg2Rad * (float)state[WaterEffectActions.FIELD__ROTATION];
+                m_WaterMaterial.SetVector("_Rotation", new Vector4(Mathf.Cos(rotation), -Mathf.Sin(rotation), Mathf.Sin(rotation), Mathf.Cos(rotation)));
+            });
         Subscribe(WaterEffectActions.FIELD__SPEED,      m_WaterMaterial, "_Speed", "Float");
     }
 }

@@ -18,8 +18,6 @@ public class InputMode
     public const int MOVE = 0x01;
     public const int BRUSH = 0x02;
     public const int SLIC = 0x04;
-    public const int WATER = 0x08;
-    public const int SKY = 0x10;
     public const int BUSY = 0x20;
     public const int ERASE = 0x40;
     public const int FLOW = 0x80;
@@ -30,10 +28,6 @@ public class InputMode
     public bool isBrush() { return isBrush(_mode); }
     public static bool isSLIC(int mode) { return (mode & SLIC) != 0; }
     public bool isSLIC() { return isSLIC(_mode); }
-    public static bool isWater(int mode) { return (mode & WATER) != 0; }
-    public bool isWater() { return isWater(_mode); }
-    public static bool isSky(int mode) { return (mode & SKY) != 0; }
-    public bool isSky() { return isSky(_mode); }
     public static bool isBusy(int mode) { return (mode & BUSY) != 0; }
     public bool isBusy() { return isBusy(_mode); }
     public static bool isErase(int mode) { return (mode & ERASE) != 0; }
@@ -52,35 +46,18 @@ public class InputMode
                 // Apply Side Effects
                 if (isBrush(_mode) && !isBrush(value))
                 {
-                    if (isWater(_mode))
+                    EditorSceneMaster.instance.RemoveBrush();
+                    if (EditorSceneMaster.instance.GetMaskTexture().dirty)
                     {
-                        EditorSceneMaster.instance.RemoveBrush(EditorSceneMaster.EFFECT_WATER);
-                        if (EditorSceneMaster.instance.GetMaskTexture(EditorSceneMaster.EFFECT_WATER).dirty)
-                        {
-                            EditorSceneMaster.instance.InvokePCA(EditorSceneMaster.EFFECT_WATER, value);
-                            EditorSceneMaster.instance.GetMaskTexture(EditorSceneMaster.EFFECT_WATER).textureShouldUpdate = true;
-                            EditorSceneMaster.instance.GetMaskTexture(EditorSceneMaster.EFFECT_WATER).dirty = false;
-                            return;
-                        }
+                        EditorSceneMaster.instance.InvokePCA(value);
+                        EditorSceneMaster.instance.GetMaskTexture().textureShouldUpdate = true;
+                        EditorSceneMaster.instance.GetMaskTexture().dirty = false;
+                        return;
                     }
-                    if (isSky(_mode))
-                    {
-                        EditorSceneMaster.instance.RemoveBrush(EditorSceneMaster.EFFECT_SKY);
-                        if ( EditorSceneMaster.instance.GetMaskTexture(EditorSceneMaster.EFFECT_SKY).dirty)
-                        {
-                            EditorSceneMaster.instance.InvokePCA(EditorSceneMaster.EFFECT_SKY, value);
-                            EditorSceneMaster.instance.GetMaskTexture(EditorSceneMaster.EFFECT_SKY).textureShouldUpdate = true;
-                            EditorSceneMaster.instance.GetMaskTexture(EditorSceneMaster.EFFECT_SKY).dirty = false;
-                            return;
-                        }
-                    }
-                }
+            }
                 if (!isBrush(_mode) && isBrush(value))
                 {
-                    if (isWater(value))
-                        EditorSceneMaster.instance.CreateBrush(EditorSceneMaster.EFFECT_WATER);
-                    if (isSky(value))
-                        EditorSceneMaster.instance.CreateBrush(EditorSceneMaster.EFFECT_SKY);
+                    EditorSceneMaster.instance.CreateBrush();
                 }
 
                 if (!isFlow(_mode) && isFlow(value))
@@ -143,8 +120,6 @@ public class InputMode
         if (isMove(mode)) ret += "MOVE ";
         if (isBrush(mode)) ret += "BRUSH ";
         if (isSLIC(mode)) ret += "SLIC ";
-        if (isWater(mode)) ret += "WATER ";
-        if (isSky(mode)) ret += "SKY ";
         if (isBusy(mode)) ret += "BUSY ";
         if (isErase(mode)) ret += "ERASE ";
         if (isFlow(mode)) ret += "FLOW ";

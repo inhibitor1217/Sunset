@@ -114,7 +114,7 @@ public class Store : MonoBehaviour
             if (keySet.Overlaps(_updatedKeys))
                 foreach (int id in _subscriptions[keySet])
                 {
-                    _functionMap[id](_state);
+                    _functionMap[id](state);
                 }
         }
 

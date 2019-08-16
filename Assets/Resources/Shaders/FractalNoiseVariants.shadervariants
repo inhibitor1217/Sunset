@@ -13,13 +13,3 @@ ShaderVariantCollection:
       variants:
       - keywords: BASIC PERLIN_LINEAR
         passType: 0
-      - keywords: PERLIN_LINEAR TURBULENT
-        passType: 0
-      - keywords: BASIC VALUE
-        passType: 0
-      - keywords: BASIC VALUE_LINEAR
-        passType: 0
-      - keywords: BASIC VALUE_SPLINE
-        passType: 0
-      - keywords: BASIC PERLIN
-        passType: 0

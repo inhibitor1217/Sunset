@@ -34,9 +34,9 @@ public class WaterEffectActions : ActionModule
 
     public static string[] fractalNoiseFieldNames;
 
-    private const float MAX_SPEED = .4f;
-    private const float MAX_AMPLITUDE = 1.6f;
-    private const float MAX_EVOLUTION_SPEED = 2.4f;
+    private const float MAX_SPEED = .05f;
+    private const float MAX_AMPLITUDE = .75f;
+    private const float MAX_EVOLUTION_SPEED = 2.5f;
 
     public WaterEffectActions()
     {
@@ -125,7 +125,7 @@ public class WaterEffectActions : ActionModule
                     var _state = new Dictionary<string, object>(state);
                     
                     _state[FIELD__NOISE_TYPE]    = 4;
-                    _state[FIELD__FRACTAL_TYPE]  = 1;
+                    _state[FIELD__FRACTAL_TYPE]  = 0;
                     _state[FIELD__SEED]          = 0;
                     _state[FIELD__GLOBAL_SCALE]  = new Vector2(4f, 16f);
                     _state[FIELD__SUB_INFLUENCE] = .7f;

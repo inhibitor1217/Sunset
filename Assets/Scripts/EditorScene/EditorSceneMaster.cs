@@ -45,10 +45,10 @@ public class EditorSceneMaster : MonoBehaviour
     private StaticTexture m_RootStaticTexture;
 
     // Mask Components
-    private GameObject[] m_MaskTextureObjects = new GameObject[MAX_EFFECTS];
-    private MaskTexture[] m_MaskTextures = new MaskTexture[MAX_EFFECTS];
-    private GameObject[] m_MaskCameraObjects = new GameObject[MAX_EFFECTS];
-    private MaskRendererCamera[] m_MaskCameras = new MaskRendererCamera[MAX_EFFECTS];
+    private GameObject m_MaskTextureObject;
+    private MaskTexture m_MaskTexture;
+    private GameObject m_MaskCameraObject;
+    private MaskRendererCamera m_MaskCamera;
     private GameObject m_EnvMapTextureObject;
     private EnvironmentTexture m_EnvMapTexture;
 
@@ -70,33 +70,16 @@ public class EditorSceneMaster : MonoBehaviour
 
     // PCA
     private OpenCVPCAClient m_PCAClient;
-    private GameObject[] m_PaletteTextureObjects = new GameObject[MAX_EFFECTS];
-    private StaticTexture[] m_PaletteTextures = new StaticTexture[MAX_EFFECTS];
+    private GameObject m_PaletteTextureObject;
+    private StaticTexture m_PaletteTexture;
 
     // Effect
-    private GameObject[] m_EffectLayerObjects = new GameObject[MAX_EFFECTS];
-    private RawImageController[] m_EffectLayers = new RawImageController[MAX_EFFECTS];
+    private GameObject m_EffectLayerObject;
+    private RawImageController m_EffectLayer;
 
     // Constants
-    public const int EFFECT_WATER = 0;
-    public const int EFFECT_SKY = 1;
     public const int LAYER_WATER = 8;
-    public const int LAYER_SKY = 9;
     public const int MASK_WATER = 0x100;
-    public const int MASK_SKY = 0x200;
-    public const int MAX_EFFECTS = 2;
-    public static string maskIndexToString(int maskIndex)
-    {
-        switch (maskIndex)
-        {
-        case EFFECT_WATER:
-            return "WATER";
-        case EFFECT_SKY:
-            return "SKY";
-        default:
-            return "";
-        }
-    }
 
     void Awake()
     {
@@ -190,12 +173,10 @@ public class EditorSceneMaster : MonoBehaviour
             Destroy(m_RootStaticTextureObject);
 
         // Mask Components
-        RemoveMask(EFFECT_WATER);
-        RemoveMask(EFFECT_SKY);
+        RemoveMask();
 
         // Brush
-        RemoveBrush(EFFECT_WATER);
-        RemoveBrush(EFFECT_SKY);
+        RemoveBrush();
 
         // Flow
         RemoveFlow();
@@ -206,12 +187,10 @@ public class EditorSceneMaster : MonoBehaviour
         RemoveSLIC();
 
         // PCA
-        RemovePCA(EFFECT_WATER);
-        RemovePCA(EFFECT_SKY);
+        RemovePCA();
 
         // Effect
-        RemoveEffect(EFFECT_WATER);
-        RemoveEffect(EFFECT_SKY);
+        RemoveEffect();
 
         Debug.Log("Initialize Scene with texture [" + rootTexture.width + ", " + rootTexture.height + "]");
 
@@ -244,97 +223,68 @@ public class EditorSceneMaster : MonoBehaviour
         m_RootStaticTexture.SetTarget(rootLayer);
 
         // Initialize Mask Components
-        CreateMask(EFFECT_WATER);
-        CreateMask(EFFECT_SKY);
+        CreateMask();
 
         // Initialize SLIC and Invoke
         CreateSLIC();
         InvokeSLIC(InputMode.MOVE);
 
         // Initialize PCAs
-        CreatePCA(EFFECT_WATER);
-        CreatePCA(EFFECT_SKY);
+        CreatePCA();
 
         // Update All Texture Providers in the Render Chain
         TextureProviderManager.UpdateEager();
     }
 
-    public void CreateMask(int maskIndex)
+    public void CreateMask()
     {
-        RemoveMask(maskIndex);
+        RemoveMask();
 
-        m_MaskTextureObjects[maskIndex] = GameObject.Instantiate(MaskTexturePrefab);
-        m_MaskTextureObjects[maskIndex].name = "Mask Texture: " + maskIndexToString(maskIndex);
-        m_MaskTextures[maskIndex] = m_MaskTextureObjects[maskIndex].GetComponent<MaskTexture>();
-        m_MaskTextures[maskIndex].Setup(width / 2, height / 2);
+        m_MaskTextureObject = GameObject.Instantiate(MaskTexturePrefab);
+        m_MaskTextureObject.name = "Mask Texture";
+        m_MaskTexture = m_MaskTextureObject.GetComponent<MaskTexture>();
+        m_MaskTexture.Setup(width / 2, height / 2);
 
-        if (maskIndex == EFFECT_WATER)
-        {
-            m_EnvMapTexture = m_MaskTextureObjects[maskIndex].AddComponent<EnvironmentTexture>();
-            m_EnvMapTexture.maskProvider = m_MaskTextures[maskIndex];
-            m_EnvMapTexture.Setup(width / 2, height / 2);
-        }
+        m_EnvMapTexture = m_MaskTextureObject.AddComponent<EnvironmentTexture>();
+        m_EnvMapTexture.maskProvider = m_MaskTexture;
+        m_EnvMapTexture.Setup(width / 2, height / 2);
 
-        switch (maskIndex)
-        {
-        case EFFECT_WATER:
-            m_MaskTextures[maskIndex].mode = InputMode.WATER;
-            break;
-        case EFFECT_SKY:
-            m_MaskTextures[maskIndex].mode = InputMode.SKY;
-            break;
-        default:
-            break;
-        }
+        m_MaskCameraObject = GameObject.Instantiate(MaskCameraPrefab);
+        m_MaskCameraObject.name = "Mask Camera";
+        m_MaskCameraObject.transform.SetParent(rootLayerObject.transform);
+        m_MaskCameraObject.transform.localPosition = Vector3.back;
+        m_MaskCamera = m_MaskCameraObject.GetComponent<MaskRendererCamera>();
 
-        m_MaskCameraObjects[maskIndex] = GameObject.Instantiate(MaskCameraPrefab);
-        m_MaskCameraObjects[maskIndex].name = "Mask Camera: " + maskIndexToString(maskIndex);
-        m_MaskCameraObjects[maskIndex].transform.SetParent(rootLayerObject.transform);
-        m_MaskCameraObjects[maskIndex].transform.localPosition = Vector3.back;
-        m_MaskCameras[maskIndex] = m_MaskCameraObjects[maskIndex].GetComponent<MaskRendererCamera>();
-
-        Camera c = m_MaskCameraObjects[maskIndex].GetComponent<Camera>();
-        switch (maskIndex)
-        {
-        case EFFECT_WATER:
-            c.cullingMask = MASK_WATER;
-            break;
-        case EFFECT_SKY:
-            c.cullingMask = MASK_SKY;
-            break;
-        }
+        Camera c = m_MaskCameraObject.GetComponent<Camera>();
+        c.cullingMask = MASK_WATER;
         c.enabled = false;
 
-        m_MaskTextures[maskIndex].SetCamera(c);
-        rootLayer.SetMaskCamera(c, maskIndex);
+        m_MaskTexture.SetCamera(c);
+        rootLayer.SetMaskCamera(c);
     }
 
-    public void RemoveMask(int maskIndex)
+    public void RemoveMask()
     {
-        if (m_MaskTextureObjects[maskIndex])
-            Destroy(m_MaskTextureObjects[maskIndex]);
+        if (m_MaskTextureObject)
+            Destroy(m_MaskTextureObject);
         
-        if (m_MaskCameraObjects[maskIndex])
-            Destroy(m_MaskCameraObjects[maskIndex]);
+        if (m_MaskCameraObject)
+            Destroy(m_MaskCameraObject);
 
 
         if (rootLayer)
-            rootLayer.SetMaskCamera(null, maskIndex);
+            rootLayer.SetMaskCamera(null);
 
-        m_MaskTextureObjects[maskIndex] = null;
-        m_MaskTextures[maskIndex] = null;
-        m_MaskCameraObjects[maskIndex] = null;
-        m_MaskCameras[maskIndex] = null;
+        m_MaskTextureObject = null;
+        m_MaskTexture = null;
+        m_MaskCameraObject = null;
 
-        if (maskIndex == EFFECT_WATER)
-        {
-            m_EnvMapTexture = null;
-        }
+        m_EnvMapTexture = null;
     }
 
-    public MaskTexture GetMaskTexture(int maskIndex) { return m_MaskTextures[maskIndex]; }
+    public MaskTexture GetMaskTexture() { return m_MaskTexture; }
 
-    public void CreateBrush(int maskIndex)
+    public void CreateBrush()
     {
         // Create UI Brush
         if (!m_BrushObject)
@@ -346,15 +296,7 @@ public class EditorSceneMaster : MonoBehaviour
         if (!m_Brush)
             m_Brush = m_BrushObject.GetComponent<BrushController>();
 
-        switch (maskIndex)
-        {
-        case EFFECT_WATER:
-            m_BrushObject.layer = LAYER_WATER;
-            break;
-        case EFFECT_SKY:
-            m_BrushObject.layer = LAYER_SKY;
-            break;
-        }
+        m_BrushObject.layer = LAYER_WATER;
 
         // Create Mask Layer
         if (!m_MaskLayerObject)
@@ -375,30 +317,28 @@ public class EditorSceneMaster : MonoBehaviour
         }
 
         // Setup References
-        m_MaskTextures[maskIndex].SetTarget(m_MaskLayer);
+        m_MaskTexture.SetTarget(m_MaskLayer);
 
         // Activate Camera
-        m_MaskCameraObjects[maskIndex].GetComponent<Camera>().enabled = true;
+        m_MaskCameraObject.GetComponent<Camera>().enabled = true;
 
         // Disable All Effects
-        if (m_EffectLayerObjects[EFFECT_WATER])
-            m_EffectLayerObjects[EFFECT_WATER].SetActive(false);
-        if (m_EffectLayerObjects[EFFECT_SKY])
-            m_EffectLayerObjects[EFFECT_SKY].SetActive(false);
+        if (m_EffectLayerObject)
+            m_EffectLayerObject.SetActive(false);
     }
 
-    public void RemoveBrush(int maskIndex)
+    public void RemoveBrush()
     {
         if (m_BrushObject)
             Destroy(m_BrushObject);
         if (m_MaskLayerObject)
             Destroy(m_MaskLayerObject);
 
-        if (m_MaskTextures[maskIndex])
-            m_MaskTextures[maskIndex].SetTarget(null);
+        if (m_MaskTexture)
+            m_MaskTexture.SetTarget(null);
         
-        if (m_MaskCameraObjects[maskIndex])
-            m_MaskCameraObjects[maskIndex].GetComponent<Camera>().enabled = false;
+        if (m_MaskCameraObject)
+            m_MaskCameraObject.GetComponent<Camera>().enabled = false;
 
         m_BrushObject = null;
         m_Brush = null;
@@ -406,10 +346,8 @@ public class EditorSceneMaster : MonoBehaviour
         m_MaskLayer = null;
 
         // Enable All Effects
-        if (m_EffectLayerObjects[EFFECT_WATER])
-            m_EffectLayerObjects[EFFECT_WATER].SetActive(true);
-        if (m_EffectLayerObjects[EFFECT_SKY])
-            m_EffectLayerObjects[EFFECT_SKY].SetActive(true);
+        if (m_EffectLayerObject)
+            m_EffectLayerObject.SetActive(true);
     }
 
     public void CreateFlow()
@@ -469,15 +407,13 @@ public class EditorSceneMaster : MonoBehaviour
         RenderTexture flowTex = new RenderTexture((int)container.rect.width, (int)container.rect.height, 0, RenderTextureFormat.ARGB32);
 
         // Setup References
-        m_MaskTextures[EFFECT_WATER].SetTarget(m_MaskLayer);
+        m_MaskTexture.SetTarget(m_MaskLayer);
         m_FlowCamera.targetTexture = flowTex;
         m_FlowLayer.SetTexture(flowTex);
 
         // Disable All Effects
-        if (m_EffectLayerObjects[EFFECT_WATER])
-            m_EffectLayerObjects[EFFECT_WATER].SetActive(false);
-        if (m_EffectLayerObjects[EFFECT_SKY])
-            m_EffectLayerObjects[EFFECT_SKY].SetActive(false);
+        if (m_EffectLayerObject)
+            m_EffectLayerObject.SetActive(false);
     }
 
     public void RemoveFlow()
@@ -504,10 +440,8 @@ public class EditorSceneMaster : MonoBehaviour
             m_WaterEffectManager.CreateFlow(m_FlowController);
 
         // Enable All Effects
-        if (m_EffectLayerObjects[EFFECT_WATER])
-            m_EffectLayerObjects[EFFECT_WATER].SetActive(true);
-        if (m_EffectLayerObjects[EFFECT_SKY])
-            m_EffectLayerObjects[EFFECT_SKY].SetActive(true);
+        if (m_EffectLayerObject)
+            m_EffectLayerObject.SetActive(true);
     }
 
     public void CreateSLIC()
@@ -521,8 +455,7 @@ public class EditorSceneMaster : MonoBehaviour
             m_SLICLabelTexture = m_SLICLabelTextureObject.GetComponent<SLICLabelTexture>();
 
         // Setup References
-        m_MaskCameras[EFFECT_WATER].labelTexture = m_SLICLabelTexture;
-        m_MaskCameras[EFFECT_SKY]  .labelTexture = m_SLICLabelTexture;
+        m_MaskCamera.labelTexture = m_SLICLabelTexture;
     }
 
     public void InvokeSLIC(int nextMode)
@@ -540,91 +473,83 @@ public class EditorSceneMaster : MonoBehaviour
         m_SLICLabelTextureObject = null;
         m_SLICLabelTexture = null;
 
-        if (m_MaskCameras[EFFECT_WATER])
-            m_MaskCameras[EFFECT_WATER].labelTexture = null;
-        if (m_MaskCameras[EFFECT_SKY])
-            m_MaskCameras[EFFECT_SKY].labelTexture = null;
+        if (m_MaskCamera)
+            m_MaskCamera.labelTexture = null;
     }
 
-    public void CreatePCA(int maskIndex)
+    public void CreatePCA()
     {
-        if (!m_PaletteTextureObjects[maskIndex])
+        if (!m_PaletteTextureObject)
         {
-            m_PaletteTextureObjects[maskIndex] = GameObject.Instantiate(StaticTexturePrefab);
-            m_PaletteTextureObjects[maskIndex].name = "Static Texture: PCAPalette " + maskIndexToString(maskIndex);
+            m_PaletteTextureObject = GameObject.Instantiate(StaticTexturePrefab);
+            m_PaletteTextureObject.name = "Static Texture: PCAPalette";
         }
-        if (!m_PaletteTextures[maskIndex])
-            m_PaletteTextures[maskIndex] = m_PaletteTextureObjects[maskIndex].GetComponent<StaticTexture>();
+        if (!m_PaletteTexture)
+            m_PaletteTexture = m_PaletteTextureObject.GetComponent<StaticTexture>();
     }
 
-    public void InvokePCA(int maskIndex, int nextMode)
+    public void InvokePCA(int nextMode)
     {
-        if (m_PCAClient && m_PaletteTextures[maskIndex])
+        if (m_PCAClient && m_PaletteTexture)
         {
-            m_PCAClient.paletteTextureProvider  = m_PaletteTextures[maskIndex];
+            m_PCAClient.paletteTextureProvider  = m_PaletteTexture;
             m_PCAClient.Invoke(
                 m_RootStaticTexture,
-                m_MaskTextures[maskIndex],
+                m_MaskTexture,
                 m_SLICLabelTexture,
                 nextMode
             );
         }
     }
 
-    public void RemovePCA(int maskIndex)
+    public void RemovePCA()
     {
-        if (m_PaletteTextureObjects[maskIndex])
-            Destroy(m_PaletteTextureObjects[maskIndex]);
+        if (m_PaletteTextureObject)
+            Destroy(m_PaletteTextureObject);
         
-        m_PaletteTextureObjects[maskIndex] = null;
-        m_PaletteTextures[maskIndex] = null;
+        m_PaletteTextureObject = null;
+        m_PaletteTexture = null;
     }
 
-    public void Effect_CL01() { CreateEffect(EFFECT_WATER, Constants.ModeWaterType.CL01); }
-    public void Effect_CL02() { CreateEffect(EFFECT_WATER, Constants.ModeWaterType.CL02); }
-    public void Effect_RV01() { CreateEffect(EFFECT_WATER, Constants.ModeWaterType.RV01); }
+    public void Effect_CL01() { CreateEffect(Constants.ModeWaterType.CL01); }
+    public void Effect_CL02() { CreateEffect(Constants.ModeWaterType.CL02); }
+    public void Effect_RV01() { CreateEffect(Constants.ModeWaterType.RV01); }
 
-    public void CreateEffect(int maskIndex, Constants.ModeWaterType effectType)
+    public void CreateEffect(Constants.ModeWaterType effectType)
     {
-        if (!m_EffectLayerObjects[maskIndex])
+        if (!m_EffectLayerObject)
         {
-            m_EffectLayerObjects[maskIndex] = GameObject.Instantiate(LayerPrefab);
-            m_EffectLayerObjects[maskIndex].name = "Layer: Effect " + maskIndexToString(maskIndex);
-            m_EffectLayerObjects[maskIndex].GetComponent<RectTransform>().SetParent(rootLayerObject.GetComponent<RectTransform>());
-            m_EffectLayerObjects[maskIndex].GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+            m_EffectLayerObject = GameObject.Instantiate(LayerPrefab);
+            m_EffectLayerObject.name = "Layer: Effect";
+            m_EffectLayerObject.GetComponent<RectTransform>().SetParent(rootLayerObject.GetComponent<RectTransform>());
+            m_EffectLayerObject.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
         }
-        if (!m_EffectLayers[maskIndex])
+        if (!m_EffectLayer)
         {
-            m_EffectLayers[maskIndex] = m_EffectLayerObjects[maskIndex].GetComponent<RawImageController>();
-            m_EffectLayers[maskIndex].movePosition = false;
-            m_EffectLayers[maskIndex].moveScale    = true;
-            m_EffectLayers[maskIndex].useGrid      = true;
-            m_EffectLayers[maskIndex].globalScale  = 2f;
-            m_EffectLayers[maskIndex].material     = new Material(Shader.Find("UI/Grid"));
-            m_EffectLayers[maskIndex].material.SetVector("_RootImageSize", new Vector4(1f / (float)width, 1f / (float)height, (float)width, (float)height));
+            m_EffectLayer = m_EffectLayerObject.GetComponent<RawImageController>();
+            m_EffectLayer.movePosition = false;
+            m_EffectLayer.moveScale    = true;
+            m_EffectLayer.useGrid      = true;
+            m_EffectLayer.globalScale  = 2f;
+            m_EffectLayer.material     = new Material(Shader.Find("UI/Grid"));
+            m_EffectLayer.material.SetVector("_RootImageSize", new Vector4(1f / (float)width, 1f / (float)height, (float)width, (float)height));
         }
 
-        if (maskIndex == EFFECT_WATER)
-        {
-            m_WaterEffectManager.paletteProvider     = m_PaletteTextures[maskIndex];
-            m_WaterEffectManager.environmentProvider = m_EnvMapTexture;
-            m_WaterEffectManager.target              = m_EffectLayers[maskIndex];
-            m_WaterEffectManager.Setup(effectType, width / 2, height / 2);
-        }
+        m_WaterEffectManager.paletteProvider     = m_PaletteTexture;
+        m_WaterEffectManager.environmentProvider = m_EnvMapTexture;
+        m_WaterEffectManager.target              = m_EffectLayer;
+        m_WaterEffectManager.Setup(effectType, width / 2, height / 2);
     }
 
-    public void RemoveEffect(int maskIndex)
+    public void RemoveEffect()
     {
-        if (m_EffectLayerObjects[maskIndex])
-            Destroy(m_EffectLayerObjects[maskIndex]);
+        if (m_EffectLayerObject)
+            Destroy(m_EffectLayerObject);
 
-        m_EffectLayerObjects[maskIndex] = null;
-        m_EffectLayers[maskIndex] = null;
+        m_EffectLayerObject = null;
+        m_EffectLayer = null;
 
-        if (maskIndex == EFFECT_WATER)
-        {
-            m_WaterEffectManager.Setup(Constants.ModeWaterType.NONE, 0, 0);
-        }
+        m_WaterEffectManager.Setup(Constants.ModeWaterType.NONE, 0, 0);
     }
 
 }
