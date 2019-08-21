@@ -212,9 +212,9 @@ def plot_slic_distribution(distribution, file_name, weights=None):
     plt.close(fig)
 
 file_names = [
-    'jj-1',
+    # 'jj-1',
     # 'jj-2',
-    # 'sc-1',
+    'sc-1',
     # 'sc-2',
     # 'sc-3',
     # 'sc-4',
@@ -245,14 +245,15 @@ if __name__ == "__main__":
         img = read_image('images/mask/' + file_name + '-mask.png')
         img_lab = preprocess(img)
 
-        # num_seg, label, contour = slic(img_lab)
+        num_seg, label, contour = slic(img_lab)
+        cv2.imwrite('images/slic/' + file_name + '-contour.png', slic_contour(img, contour))
         # cv2.imwrite('images/slic/' + file_name + '.png', encode_label(label))
         
-        label = decode_label(cv2.imread('images/slic/' + file_name + '-slic.png'))
+        # label = decode_label(cv2.imread('images/slic/' + file_name + '-slic.png'))
         
         # draw_image(slic_contour(img, contour))
-        num_labels, count, avg, stdev = slic_stats(img_lab, label)
-        center, fpc, r2, distribution, line = pca(avg, weights=count)
+        # num_labels, count, avg, stdev = slic_stats(img_lab, label)
+        # center, fpc, r2, distribution, line = pca(avg, weights=count)
 
         # data = [file_name, center[0], center[1], center[2], fpc[0], fpc[1], fpc[2], r2]
         # f.write(','.join(list(map(str, data))) + '\n')

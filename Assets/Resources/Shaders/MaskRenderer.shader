@@ -57,9 +57,9 @@ Shader "Compute/MaskRenderer"
                 return OUT;
             }
 
-            fixed4 frag(v2f IN) : SV_Target
+            float4 frag(v2f IN) : SV_Target
             {
-                fixed4 color, prev_color;
+                float4 color, prev_color;
                 float cur;
 
                 cur = _UseLabel ? all(tex2D(_LabelTex, IN.texcoord) == tex2D(_LabelTex, _InputCoords)) : tex2D(_MainTex, IN.texcoord).r;
@@ -68,7 +68,7 @@ Shader "Compute/MaskRenderer"
                 prev_color = tex2D(_PrevTex, IN.texcoord);
 
                 float value = _UseEraser ? min(cur, prev_color.r) : max(cur, prev_color.r);
-                color = fixed4(value, value, value, value);
+                color = float4(value, value, value, value);
 
                 return color;
             }

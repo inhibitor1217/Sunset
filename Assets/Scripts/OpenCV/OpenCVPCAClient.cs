@@ -68,11 +68,13 @@ public class OpenCVPCAClient : MonoBehaviour
                     high[level][i] = m_Data.paletteArray[idx++];
             }
 
+            float sum_weights;
             float[] palette = new float[3 * (1 << (2 * m_Data.levels - 1))];
             for (int x = 0; x < (1 << (m_Data.levels - 1)); x++)
                 for (int y = 0; y < (1 << (m_Data.levels - 1)); y++)
                     for (int c = 0; c < 3; c++)
                     {
+                        sum_weights = 0;
                         for (int level = 0; level < m_Data.levels; level++)
                         {
                             float lowColor, highColor;
@@ -123,12 +125,14 @@ public class OpenCVPCAClient : MonoBehaviour
                                 highColor = high[level][3 * (x + y * (1 << level)) + c];
                             }
                             // LOW
-                            palette[3 * ( x + y * (1 << (m_Data.levels - 1)) ) + c] += (m_Data.levels - level) * lowColor;
+                            palette[3 * ( x + y * (1 << (m_Data.levels - 1)) ) + c] += (m_Data.levels - level) * (m_Data.levels - level) * lowColor;
                             // HIGH
-                            palette[3 * ( x + y * (1 << (m_Data.levels - 1)) ) + c + 3 * (1 << (2 * m_Data.levels - 2))] += (level + 1) * highColor;
+                            palette[3 * ( x + y * (1 << (m_Data.levels - 1)) ) + c + 3 * (1 << (2 * m_Data.levels - 2))] += (level + 1) * (level + 1) * highColor;
+
+                            sum_weights += (m_Data.levels - level) * (m_Data.levels - level);
                         }
-                        palette[3 * ( x + y * (1 << (m_Data.levels - 1)) ) + c] /= (float)(m_Data.levels * (m_Data.levels + 1) / 2);
-                        palette[3 * ( x + y * (1 << (m_Data.levels - 1)) ) + c + 3 * (1 << (2 * m_Data.levels - 2))] /= (float)(m_Data.levels * (m_Data.levels + 1) / 2);
+                        palette[3 * ( x + y * (1 << (m_Data.levels - 1)) ) + c] /= sum_weights;
+                        palette[3 * ( x + y * (1 << (m_Data.levels - 1)) ) + c + 3 * (1 << (2 * m_Data.levels - 2))] /= sum_weights;
                     }
             
             Texture2D paletteTexture = new Texture2D(1 << (m_Data.levels - 1), 1 << (m_Data.levels), TextureFormat.RGB24, false);

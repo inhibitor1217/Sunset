@@ -23,7 +23,7 @@ public class InputManager : MonoBehaviour
     public bool withinContainer { get; private set; }
     public bool withinImage { get; private set; }
 
-    private const float MIN_SCALE = 0.5f;
+    private const float MIN_SCALE = 0.3f;
     private const float MAX_SCALE = 32.0f;
     private const float SCALE_MULTIPLIER = 1.1f;
 
@@ -74,8 +74,8 @@ public class InputManager : MonoBehaviour
             released = (touch.phase == TouchPhase.Ended);
 
             if (withinContainer 
-                && InputMode.Instance.isMove()
-                && !InputMode.Instance.isBusy())
+                && InputMode.instance.isMove()
+                && !InputMode.instance.isBusy())
                 updatePosition(touch.deltaPosition);
         }
         else if (Input.touchCount == 2)
@@ -99,12 +99,12 @@ public class InputManager : MonoBehaviour
                 ))
             {
                 Vector2 touch0Prev = touch0.position - touch0.deltaPosition;
-                Vector2 touch1Prev = touch1.position - touch1.deltaPosition;
+                Vector2 touch1Prev = touch1.position - touch1.deltaPosition; 
 
                 float prevMagnitude = (touch1Prev - touch0Prev).magnitude;
                 float currMagnitude = (touch1.position - touch0.position).magnitude;
 
-                if (!InputMode.Instance.isBusy())
+                if (!InputMode.instance.isBusy())
                 {
                     updateScale(currMagnitude / prevMagnitude);
                     updatePosition(.5f * (touch0.deltaPosition + touch1.deltaPosition));

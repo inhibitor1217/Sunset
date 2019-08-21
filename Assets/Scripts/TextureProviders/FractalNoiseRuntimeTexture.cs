@@ -131,6 +131,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
                     else
                         m_FractalNoiseMaterial.DisableKeyword(NOISE_TYPES[i]);
                 }
+                textureShouldUpdate = true;
             });
 
         Subscribe(fieldNames[INDEX__FRACTAL_TYPE],
@@ -143,6 +144,7 @@ public class FractalNoiseRuntimeTexture : TextureProvider
                     else
                         m_FractalNoiseMaterial.DisableKeyword(FRACTAL_TYPES[i]);
                 }
+                textureShouldUpdate = true;
             });
 
         Subscribe(fieldNames[INDEX__SEED],
@@ -161,18 +163,21 @@ public class FractalNoiseRuntimeTexture : TextureProvider
                 gradientTex.SetPixels(graidentColors);
                 gradientTex.Apply();
                 m_FractalNoiseMaterial.SetTexture("_GradientTex", gradientTex);
+                textureShouldUpdate = true;
             });
 
         Subscribe(fieldNames[INDEX__GLOBAL_SCALE],
             (state) => {
                 Vector2 value = (Vector2)state[WaterEffectActions.FIELD__GLOBAL_SCALE];
                 m_FractalNoiseMaterial.SetVector("_GlobalScale", new Vector4(1f/value.x, 1f/value.y, value.x, value.y));
+                textureShouldUpdate = true;
             });
         Subscribe(fieldNames[INDEX__SUB_INFLUENCE]  , m_FractalNoiseMaterial, "_SubInfluence"  , "Float" );
         Subscribe(fieldNames[INDEX__SUB_SCALE],
             (state) => {
                 Vector2 value = (Vector2)state[WaterEffectActions.FIELD__SUB_SCALE];
                 m_FractalNoiseMaterial.SetVector("_SubScale", new Vector4(1f/value.x, 1f/value.y, value.x, value.y));
+                textureShouldUpdate = true;
             });
         Subscribe(fieldNames[INDEX__BRIGHTNESS]     , m_FractalNoiseMaterial, "_Brightness"    , "Float" );
         Subscribe(fieldNames[INDEX__CONTRAST]       , m_FractalNoiseMaterial, "_Contrast"      , "Float" );

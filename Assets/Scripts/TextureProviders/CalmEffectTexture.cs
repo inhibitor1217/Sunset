@@ -80,7 +80,8 @@ public class CalmEffectTexture : TextureProvider
         m_RenderTexture.filterMode = FilterMode.Point;
 
         /* SETUP PROPERTIES */
-        m_WaterMaterial.SetTexture("_ImgTex", EditorSceneMaster.instance.GetRootTextureProvider().GetBlurredTexture());
+        m_WaterMaterial.SetTexture("_ImgTex", EditorSceneMaster.instance.GetRootTextureProvider().GetTexture());
+        m_WaterMaterial.SetTexture("_ImgBlurTex", EditorSceneMaster.instance.GetRootTextureProvider().GetBlurredTexture());
 
         Subscribe(SharedActions.FIELD__HORIZON,         m_WaterMaterial, "_Horizon",        "Float");
         Subscribe(SharedActions.FIELD__PERSPECTIVE,     m_WaterMaterial, "_Perspective",    "Float");

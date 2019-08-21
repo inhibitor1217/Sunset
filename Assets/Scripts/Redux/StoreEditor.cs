@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
 using System;
@@ -75,3 +76,4 @@ public class StoreEditor : Editor
     }
 
 }
+#endif

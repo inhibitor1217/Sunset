@@ -2,7 +2,6 @@ using UnityEngine;
 
 public static class ImageIO
 {
-
     public static void SaveRenderTextureToImage(string path, RenderTexture renderTexture)
     {
         Texture2D texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGB24, false);

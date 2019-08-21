@@ -63,11 +63,13 @@ public abstract class TextureProvider : MonoBehaviour
         case "Float":
             Subscribe(key, (state) => {
                 material.SetFloat(uniformName, (float)state[key]);
+                textureShouldUpdate = true;
             });
             break;
         case "Vector":
             Subscribe(key, (state) => {
                 material.SetVector(uniformName, (Vector4)state[key]);
+                textureShouldUpdate = true;
             });
             break;
         }

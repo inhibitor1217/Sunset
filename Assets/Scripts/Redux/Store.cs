@@ -58,8 +58,8 @@ public class Store : MonoBehaviour
         
         foreach (var set in _subscriptions.Keys)
         {
-            set.Clear();
             _subscriptions[set].Clear();
+            set.Clear();
         }
         _subscriptions.Clear();
         _functionMap.Clear();

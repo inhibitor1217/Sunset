@@ -75,6 +75,8 @@ public class StaticTexture: TextureProvider
             return m_BlurredTexture;
 
         m_BlurredTexture = new RenderTexture(staticTexture.width / 4, staticTexture.height / 4, 0, RenderTextureFormat.ARGB32);
+        m_BlurredTexture.wrapMode = TextureWrapMode.Mirror;
+        m_BlurredTexture.filterMode = FilterMode.Bilinear;
         Graphics.Blit(staticTexture, m_BlurredTexture, m_BlurMaterial, m_HorizontalBlurPass);
 
         return m_BlurredTexture;
@@ -91,6 +93,11 @@ public class StaticTexture: TextureProvider
         m_BlurredTexture = null;
         
         textureShouldUpdate = true;
+    }
+
+    public void SetFilterMode(FilterMode mode)
+    {
+        staticTexture.filterMode = mode;
     }
 
 }

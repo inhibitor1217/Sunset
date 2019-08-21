@@ -80,7 +80,8 @@ public class RiverEffectTexture : TextureProvider
         m_RenderTexture.filterMode = FilterMode.Point;
 
         /* SETUP PROPERTIES */
-        m_WaterMaterial.SetTexture("_ImgTex", EditorSceneMaster.instance.GetRootTextureProvider().GetBlurredTexture());
+        m_WaterMaterial.SetTexture("_ImgTex", EditorSceneMaster.instance.GetRootTextureProvider().GetTexture());
+        m_WaterMaterial.SetTexture("_ImgBlurTex", EditorSceneMaster.instance.GetRootTextureProvider().GetBlurredTexture());
   
         Subscribe(SharedActions.FIELD__HORIZON,         m_WaterMaterial, "_Horizon", "Float");
         Subscribe(SharedActions.FIELD__PERSPECTIVE,     m_WaterMaterial, "_Perspective", "Float");
@@ -90,6 +91,7 @@ public class RiverEffectTexture : TextureProvider
             (state) => {
                 float rotation = Mathf.Deg2Rad * (float)state[WaterEffectActions.FIELD__ROTATION];
                 m_WaterMaterial.SetVector("_Rotation", new Vector4(Mathf.Cos(rotation), -Mathf.Sin(rotation), Mathf.Sin(rotation), Mathf.Cos(rotation)));
+                textureShouldUpdate = true;
             });
         Subscribe(WaterEffectActions.FIELD__SPEED,      m_WaterMaterial, "_Speed", "Float");
     }

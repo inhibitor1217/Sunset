@@ -6,10 +6,9 @@ public class EnvironmentTexture : TextureProvider
     [SerializeField]
     private RenderTexture m_RenderTexture;
     private Material m_EnvMapMaterial;
-    private Material m_BlurMaterial;
-    private int m_HorizontalBlurPass;
 
-    public TextureProvider _maskProvider;
+    private TextureProvider _maskProvider;
+    private TextureProvider _paletteProvider;
     
     public TextureProvider maskProvider { 
         set {
@@ -24,9 +23,6 @@ public class EnvironmentTexture : TextureProvider
 
         /* SETUP MATERIALS */
         m_EnvMapMaterial = new Material(Shader.Find("Compute/EnvMap"));
-        m_BlurMaterial = new Material(Shader.Find("Compute/Blur"));
-        m_BlurMaterial.SetFloat("_BlurSize", .005f);
-        m_HorizontalBlurPass = m_BlurMaterial.FindPass("Horizontal");
     }
 
     public override Texture GetTexture()
@@ -38,22 +34,14 @@ public class EnvironmentTexture : TextureProvider
     {
         if (!m_RenderTexture)
             return false;
-            
-        RenderTexture envMapRaw = RenderTexture.GetTemporary(m_RenderTexture.width, m_RenderTexture.height, 0, m_RenderTexture.format);
-        m_RenderTexture.wrapMode = TextureWrapMode.Clamp;
-        m_RenderTexture.filterMode = FilterMode.Bilinear;
 
-        // FilterMode prev = imgTex.filterMode;
-        // imgTex.filterMode = FilterMode.Bilinear;
-        envMapRaw.DiscardContents();
-        Graphics.Blit(null, envMapRaw, m_EnvMapMaterial);
-        // imgTex.filterMode = prev;
+        EditorSceneMaster.instance.GetRootTextureProvider().SetFilterMode(FilterMode.Bilinear);
 
         m_RenderTexture.DiscardContents();
-        Graphics.Blit(envMapRaw, m_RenderTexture, m_BlurMaterial, m_HorizontalBlurPass);
+        Graphics.Blit(null, m_RenderTexture, m_EnvMapMaterial);
 
-        RenderTexture.ReleaseTemporary(envMapRaw);
-
+        EditorSceneMaster.instance.GetRootTextureProvider().SetFilterMode(FilterMode.Point);
+        
         return true;
     }
 

@@ -94,8 +94,8 @@ public class EditorSceneMaster : MonoBehaviour
 #if UNITY_ANDROID && !UNITY_EDITOR
     void Start()
     {
-        InputMode.Instance.mode = InputMode.BUSY;
-        MessagePanel.Instance.ShowMessage("이미지 불러오는 중..", "");
+        InputMode.instance.mode = InputMode.BUSY;
+        MessagePanel.instance.ShowMessage("이미지 불러오는 중..", "");
         InitScene(PlayerPrefs.GetString("image_path"));
     }
 #endif
@@ -143,8 +143,8 @@ public class EditorSceneMaster : MonoBehaviour
         RenderTexture.active = previous;
         RenderTexture.ReleaseTemporary(temp);
 
-        InputMode.Instance.SetModeWithoutSideEffect(0);
-        MessagePanel.Instance.Disable();
+        InputMode.instance.SetModeWithoutSideEffect(0);
+        MessagePanel.instance.Disable();
 
         InitScene(resizedTex);
     }
