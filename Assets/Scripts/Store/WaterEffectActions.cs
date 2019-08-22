@@ -14,9 +14,8 @@ public class WaterEffectActions : ActionModule
         }
     }
 
-    private const string ACTION__SETUP_CL01      = "WATEREFFECT__SETUP_CL01";
-    private const string ACTION__SETUP_CL02      = "WATEREFFECT__SETUP_CL02";
     private const string ACTION__SETUP_RV01      = "WATEREFFECT__SETUP_RV01";
+    private const string ACTION__SETUP_RV02      = "WATEREFFECT__SETUP_RV02";
     private const string ACTION__SET_RIVER_SPEED = "WATEREFFECT__SET_RIVER_SPEED";
     private const string ACTION__SET_ROTATION = "WATEREFFECT__SET_ROTATION";
     private const string ACTION__SET_VBW = "WATEREFFECT__SET_VBW";
@@ -42,14 +41,14 @@ public class WaterEffectActions : ActionModule
 
     public static string[] fractalNoiseFieldNames;
 
-    private const float MAX_AMPLITUDE = .75f;
-    private const float MAX_EVOLUTION_SPEED = 1.0f;
-    private const float MIN_ROTATION = -45f;
-    private const float MAX_ROTATION = 45f;
-    private const float MAX_VERTICAL_BLUR_WIDTH = .3f;
-    private const float MAX_VERTICAL_BLUR_STRENGTH = 2.5f;
-    private const float MAX_DISTORTION_STRENGTH = 2.5f;
-    private const float MAX_TONE_STRENGTH = 1f;
+    public const float MAX_AMPLITUDE = .75f;
+    public const float MAX_EVOLUTION_SPEED = 1.0f;
+    public const float MIN_ROTATION = -45f * Mathf.Deg2Rad;
+    public const float MAX_ROTATION = 45f * Mathf.Deg2Rad;
+    public const float MAX_VERTICAL_BLUR_WIDTH = .3f;
+    public const float MAX_VERTICAL_BLUR_STRENGTH = 2.5f;
+    public const float MAX_DISTORTION_STRENGTH = 2.5f;
+    public const float MAX_TONE_STRENGTH = 1f;
 
     public WaterEffectActions()
     {
@@ -67,6 +66,7 @@ public class WaterEffectActions : ActionModule
     }
 
     public Action SetupRV01() { return new Action(ACTION__SETUP_RV01); }
+    public Action SetupRV02() { return new Action(ACTION__SETUP_RV02); }
     public Action SetRiverSpeed(float value) { return new Action<float>(ACTION__SET_RIVER_SPEED, value); }
     public Action SetRotation(float value) { return new Action<float>(ACTION__SET_ROTATION, value); }
     public Action SetVBW(float value) { return new Action<float>(ACTION__SET_VBW, value); }
@@ -86,8 +86,8 @@ public class WaterEffectActions : ActionModule
             { FIELD__SUB_SCALE,       2f * Vector2.one },
             { FIELD__BRIGHTNESS,      0f },
             { FIELD__CONTRAST,        1f },
-            { FIELD__EVOLUTION_SPEED, 0f },
-            { FIELD__AMPLITUDE,       1f },
+            { FIELD__EVOLUTION_SPEED, .5f },
+            { FIELD__AMPLITUDE,       .375f },
             { FIELD__ROTATION,        0f },
             { FIELD__VERTICAL_BLUR_WIDTH, .12f },
             { FIELD__VERTICAL_BLUR_STRENGTH, 1f },
@@ -113,7 +113,38 @@ public class WaterEffectActions : ActionModule
                     _state[FIELD__SUB_SCALE]     = new Vector2(2f, 2f);
                     _state[FIELD__BRIGHTNESS]    = 0f;
                     _state[FIELD__CONTRAST]      = 3f;
+
+                    _state[FIELD__EVOLUTION_SPEED] = .5f;
+                    _state[FIELD__AMPLITUDE] = .375f;
+                    _state[FIELD__VERTICAL_BLUR_WIDTH] = .12f;
+                    _state[FIELD__VERTICAL_BLUR_STRENGTH] = 1f;
+                    _state[FIELD__DISTORTION_STRENGTH] = 1f;
+                    _state[FIELD__TONE_STRENGTH] = .5f;
                     
+                    return _state;
+                })
+            },
+            {
+                ACTION__SETUP_RV02,
+                new Reducer((state, action) => {
+                    var _state = new Dictionary<string, object>(state);
+
+                    _state[FIELD__NOISE_TYPE]    = 4;
+                    _state[FIELD__FRACTAL_TYPE]  = 0;
+                    _state[FIELD__SEED]          = 0;
+                    _state[FIELD__GLOBAL_SCALE]  = new Vector2(4f, 16f);
+                    _state[FIELD__SUB_INFLUENCE] = .7f;
+                    _state[FIELD__SUB_SCALE]     = new Vector2(2f, 2f);
+                    _state[FIELD__BRIGHTNESS]    = 0f;
+                    _state[FIELD__CONTRAST]      = 3f;
+
+                    _state[FIELD__EVOLUTION_SPEED] = .16f;
+                    _state[FIELD__AMPLITUDE] = .12f;
+                    _state[FIELD__VERTICAL_BLUR_WIDTH] = 0f;
+                    _state[FIELD__VERTICAL_BLUR_STRENGTH] = 0f;
+                    _state[FIELD__DISTORTION_STRENGTH] = 2.45f;
+                    _state[FIELD__TONE_STRENGTH] = .1f;
+
                     return _state;
                 })
             },
@@ -135,7 +166,7 @@ public class WaterEffectActions : ActionModule
                     var _state = new Dictionary<string, object>(state);
                     float payload = ((Action<float>) action).payload;
 
-                    _state[FIELD__ROTATION] = Mathf.Lerp(MIN_ROTATION * Mathf.Deg2Rad, MAX_ROTATION * Mathf.Deg2Rad, payload);
+                    _state[FIELD__ROTATION] = Mathf.Lerp(MIN_ROTATION, MAX_ROTATION, payload);
 
                     return _state;
                 })
@@ -179,7 +210,7 @@ public class WaterEffectActions : ActionModule
                     var _state = new Dictionary<string, object>(state);
                     float payload = ((Action<float>) action).payload;
 
-                    _state[FIELD__TONE_STRENGTH] = MAX_TONE_STRENGTH * payload;
+                    _state[FIELD__DISTORTION_STRENGTH] = MAX_DISTORTION_STRENGTH * payload;
 
                     return _state;
                 })

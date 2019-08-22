@@ -51,6 +51,11 @@ public class StoreEditor : Editor
                     Enum value = EditorGUILayout.EnumPopup(key, (Constants.ModeEdit)state[key]);
                     store.SetValue(key, value);
                 }
+                else if (state[key].GetType() == typeof(string))
+                {
+                    string value = EditorGUILayout.TextField(key, (string)state[key]);
+                    store.SetValue(key, value);
+                }
                 else if (state[key].GetType() == typeof(float))
                 {
                     float value = EditorGUILayout.FloatField(key, (float)state[key]);

@@ -60,14 +60,14 @@ public class InputMode
                     EditorSceneMaster.instance.CreateBrush();
                 }
 
-                if (!isFlow(_mode) && isFlow(value))
-                {
-                    EditorSceneMaster.instance.CreateFlow();
-                }
-                if (isFlow(_mode) && !isFlow(value))
-                {
-                    EditorSceneMaster.instance.RemoveFlow();
-                }
+                // if (!isFlow(_mode) && isFlow(value))
+                // {
+                //     EditorSceneMaster.instance.CreateFlow();
+                // }
+                // if (isFlow(_mode) && !isFlow(value))
+                // {
+                //     EditorSceneMaster.instance.RemoveFlow();
+                // }
 
                 SetModeWithoutSideEffect(value);
             }

@@ -15,11 +15,14 @@ public class SharedActions : ActionModule
     }
 
     private const string ACTION__SET_HORIZON = "SHARED__SET_HORIZON";
+    private const string ACTION__SET_EDIT_PARAMETER = "SHARED__SET_EDIT_PARAMETER";
 
     public const string FIELD__HORIZON         = "Shared__Horizon";
     public const string FIELD__PERSPECTIVE     = "Shared__Perspective";
+    public const string FIELD__EDIT_PARAMETER = "Shared__EditParameter";
 
     public Action SetHorizon(float value) { return new Action<float>(ACTION__SET_HORIZON, value); }
+    public Action SetEditParameter(string value) { return new Action<string>(ACTION__SET_EDIT_PARAMETER, value); }
 
     public override Dictionary<string, object> GetInitialState()
     {
@@ -27,6 +30,7 @@ public class SharedActions : ActionModule
         {
             { FIELD__HORIZON,          .65f },
             { FIELD__PERSPECTIVE,      1f   },
+            { FIELD__EDIT_PARAMETER, "NONE" },
         };
     }
 
@@ -44,7 +48,18 @@ public class SharedActions : ActionModule
 
                     return _state;
                 })
-            }
+            },
+            {
+                ACTION__SET_EDIT_PARAMETER,
+                new Reducer((state, action) => {
+                    var _state = new Dictionary<string, object>(state);
+                    string payload = ((Action<string>) action).payload;
+
+                    _state[FIELD__EDIT_PARAMETER] = payload;
+
+                    return _state;
+                })
+            },
         };
     }
 

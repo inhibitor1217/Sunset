@@ -37,6 +37,7 @@ public class Store : MonoBehaviour
     private bool _initialized = false;
     private Dictionary<string, object> _state;
     private Dictionary<string, Reducer> _reducers;
+    [SerializeField]
     private Dictionary<HashSet<string>, List<int>> _subscriptions;
     private Dictionary<int, SubscriptionFunction>  _functionMap;
     private Queue<Action> _actions;
@@ -81,6 +82,7 @@ public class Store : MonoBehaviour
         while (_actions.Count > 0)
         {
             Action action = _actions.Dequeue();
+            Debug.Log("ACTION: " + action.type);
             if (_reducers.ContainsKey(action.type))
             {
                 state = _reducers[action.type].func(state, action);
@@ -114,7 +116,7 @@ public class Store : MonoBehaviour
             if (keySet.Overlaps(_updatedKeys))
                 foreach (int id in _subscriptions[keySet])
                 {
-                    _functionMap[id](state);
+                    _functionMap[id](new Dictionary<string, object>(state));
                 }
         }
 

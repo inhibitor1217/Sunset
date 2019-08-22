@@ -65,21 +65,15 @@ public class WaterEffectManager : MonoBehaviour
                 Destroy(_effectProvider);
                 _effectProvider = null;
             }
-            
-            riverOptionPanel.SetActive(false);
-            InputManager.instance.optionMenu = null;
             break;
         case Constants.ModeWaterType.RV01:
+        case Constants.ModeWaterType.RV02:
             _effectProvider = gameObject.AddComponent<EffectTexture>();
             EffectTexture river = _effectProvider as EffectTexture;
             river.noiseProvider = _noiseProvider;
             river.paletteProvider = paletteProvider;
             river.environmentProvider = environmentProvider;
             river.Setup(width, height);
-
-            /* SETUP UI */
-            riverOptionPanel.SetActive(true);
-            InputManager.instance.optionMenu = riverOptionPanel.GetComponent<RectTransform>();
             break;
         default:
             break;
@@ -92,6 +86,9 @@ public class WaterEffectManager : MonoBehaviour
             break;
         case Constants.ModeWaterType.RV01:
             Store.instance.Dispatch(WaterEffectActions.instance.SetupRV01());
+            break;
+        case Constants.ModeWaterType.RV02:
+            Store.instance.Dispatch(WaterEffectActions.instance.SetupRV02());
             break;
         default:
             break;

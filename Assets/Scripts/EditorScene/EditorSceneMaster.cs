@@ -13,12 +13,13 @@ public class EditorSceneMaster : MonoBehaviour
     public GameObject SLICLabelTexturePrefab;
     public GameObject SLICContourTexturePrefab;
     public GameObject BrushPrefab;
-    public GameObject FlowPrefab;
     public GameObject MaskCameraPrefab;
-    public GameObject FlowCameraPrefab;
 
-    [Header("References")]
+    [Header("UIs")]
     public RectTransform container;
+    public SliderPanelController sliderPanelController;
+    public SliderController sliderController;
+    public ParameterEditorToggle[] parameterEditorToggles;
 
     // Managers
     private TextureProviderManager m_TextureProviderManager;
@@ -55,13 +56,6 @@ public class EditorSceneMaster : MonoBehaviour
     // Brush
     private GameObject m_BrushObject;
     private BrushController m_Brush;
-
-    // Flow
-    private FlowController m_FlowController;
-    private GameObject m_FlowCameraObject;
-    private Camera m_FlowCamera;
-    private GameObject m_FlowLayerObject;
-    private RawImageController m_FlowLayer;
 
     // SLIC
     private OpenCVSLICClient m_SLICClient;
@@ -178,11 +172,6 @@ public class EditorSceneMaster : MonoBehaviour
         // Brush
         RemoveBrush();
 
-        // Flow
-        RemoveFlow();
-        if (m_FlowController)
-            Destroy(m_FlowController);
-
         // SLIC
         RemoveSLIC();
 
@@ -193,6 +182,12 @@ public class EditorSceneMaster : MonoBehaviour
         RemoveEffect();
 
         Debug.Log("Initialize Scene with texture [" + rootTexture.width + ", " + rootTexture.height + "]");
+
+        // Setup UI
+        sliderPanelController.Setup();
+        sliderController.Setup();
+        foreach (var toggle in parameterEditorToggles)
+            toggle.Setup();
 
         // Set Root Texture width & height
         width = rootTexture.width;
@@ -350,100 +345,6 @@ public class EditorSceneMaster : MonoBehaviour
             m_EffectLayerObject.SetActive(true);
     }
 
-    public void CreateFlow()
-    {
-        if (!m_FlowController)
-        {
-            m_FlowController = gameObject.AddComponent<FlowController>();
-            m_FlowController.FlowPrefab = FlowPrefab;
-        }
-        if (!m_MaskLayerObject)
-        {
-            m_MaskLayerObject = GameObject.Instantiate(LayerPrefab);
-            m_MaskLayerObject.name = "Layer: Mask";
-            m_MaskLayerObject.GetComponent<RectTransform>().SetParent(rootLayerObject.GetComponent<RectTransform>());
-            m_MaskLayerObject.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
-        }
-        if (!m_MaskLayer)
-        {
-            m_MaskLayer = m_MaskLayerObject.GetComponent<RawImageController>();
-            m_MaskLayer.globalScale = 2f;
-            m_MaskLayer.movePosition = false;
-            m_MaskLayer.moveScale    = true;
-            m_MaskLayer.material     = new Material(Shader.Find("UI/Mask"));
-            m_MaskLayer.material.SetColor("_Color", new Color(54f/255f, 81f/255f, 91f/255f, .9f));
-        }
-        if (!m_FlowCameraObject)
-        {
-            m_FlowCameraObject = GameObject.Instantiate(FlowCameraPrefab);
-            m_FlowCameraObject.name = "Flow Camera";
-            m_FlowCameraObject.transform.SetParent(container);
-            m_FlowCameraObject.transform.localPosition = Vector3.back;
-        }
-        if (!m_FlowCamera)
-        {
-            m_FlowCamera = m_FlowCameraObject.GetComponent<Camera>();
-            m_FlowCamera.aspect = container.rect.width / container.rect.height;
-            m_FlowCamera.orthographicSize = .5f * container.rect.height;
-        }
-        if (!m_FlowLayerObject)
-        {
-            m_FlowLayerObject = GameObject.Instantiate(LayerPrefab);
-            m_FlowLayerObject.name = "Layer: Flow";
-
-            RectTransform rt = m_FlowLayerObject.GetComponent<RectTransform>();
-            rt.SetParent(container);
-            rt.anchoredPosition = Vector3.zero;
-        }
-        if (!m_FlowLayer)
-        {
-            m_FlowLayer = m_FlowLayerObject.GetComponent<RawImageController>();
-            m_FlowLayer.movePosition = false;
-            m_FlowLayer.moveScale    = false;
-            m_FlowLayer.useGrid      = false;
-            m_FlowLayer.material     = new Material(Shader.Find("UI/Grid"));
-        }
-
-        RenderTexture flowTex = new RenderTexture((int)container.rect.width, (int)container.rect.height, 0, RenderTextureFormat.ARGB32);
-
-        // Setup References
-        m_MaskTexture.SetTarget(m_MaskLayer);
-        m_FlowCamera.targetTexture = flowTex;
-        m_FlowLayer.SetTexture(flowTex);
-
-        // Disable All Effects
-        if (m_EffectLayerObject)
-            m_EffectLayerObject.SetActive(false);
-    }
-
-    public void RemoveFlow()
-    {
-        if (m_FlowCamera)
-            m_FlowCamera.targetTexture.Release();
-
-        if (m_MaskLayerObject)
-            Destroy(m_MaskLayerObject);
-        if (m_FlowCameraObject)
-            Destroy(m_FlowCameraObject);
-        if (m_FlowLayerObject)
-            Destroy(m_FlowLayerObject);
-
-        m_MaskLayerObject  = null;
-        m_MaskLayer        = null;
-        m_FlowCameraObject = null;
-        m_FlowCamera       = null;
-        m_FlowLayerObject  = null;
-        m_FlowLayer        = null;
-
-        // Invoke Flow Texture Draw
-        if (m_FlowController)
-            m_WaterEffectManager.CreateFlow(m_FlowController);
-
-        // Enable All Effects
-        if (m_EffectLayerObject)
-            m_EffectLayerObject.SetActive(true);
-    }
-
     public void CreateSLIC()
     {
         if (!m_SLICLabelTextureObject)
@@ -512,6 +413,7 @@ public class EditorSceneMaster : MonoBehaviour
     }
 
     public void Effect_RV01() { CreateEffect(Constants.ModeWaterType.RV01); }
+    public void Effect_RV02() { CreateEffect(Constants.ModeWaterType.RV02); }    
 
     public void CreateEffect(Constants.ModeWaterType effectType)
     {
