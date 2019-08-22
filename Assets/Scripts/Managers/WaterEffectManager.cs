@@ -69,21 +69,9 @@ public class WaterEffectManager : MonoBehaviour
             riverOptionPanel.SetActive(false);
             InputManager.instance.optionMenu = null;
             break;
-        case Constants.ModeWaterType.CL01:
-        case Constants.ModeWaterType.CL02:
-            _effectProvider = gameObject.AddComponent<CalmEffectTexture>();
-            CalmEffectTexture calm  = _effectProvider as CalmEffectTexture;
-            calm.noiseProvider = _noiseProvider;
-            calm.paletteProvider = paletteProvider;
-            calm.environmentProvider = environmentProvider;
-            calm.Setup(width, height);
-
-            /* SETUP UI */
-            riverOptionPanel.SetActive(false);
-            break;
         case Constants.ModeWaterType.RV01:
-            _effectProvider = gameObject.AddComponent<RiverEffectTexture>();
-            RiverEffectTexture river = _effectProvider as RiverEffectTexture;
+            _effectProvider = gameObject.AddComponent<EffectTexture>();
+            EffectTexture river = _effectProvider as EffectTexture;
             river.noiseProvider = _noiseProvider;
             river.paletteProvider = paletteProvider;
             river.environmentProvider = environmentProvider;
@@ -101,12 +89,6 @@ public class WaterEffectManager : MonoBehaviour
         switch (_effectType)
         {
         case Constants.ModeWaterType.NONE:
-            break;
-        case Constants.ModeWaterType.CL01:
-            Store.instance.Dispatch(WaterEffectActions.instance.SetupCL01());
-            break;
-        case Constants.ModeWaterType.CL02:
-            Store.instance.Dispatch(WaterEffectActions.instance.SetupCL02());
             break;
         case Constants.ModeWaterType.RV01:
             Store.instance.Dispatch(WaterEffectActions.instance.SetupRV01());

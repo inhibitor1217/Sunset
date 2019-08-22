@@ -18,7 +18,6 @@ public class SharedActions : ActionModule
 
     public const string FIELD__HORIZON         = "Shared__Horizon";
     public const string FIELD__PERSPECTIVE     = "Shared__Perspective";
-    public const string FIELD__LIGHT_DIRECTION = "Shared__LightDirection";
 
     public Action SetHorizon(float value) { return new Action<float>(ACTION__SET_HORIZON, value); }
 
@@ -28,7 +27,6 @@ public class SharedActions : ActionModule
         {
             { FIELD__HORIZON,          .65f },
             { FIELD__PERSPECTIVE,      1f   },
-            { FIELD__LIGHT_DIRECTION,  new Vector4(0f, 0.939693f, 0.342020f, 0f) },
         };
     }
 

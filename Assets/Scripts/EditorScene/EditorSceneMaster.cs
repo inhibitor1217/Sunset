@@ -511,8 +511,6 @@ public class EditorSceneMaster : MonoBehaviour
         m_PaletteTexture = null;
     }
 
-    public void Effect_CL01() { CreateEffect(Constants.ModeWaterType.CL01); }
-    public void Effect_CL02() { CreateEffect(Constants.ModeWaterType.CL02); }
     public void Effect_RV01() { CreateEffect(Constants.ModeWaterType.RV01); }
 
     public void CreateEffect(Constants.ModeWaterType effectType)

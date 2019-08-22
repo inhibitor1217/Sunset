@@ -1,11 +1,11 @@
 using UnityEngine;
 
-public class RiverEffectTexture : TextureProvider
+public class EffectTexture : TextureProvider
 {
 
     private RenderTexture m_RenderTexture;
+    [SerializeField]
     private Material m_WaterMaterial;
-    private int m_RiverPass;
 
     private TextureProvider _paletteProvider;
     private TextureProvider _noiseProvider;
@@ -37,7 +37,6 @@ public class RiverEffectTexture : TextureProvider
         /* SETUP MATERIALS */
         m_WaterMaterial = new Material(Shader.Find("Compute/WaterEffect"));
         m_WaterMaterial.EnableKeyword("USE_MIPMAP");
-        m_RiverPass       = m_WaterMaterial.FindPass("River");
     }
 
     public override bool Draw()
@@ -46,7 +45,7 @@ public class RiverEffectTexture : TextureProvider
             return false;
 
         m_RenderTexture.DiscardContents();
-        Graphics.Blit(null, m_RenderTexture, m_WaterMaterial, m_RiverPass);
+        Graphics.Blit(null, m_RenderTexture, m_WaterMaterial);
 
         return true;
     }
@@ -58,7 +57,7 @@ public class RiverEffectTexture : TextureProvider
 
     public override string GetProviderName()
     {
-        return "RiverEffectTexture";
+        return "EffectTexture";
     }
 
     new void OnDestroy()
@@ -85,14 +84,16 @@ public class RiverEffectTexture : TextureProvider
   
         Subscribe(SharedActions.FIELD__HORIZON,         m_WaterMaterial, "_Horizon", "Float");
         Subscribe(SharedActions.FIELD__PERSPECTIVE,     m_WaterMaterial, "_Perspective", "Float");
-        Subscribe(SharedActions.FIELD__LIGHT_DIRECTION, m_WaterMaterial, "_LightDirection", "Vector");
         Subscribe(
             WaterEffectActions.FIELD__ROTATION,
             (state) => {
-                float rotation = Mathf.Deg2Rad * (float)state[WaterEffectActions.FIELD__ROTATION];
+                float rotation = (float)state[WaterEffectActions.FIELD__ROTATION];
                 m_WaterMaterial.SetVector("_Rotation", new Vector4(Mathf.Cos(rotation), -Mathf.Sin(rotation), Mathf.Sin(rotation), Mathf.Cos(rotation)));
                 textureShouldUpdate = true;
             });
-        Subscribe(WaterEffectActions.FIELD__SPEED,      m_WaterMaterial, "_Speed", "Float");
+        Subscribe(WaterEffectActions.FIELD__VERTICAL_BLUR_WIDTH, m_WaterMaterial, "_VerticalBlurWidth", "Float");
+        Subscribe(WaterEffectActions.FIELD__VERTICAL_BLUR_STRENGTH, m_WaterMaterial, "_VerticalBlurStrength", "Float");
+        Subscribe(WaterEffectActions.FIELD__DISTORTION_STRENGTH, m_WaterMaterial, "_DistortionStrength", "Float");
+        Subscribe(WaterEffectActions.FIELD__TONE_STRENGTH, m_WaterMaterial, "_ToneStrength", "Float");
     }
 }
