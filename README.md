@@ -8,6 +8,9 @@ A Photo Editor Application for Android
 - Redux
 - C#, C++, ShaderLab, Cg, Python 3
 
+### Contents
+- Google Slides: https://drive.google.com/file/d/1RUESFnPRfMIwkty25fy-N-juEPhfz55V/view?usp=sharing
+
 ### Previews
 ![preview-1](Previews/1.PNG)
 
